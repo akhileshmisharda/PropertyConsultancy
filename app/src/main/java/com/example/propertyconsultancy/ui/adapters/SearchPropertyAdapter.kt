@@ -31,6 +31,7 @@ class SearchPropertyAdapter(
         val tvAmenitiesLeft: TextView = view.findViewById(R.id.tvAmenitiesLeft)
         val btnCallLeft: View = view.findViewById(R.id.btnCallLeft)
         val btnChatLeft: View = view.findViewById(R.id.btnChatLeft)
+        val btnStarLeft: View = view.findViewById(R.id.btnStarLeft)
         val tvImgCountLeft: TextView = view.findViewById(R.id.tvImgCountLeft)
         val ivVideoIconLeft: ImageView = view.findViewById(R.id.ivVideoIconLeft)
 
@@ -47,6 +48,7 @@ class SearchPropertyAdapter(
         val tvAmenitiesRight: TextView = view.findViewById(R.id.tvAmenitiesRight)
         val btnCallRight: View = view.findViewById(R.id.btnCallRight)
         val btnChatRight: View = view.findViewById(R.id.btnChatRight)
+        val btnStarRight: View = view.findViewById(R.id.btnStarRight)
         val tvImgCountRight: TextView = view.findViewById(R.id.tvImgCountRight)
         val ivVideoIconRight: ImageView = view.findViewById(R.id.ivVideoIconRight)
     }
@@ -69,7 +71,7 @@ class SearchPropertyAdapter(
         if (isLeft) {
             holder.layoutLeft.visibility = View.VISIBLE
             holder.layoutRight.visibility = View.GONE
-            bindData(property, holder.tvTitleLeft, holder.tvPriceLeft, holder.tvLocationLeft, holder.tvBhkLeft, holder.tvBathLeft, holder.tvAreaLeft, holder.tvInterestedLeft, holder.tvAmenitiesLeft, holder.ivImageLeft, holder.btnCallLeft, holder.btnChatLeft, holder.tvImgCountLeft, holder.ivVideoIconLeft)
+            bindData(property, holder.tvTitleLeft, holder.tvPriceLeft, holder.tvLocationLeft, holder.tvBhkLeft, holder.tvBathLeft, holder.tvAreaLeft, holder.tvInterestedLeft, holder.tvAmenitiesLeft, holder.ivImageLeft, holder.btnCallLeft, holder.btnChatLeft, holder.btnStarLeft, holder.tvImgCountLeft, holder.ivVideoIconLeft)
             
             holder.ivImageLeft.transitionName = "property_image_$position"
             holder.tvTitleLeft.transitionName = "property_title_$position"
@@ -79,7 +81,7 @@ class SearchPropertyAdapter(
         } else {
             holder.layoutLeft.visibility = View.GONE
             holder.layoutRight.visibility = View.VISIBLE
-            bindData(property, holder.tvTitleRight, holder.tvPriceRight, holder.tvLocationRight, holder.tvBhkRight, holder.tvBathRight, holder.tvAreaRight, holder.tvInterestedRight, holder.tvAmenitiesRight, holder.ivImageRight, holder.btnCallRight, holder.btnChatRight, holder.tvImgCountRight, holder.ivVideoIconRight)
+            bindData(property, holder.tvTitleRight, holder.tvPriceRight, holder.tvLocationRight, holder.tvBhkRight, holder.tvBathRight, holder.tvAreaRight, holder.tvInterestedRight, holder.tvAmenitiesRight, holder.ivImageRight, holder.btnCallRight, holder.btnChatRight, holder.btnStarRight, holder.tvImgCountRight, holder.ivVideoIconRight)
             
             holder.ivImageRight.transitionName = "property_image_$position"
             holder.tvTitleRight.transitionName = "property_title_$position"
@@ -140,7 +142,7 @@ class SearchPropertyAdapter(
         stopImageCycle(holder.bindingAdapterPosition)
     }
 
-    private fun bindData(property: PropertyDTO, tvTitle: TextView, tvPrice: TextView, tvLocation: TextView, tvBhk: TextView, tvBath: TextView, tvArea: TextView, tvInterested: TextView, tvAmenities: TextView, ivImage: ImageView, btnCall: View, btnChat: View, tvImgCount: TextView, ivVideoIcon: ImageView) {
+    private fun bindData(property: PropertyDTO, tvTitle: TextView, tvPrice: TextView, tvLocation: TextView, tvBhk: TextView, tvBath: TextView, tvArea: TextView, tvInterested: TextView, tvAmenities: TextView, ivImage: ImageView, btnCall: View, btnChat: View, btnStar: View, tvImgCount: TextView, ivVideoIcon: ImageView) {
         tvTitle.text = property.title?.uppercase() ?: "PREMIUM PROPERTY"
         
         val price = property.pricePerMonth ?: 0.0
@@ -186,6 +188,7 @@ class SearchPropertyAdapter(
         
         btnCall.setOnClickListener { android.widget.Toast.makeText(tvTitle.context, "Calling owner...", android.widget.Toast.LENGTH_SHORT).show() }
         btnChat.setOnClickListener { onChatClick(property) }
+        btnStar.setOnClickListener { android.widget.Toast.makeText(tvTitle.context, "Starred!", android.widget.Toast.LENGTH_SHORT).show() }
     }
 
     override fun getItemCount(): Int = properties.size
