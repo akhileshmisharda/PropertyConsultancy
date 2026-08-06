@@ -512,10 +512,10 @@ class SearchFragment : Fragment() {
                 if (Math.abs(diffX) > Math.abs(diffY)) {
                     if (Math.abs(diffX) > SWIPE_THRESHOLD && Math.abs(velocityX) > SWIPE_VELOCITY_THRESHOLD) {
                         if (diffX < 0) {
-                            // Left swipe (Finger R -> L) -> Previous Page
+                            // Left swipe (Finger moves R -> L) -> Previous Page
                             onSwipeRight()
                         } else {
-                            // Right swipe (Finger L -> R) -> Next Page
+                            // Right swipe (Finger moves L -> R) -> Next Page
                             onSwipeLeft()
                         }
                         return true

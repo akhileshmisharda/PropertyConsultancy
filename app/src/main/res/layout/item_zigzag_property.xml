@@ -42,13 +42,30 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent">
-            <ImageView
-                android:id="@+id/ivPropertyLeft"
+            <FrameLayout
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:scaleType="centerCrop"
-                android:transitionName="property_image"
-                tools:src="@drawable/ic_app_logo" />
+                android:layout_height="match_parent">
+                <ImageView
+                    android:id="@+id/ivPropertyLeft"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="centerCrop"
+                    android:transitionName="property_image"
+                    tools:src="@drawable/ic_app_logo" />
+                <TextView
+                    android:id="@+id/tvPropertyTypeLeft"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="top"
+                    android:background="#99000000"
+                    android:gravity="center"
+                    android:paddingVertical="4dp"
+                    android:textColor="@color/white"
+                    android:textSize="10sp"
+                    android:textStyle="bold"
+                    android:layout_marginTop="20dp"
+                    tools:text="APARTMENT" />
+            </FrameLayout>
         </com.google.android.material.card.MaterialCardView>
 
         <LinearLayout
@@ -99,9 +116,18 @@
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:gravity="center_vertical">
-                <RelativeLayout
+                <LinearLayout
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content">
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+                    <ImageView
+                        android:id="@+id/ivFilterPriceLeft"
+                        android:layout_width="10dp"
+                        android:layout_height="10dp"
+                        android:layout_marginEnd="2dp"
+                        android:src="@drawable/ic_filter_indicator"
+                        android:visibility="gone" />
                     <TextView
                         android:id="@+id/tvPriceLeft"
                         android:layout_width="wrap_content"
@@ -109,18 +135,9 @@
                         android:textColor="?attr/colorPrimary"
                         android:textSize="18sp"
                         android:textStyle="bold"
-                        android:layout_marginEnd="8dp"
                         android:gravity="start"
                         tools:text="₹ 28,000" />
-                    <ImageView
-                        android:id="@+id/ivFilterPriceLeft"
-                        android:layout_width="10dp"
-                        android:layout_height="10dp"
-                        android:layout_alignParentTop="true"
-                        android:layout_alignParentStart="true"
-                        android:src="@drawable/ic_filter_indicator"
-                        android:visibility="gone" />
-                </RelativeLayout>
+                </LinearLayout>
                 <TextView
                     android:id="@+id/tvTitleLeft"
                     android:layout_width="0dp"
@@ -179,10 +196,18 @@
                     android:textStyle="bold"
                     android:gravity="start"
                     tools:text="2 BathRoom" />
-                <RelativeLayout
-                    android:layout_width="0dp"
+                <LinearLayout
+                    android:layout_width="70dp"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1">
+                    android:orientation="horizontal"
+                    android:gravity="center">
+                    <ImageView
+                        android:id="@+id/ivFilterBhkLeft"
+                        android:layout_width="10dp"
+                        android:layout_height="10dp"
+                        android:layout_marginEnd="2dp"
+                        android:src="@drawable/ic_filter_indicator"
+                        android:visibility="gone" />
                     <TextView
                         android:id="@+id/tvBhkLeft"
                         style="@style/App.BhkTag"
@@ -190,16 +215,7 @@
                         android:layout_height="wrap_content"
                         android:gravity="center"
                         tools:text="2 BHK" />
-                    <ImageView
-                        android:id="@+id/ivFilterBhkLeft"
-                        android:layout_width="10dp"
-                        android:layout_height="10dp"
-                        android:layout_alignParentTop="true"
-                        android:layout_alignParentStart="true"
-                        android:layout_marginStart="4dp"
-                        android:src="@drawable/ic_filter_indicator"
-                        android:visibility="gone" />
-                </RelativeLayout>
+                </LinearLayout>
                 <TextView
                     android:id="@+id/tvAreaLeft"
                     android:layout_width="0dp"
@@ -212,12 +228,14 @@
                     tools:text="1300 Sqft" />
             </LinearLayout>
 
-            <RelativeLayout
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content">
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
                 <TextView
                     android:id="@+id/tvLocationLeft"
-                    android:layout_width="match_parent"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="0dp"
                     android:drawablePadding="2dp"
@@ -231,46 +249,37 @@
                     android:id="@+id/ivFilterLocationLeft"
                     android:layout_width="10dp"
                     android:layout_height="10dp"
-                    android:layout_alignParentTop="true"
-                    android:layout_alignParentStart="true"
-                    android:layout_marginStart="12dp"
+                    android:layout_marginStart="4dp"
                     android:src="@drawable/ic_filter_indicator"
                     android:visibility="gone" />
-            </RelativeLayout>
+            </LinearLayout>
 
             <LinearLayout
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:orientation="horizontal">
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnCallLeft"
-                    style="@style/Widget.Material3.Button.TonalButton"
-                    android:layout_width="wrap_content"
-                    android:layout_height="32dp"
-                    android:insetTop="0dp"
-                    android:insetBottom="0dp"
-                    android:text="Call"
-                    android:textSize="10sp"
-                    app:cornerRadius="8dp"
-                    app:icon="@android:drawable/stat_sys_phone_call"
-                    app:iconSize="14dp" />
+                <TextView
+                    android:id="@+id/tvFacingLeft"
+                    style="@style/App.BhkTag"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    tools:text="East" />
 
-                <Space android:layout_width="8dp" android:layout_height="wrap_content" />
+                <Space android:layout_width="4dp" android:layout_height="wrap_content" />
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnChatLeft"
-                    style="@style/Widget.Material3.Button.TonalButton"
-                    android:layout_width="wrap_content"
-                    android:layout_height="32dp"
-                    android:insetTop="0dp"
-                    android:insetBottom="0dp"
-                    android:text="Chat"
-                    android:textSize="10sp"
-                    app:cornerRadius="8dp"
-                    app:icon="@android:drawable/stat_notify_chat"
-                    app:iconSize="14dp" />
+                <TextView
+                    android:id="@+id/tvRoadSizeLeft"
+                    style="@style/App.BhkTag"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    tools:text="40ft" />
             </LinearLayout>
         </LinearLayout>
     </androidx.constraintlayout.widget.ConstraintLayout>
@@ -311,13 +320,30 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent">
-            <ImageView
-                android:id="@+id/ivPropertyRight"
+            <FrameLayout
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:scaleType="centerCrop"
-                android:transitionName="property_image"
-                tools:src="@drawable/ic_app_logo" />
+                android:layout_height="match_parent">
+                <ImageView
+                    android:id="@+id/ivPropertyRight"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="centerCrop"
+                    android:transitionName="property_image"
+                    tools:src="@drawable/ic_app_logo" />
+                <TextView
+                    android:id="@+id/tvPropertyTypeRight"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="top"
+                    android:background="#99000000"
+                    android:gravity="center"
+                    android:paddingVertical="4dp"
+                    android:textColor="@color/white"
+                    android:textSize="10sp"
+                    android:textStyle="bold"
+                    android:layout_marginTop="20dp"
+                    tools:text="VILLA" />
+            </FrameLayout>
         </com.google.android.material.card.MaterialCardView>
 
         <LinearLayout
@@ -381,9 +407,18 @@
                     android:ellipsize="end"
                     android:transitionName="property_title"
                     tools:text="FOREST SLATE VILLA" />
-                <RelativeLayout
+                <LinearLayout
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content">
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+                    <ImageView
+                        android:id="@+id/ivFilterPriceRight"
+                        android:layout_width="10dp"
+                        android:layout_height="10dp"
+                        android:layout_marginEnd="2dp"
+                        android:src="@drawable/ic_filter_indicator"
+                        android:visibility="gone" />
                     <TextView
                         android:id="@+id/tvPriceRight"
                         android:layout_width="wrap_content"
@@ -394,15 +429,7 @@
                         android:layout_marginStart="8dp"
                         android:gravity="end"
                         tools:text="₹ 75,000" />
-                    <ImageView
-                        android:id="@+id/ivFilterPriceRight"
-                        android:layout_width="10dp"
-                        android:layout_height="10dp"
-                        android:layout_alignParentTop="true"
-                        android:layout_alignParentStart="true"
-                        android:src="@drawable/ic_filter_indicator"
-                        android:visibility="gone" />
-                </RelativeLayout>
+                </LinearLayout>
             </LinearLayout>
 
             <LinearLayout
@@ -449,10 +476,18 @@
                     android:gravity="start"
                     tools:text="2500 Sqft" />
 
-                <RelativeLayout
-                    android:layout_width="0dp"
+                <LinearLayout
+                    android:layout_width="70dp"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1">
+                    android:orientation="horizontal"
+                    android:gravity="center">
+                    <ImageView
+                        android:id="@+id/ivFilterBhkRight"
+                        android:layout_width="10dp"
+                        android:layout_height="10dp"
+                        android:layout_marginEnd="2dp"
+                        android:src="@drawable/ic_filter_indicator"
+                        android:visibility="gone" />
                     <TextView
                         android:id="@+id/tvBhkRight"
                         style="@style/App.BhkTag"
@@ -460,16 +495,7 @@
                         android:layout_height="wrap_content"
                         android:gravity="center"
                         tools:text="4 BHK" />
-                    <ImageView
-                        android:id="@+id/ivFilterBhkRight"
-                        android:layout_width="10dp"
-                        android:layout_height="10dp"
-                        android:layout_alignParentTop="true"
-                        android:layout_alignParentStart="true"
-                        android:layout_marginStart="4dp"
-                        android:src="@drawable/ic_filter_indicator"
-                        android:visibility="gone" />
-                </RelativeLayout>
+                </LinearLayout>
 
                 <TextView
                     android:id="@+id/tvBathRight"
@@ -483,12 +509,21 @@
                     tools:text="3 BathRoom" />
             </LinearLayout>
 
-            <RelativeLayout
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content">
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical|end">
+                <ImageView
+                    android:id="@+id/ivFilterLocationRight"
+                    android:layout_width="10dp"
+                    android:layout_height="10dp"
+                    android:layout_marginEnd="4dp"
+                    android:src="@drawable/ic_filter_indicator"
+                    android:visibility="gone" />
                 <TextView
                     android:id="@+id/tvLocationRight"
-                    android:layout_width="match_parent"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="0dp"
                     android:drawablePadding="2dp"
@@ -498,16 +533,7 @@
                     app:drawableEndCompat="@drawable/ic_location_pin"
                     app:drawableTint="?attr/colorOnSurfaceVariant"
                     tools:text="Civil Lines" />
-                <ImageView
-                    android:id="@+id/ivFilterLocationRight"
-                    android:layout_width="10dp"
-                    android:layout_height="10dp"
-                    android:layout_alignParentTop="true"
-                    android:layout_alignParentStart="true"
-                    android:layout_marginStart="12dp"
-                    android:src="@drawable/ic_filter_indicator"
-                    android:visibility="gone" />
-            </RelativeLayout>
+            </LinearLayout>
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -516,33 +542,25 @@
                 android:gravity="start"
                 android:orientation="horizontal">
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnCallRight"
-                    style="@style/Widget.Material3.Button.TonalButton"
-                    android:layout_width="wrap_content"
-                    android:layout_height="32dp"
-                    android:insetTop="0dp"
-                    android:insetBottom="0dp"
-                    android:text="Call"
-                    android:textSize="10sp"
-                    app:cornerRadius="8dp"
-                    app:icon="@android:drawable/stat_sys_phone_call"
-                    app:iconSize="14dp" />
+                <TextView
+                    android:id="@+id/tvFacingRight"
+                    style="@style/App.BhkTag"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    tools:text="West" />
 
-                <Space android:layout_width="8dp" android:layout_height="wrap_content" />
+                <Space android:layout_width="4dp" android:layout_height="wrap_content" />
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnChatRight"
-                    style="@style/Widget.Material3.Button.TonalButton"
-                    android:layout_width="wrap_content"
-                    android:layout_height="32dp"
-                    android:insetTop="0dp"
-                    android:insetBottom="0dp"
-                    android:text="Chat"
-                    android:textSize="10sp"
-                    app:cornerRadius="8dp"
-                    app:icon="@android:drawable/stat_notify_chat"
-                    app:iconSize="14dp" />
+                <TextView
+                    android:id="@+id/tvRoadSizeRight"
+                    style="@style/App.BhkTag"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    tools:text="60ft" />
             </LinearLayout>
         </LinearLayout>
     </androidx.constraintlayout.widget.ConstraintLayout>
