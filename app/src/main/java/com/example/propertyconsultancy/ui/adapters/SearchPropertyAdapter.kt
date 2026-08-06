@@ -33,6 +33,7 @@ class SearchPropertyAdapter(
         val tvBhkLeft: TextView = view.findViewById(R.id.tvBhkLeft)
         val tvBathLeft: TextView = view.findViewById(R.id.tvBathLeft)
         val tvAreaLeft: TextView = view.findViewById(R.id.tvAreaLeft)
+        val tvFloorLeft: TextView = view.findViewById(R.id.tvFloorLeft)
         val tvInterestedLeft: TextView = view.findViewById(R.id.tvInterestedLeft)
         val tvAmenitiesLeft: TextView = view.findViewById(R.id.tvAmenitiesLeft)
         val tvImgCountLeft: TextView = view.findViewById(R.id.tvImgCountLeft)
@@ -57,6 +58,7 @@ class SearchPropertyAdapter(
         val tvBhkRight: TextView = view.findViewById(R.id.tvBhkRight)
         val tvBathRight: TextView = view.findViewById(R.id.tvBathRight)
         val tvAreaRight: TextView = view.findViewById(R.id.tvAreaRight)
+        val tvFloorRight: TextView = view.findViewById(R.id.tvFloorRight)
         val tvInterestedRight: TextView = view.findViewById(R.id.tvInterestedRight)
         val tvAmenitiesRight: TextView = view.findViewById(R.id.tvAmenitiesRight)
         val tvImgCountRight: TextView = view.findViewById(R.id.tvImgCountRight)
@@ -89,13 +91,13 @@ class SearchPropertyAdapter(
         stopImageCycle(position)
 
         val views = if (isLeft) {
-            listOf(holder.ivImageLeft, holder.tvTitleLeft, holder.tvPriceLeft, holder.tvLocationLeft, holder.tvBhkLeft, holder.tvAreaLeft, holder.tvFacingLeft, holder.tvRoadSizeLeft, holder.tvFurnishedLeft, holder.tvBathLeft, holder.tvPropertyTypeLeft)
+            listOf(holder.ivImageLeft, holder.tvTitleLeft, holder.tvPriceLeft, holder.tvLocationLeft, holder.tvBhkLeft, holder.tvAreaLeft, holder.tvFacingLeft, holder.tvRoadSizeLeft, holder.tvFurnishedLeft, holder.tvBathLeft, holder.tvPropertyTypeLeft, holder.tvInterestedLeft, holder.tvAmenitiesLeft, holder.tvFloorLeft)
         } else {
-            listOf(holder.ivImageRight, holder.tvTitleRight, holder.tvPriceRight, holder.tvLocationRight, holder.tvBhkRight, holder.tvAreaRight, holder.tvFacingRight, holder.tvRoadSizeRight, holder.tvFurnishedRight, holder.tvBathRight, holder.tvPropertyTypeRight)
+            listOf(holder.ivImageRight, holder.tvTitleRight, holder.tvPriceRight, holder.tvLocationRight, holder.tvBhkRight, holder.tvAreaRight, holder.tvFacingRight, holder.tvRoadSizeRight, holder.tvFurnishedRight, holder.tvBathRight, holder.tvPropertyTypeRight, holder.tvInterestedRight, holder.tvAmenitiesRight, holder.tvFloorRight)
         }
 
         val sharedElements = mutableMapOf<String, View>()
-        val prefixes = listOf("property_image", "property_title", "property_price", "property_location", "property_bhk", "property_area", "property_facing", "property_roadsize", "property_furnished", "property_bath", "property_type")
+        val prefixes = listOf("property_image", "property_title", "property_price", "property_location", "property_bhk", "property_area", "property_facing", "property_roadsize", "property_furnished", "property_bath", "property_type", "property_interested", "property_amenities", "property_floor")
         
         views.forEachIndexed { index, view ->
             val name = "${prefixes[index]}_$position"
@@ -106,14 +108,14 @@ class SearchPropertyAdapter(
         if (isLeft) {
             holder.layoutLeft.visibility = View.VISIBLE
             holder.layoutRight.visibility = View.GONE
-            bindData(property, holder.tvTitleLeft, holder.tvPriceLeft, holder.tvLocationLeft, holder.tvBhkLeft, holder.tvBathLeft, holder.tvAreaLeft, holder.tvInterestedLeft, holder.tvAmenitiesLeft, holder.ivImageLeft, holder.tvImgCountLeft, holder.ivVideoIconLeft, holder.ivFilterPriceLeft, holder.ivFilterBhkLeft, holder.ivFilterLocationLeft, holder.ivFilterProTypeLeft, holder.tvFacingLeft, holder.tvRoadSizeLeft, holder.tvFurnishedLeft, holder.tvPropertyTypeLeft)
+            bindData(property, holder.tvTitleLeft, holder.tvPriceLeft, holder.tvLocationLeft, holder.tvBhkLeft, holder.tvBathLeft, holder.tvAreaLeft, holder.tvInterestedLeft, holder.tvAmenitiesLeft, holder.ivImageLeft, holder.tvImgCountLeft, holder.ivVideoIconLeft, holder.ivFilterPriceLeft, holder.ivFilterBhkLeft, holder.ivFilterLocationLeft, holder.ivFilterProTypeLeft, holder.tvFacingLeft, holder.tvRoadSizeLeft, holder.tvFurnishedLeft, holder.tvPropertyTypeLeft, holder.tvFloorLeft)
             
             setupImageCycle(property, holder.ivImageLeft, position)
             holder.itemView.setOnClickListener { onItemClick(property, sharedElements) }
         } else {
             holder.layoutLeft.visibility = View.GONE
             holder.layoutRight.visibility = View.VISIBLE
-            bindData(property, holder.tvTitleRight, holder.tvPriceRight, holder.tvLocationRight, holder.tvBhkRight, holder.tvBathRight, holder.tvAreaRight, holder.tvInterestedRight, holder.tvAmenitiesRight, holder.ivImageRight, holder.tvImgCountRight, holder.ivVideoIconRight, holder.ivFilterPriceRight, holder.ivFilterBhkRight, holder.ivFilterLocationRight, holder.ivFilterProTypeRight, holder.tvFacingRight, holder.tvRoadSizeRight, holder.tvFurnishedRight, holder.tvPropertyTypeRight)
+            bindData(property, holder.tvTitleRight, holder.tvPriceRight, holder.tvLocationRight, holder.tvBhkRight, holder.tvBathRight, holder.tvAreaRight, holder.tvInterestedRight, holder.tvAmenitiesRight, holder.ivImageRight, holder.tvImgCountRight, holder.ivVideoIconRight, holder.ivFilterPriceRight, holder.ivFilterBhkRight, holder.ivFilterLocationRight, holder.ivFilterProTypeRight, holder.tvFacingRight, holder.tvRoadSizeRight, holder.tvFurnishedRight, holder.tvPropertyTypeRight, holder.tvFloorRight)
             
             setupImageCycle(property, holder.ivImageRight, position)
             holder.itemView.setOnClickListener { onItemClick(property, sharedElements) }
@@ -171,7 +173,7 @@ class SearchPropertyAdapter(
         stopImageCycle(holder.bindingAdapterPosition)
     }
 
-    private fun bindData(property: PropertyDTO, tvTitle: TextView, tvPrice: TextView, tvLocation: TextView, tvBhk: TextView, tvBath: TextView, tvArea: TextView, tvInterested: TextView, tvAmenities: TextView, ivImage: ImageView, tvImgCount: TextView, ivVideoIcon: ImageView, ivFilterPrice: View, ivFilterBhk: View, ivFilterLocation: View, ivFilterProType: View, tvFacing: TextView, tvRoadSize: TextView, tvFurnished: TextView, tvPropertyType: TextView) {
+    private fun bindData(property: PropertyDTO, tvTitle: TextView, tvPrice: TextView, tvLocation: TextView, tvBhk: TextView, tvBath: TextView, tvArea: TextView, tvInterested: TextView, tvAmenities: TextView, ivImage: ImageView, tvImgCount: TextView, ivVideoIcon: ImageView, ivFilterPrice: View, ivFilterBhk: View, ivFilterLocation: View, ivFilterProType: View, tvFacing: TextView, tvRoadSize: TextView, tvFurnished: TextView, tvPropertyType: TextView, tvFloor: TextView) {
         tvTitle.text = property.title?.uppercase() ?: "PREMIUM PROPERTY"
         
         val price = property.pricePerMonth ?: 0.0
@@ -185,26 +187,37 @@ class SearchPropertyAdapter(
         val area = property.areaSqft ?: 0
         
         tvBhk.text = "$bhk BHK"
-        tvBath.text = "$baths BathRoom"
+        tvBath.text = "$baths Bath"
         tvArea.text = "$area Sqft"
         
         // Facing, RoadSize, Status mapping
         val categories = CategoryCache.getCategories(tvTitle.context)
         fun getOptionName(ids: List<Int>?, group: String): String {
             if (ids.isNullOrEmpty()) return "N/A"
-            val options = categories?.find { it.name.contains(group, true) }?.options
-            return options?.find { it.categoryId == ids.first() }?.option ?: "ID: ${ids.first()}"
+            val cleanGroup = group.replace(" ", "").lowercase()
+            val options = categories?.find {
+                val name = it.name.replace(" ", "").lowercase()
+                name.contains(cleanGroup) || cleanGroup.contains(name)
+            }?.options
+            
+            val found = options?.find { it.categoryId == ids.first() }?.option
+            if (found != null) return found
+            
+            return categories?.flatMap { it.options }?.find { it.categoryId == ids.first() }?.option ?: "ID: ${ids.first()}"
         }
         
         tvFacing.text = "Facing : ${getOptionName(property.facingId?.let { listOf(it) }, "Facing")}"
-        tvRoadSize.text = "Road : ${getOptionName(property.roadSizeId?.let { listOf(it) }, "Road")}"
+        tvRoadSize.text = "Road : ${getOptionName(property.roadSizeId?.let { listOf(it) }, "Road Size")}"
         
+        val floorName = getOptionName(property.floorId?.let { listOf(it) }, "Floor")
+        tvFloor.text = if (floorName.contains("floor", true)) floorName else "$floorName Flr"
+
         // Furnished logic: check if any amenity name contains "Furnished" or check common keywords in description
         val isFurnished = property.description?.contains("furnished", true) == true || 
                           property.amenities?.any { it.name.contains("furnished", true) } == true
         tvFurnished.text = if (isFurnished) "Furnished" else "Unfurnished"
         
-        tvPropertyType.text = getOptionName(property.proTypeId?.let { listOf(it) }, "PropertyType").uppercase()
+        tvPropertyType.text = getOptionName(property.proTypeId?.let { listOf(it) }, "Property Type")
 
         // Filter Indicators
         ivFilterLocation.visibility = if (!currentCity.isNullOrEmpty()) View.VISIBLE else View.GONE
@@ -217,11 +230,11 @@ class SearchPropertyAdapter(
 
         // Dummy logic for interested people
         val interestedCount = (5..25).random()
-        tvInterested.text = "$interestedCount Interested"
+        tvInterested.text = "{ $interestedCount Interested }"
         tvInterested.visibility = View.VISIBLE
 
         val amenitiesCount = property.amenityCount ?: 0
-        tvAmenities.text = "$amenitiesCount Amenities"
+        tvAmenities.text = "{ $amenitiesCount Amenities }"
 
         // Tap to filter logic
         tvBhk.setOnClickListener { onFilterClick("BHK", bhk) }

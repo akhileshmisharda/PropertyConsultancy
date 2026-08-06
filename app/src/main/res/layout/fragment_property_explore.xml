@@ -163,10 +163,43 @@
                     android:id="@+id/tvExploreBath"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_marginEnd="16dp"
+                    android:layout_marginBottom="8dp"
                     android:textColor="@color/theme1_text"
                     android:textSize="16sp"
                     android:transitionName="property_bath"
                     tools:text="2 Bathrooms" />
+
+                <TextView
+                    android:id="@+id/tvExploreAmenities"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp"
+                    android:textColor="#0D47A1"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:transitionName="property_amenities"
+                    tools:text="12 Amenities" />
+
+                <TextView
+                    android:id="@+id/tvExploreInterested"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="16dp"
+                    android:textColor="#0D47A1"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:transitionName="property_interested"
+                    tools:text="12 Interested" />
+
+                <TextView
+                    android:id="@+id/tvExploreFloor"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/theme1_text"
+                    android:textSize="16sp"
+                    android:transitionName="property_floor"
+                    tools:text="Floor: 2nd" />
 
             </GridLayout>
 

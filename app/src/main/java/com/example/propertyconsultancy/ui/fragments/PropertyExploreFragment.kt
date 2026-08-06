@@ -33,8 +33,8 @@ class PropertyExploreFragment : Fragment() {
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         val view = inflater.inflate(R.layout.fragment_property_explore, container, false)
         
-        val prefixes = listOf("IMAGE", "TITLE", "PRICE", "LOCATION", "BHK", "AREA", "FACING", "ROADSIZE", "FURNISHED", "BATH", "TYPE")
-        val viewIds = listOf(R.id.vpExploreMedia, R.id.tvExploreTitle, R.id.tvExplorePrice, R.id.tvExploreLocation, R.id.tvExploreBhk, R.id.tvExploreArea, R.id.tvExploreFacing, R.id.tvExploreRoadSize, R.id.tvExploreFurnished, R.id.tvExploreBath, R.id.tvExplorePropertyType)
+        val prefixes = listOf("IMAGE", "TITLE", "PRICE", "LOCATION", "BHK", "AREA", "FACING", "ROADSIZE", "FURNISHED", "BATH", "TYPE", "INTERESTED", "AMENITIES", "FLOOR")
+        val viewIds = listOf(R.id.vpExploreMedia, R.id.tvExploreTitle, R.id.tvExplorePrice, R.id.tvExploreLocation, R.id.tvExploreBhk, R.id.tvExploreArea, R.id.tvExploreFacing, R.id.tvExploreRoadSize, R.id.tvExploreFurnished, R.id.tvExploreBath, R.id.tvExplorePropertyType, R.id.tvExploreInterested, R.id.tvExploreAmenities, R.id.tvExploreFloor)
         
         prefixes.forEachIndexed { index, prefix ->
             val transitionName = arguments?.getString("TRANSITION_PROPERTY_${prefix}_NAME")
@@ -65,7 +65,10 @@ class PropertyExploreFragment : Fragment() {
         val tvFurnished = view.findViewById<TextView>(R.id.tvExploreFurnished)
         val tvBath = view.findViewById<TextView>(R.id.tvExploreBath)
         val tvPropertyType = view.findViewById<TextView>(R.id.tvExplorePropertyType)
-        
+        val tvAmenities = view.findViewById<TextView>(R.id.tvExploreAmenities)
+        val tvInterested = view.findViewById<TextView>(R.id.tvExploreInterested)
+        val tvFloor = view.findViewById<TextView>(R.id.tvExploreFloor)
+
         val tvDescription = view.findViewById<TextView>(R.id.tvExploreDescription)
         val btnInterested = view.findViewById<com.google.android.material.button.MaterialButton>(R.id.btnInterested)
 
@@ -82,17 +85,34 @@ class PropertyExploreFragment : Fragment() {
         val categories = com.example.propertyconsultancy.data.cache.CategoryCache.getCategories(requireContext())
         fun getOptionName(ids: List<Int>?, group: String): String {
             if (ids.isNullOrEmpty()) return "N/A"
-            val options = categories?.find { it.name.contains(group, true) }?.options
-            return options?.find { it.categoryId == ids.first() }?.option ?: "ID: ${ids.first()}"
+            // Use more flexible matching for group names
+            val cleanGroup = group.replace(" ", "").lowercase()
+            val options = categories?.find {
+                val name = it.name.replace(" ", "").lowercase()
+                name.contains(cleanGroup) || cleanGroup.contains(name)
+            }?.options
+            
+            val found = options?.find { it.categoryId == ids.first() }?.option
+            if (found != null) return found
+            
+            return categories?.flatMap { it.options }?.find { it.categoryId == ids.first() }?.option ?: "ID: ${ids.first()}"
         }
 
         tvFacing.text = "Facing: ${getOptionName(property.facingId?.let { listOf(it) }, "Facing")}"
-        tvRoadSize.text = "Road: ${getOptionName(property.roadSizeId?.let { listOf(it) }, "Road")}"
-        tvPropertyType.text = getOptionName(property.proTypeId?.let { listOf(it) }, "PropertyType").uppercase()
+        tvRoadSize.text = "Road: ${getOptionName(property.roadSizeId?.let { listOf(it) }, "Road Size")}"
+        tvPropertyType.text = getOptionName(property.proTypeId?.let { listOf(it) }, "Property Type")
+        tvFloor.text = "Floor: ${getOptionName(property.floorId?.let { listOf(it) }, "Floor")}"
 
         val isFurnished = property.description?.contains("furnished", true) == true || 
                           property.amenities?.any { it.name.contains("furnished", true) } == true
         tvFurnished.text = if (isFurnished) "Furnished" else "Unfurnished"
+
+        val amenitiesCount = property.amenityCount ?: 0
+        tvAmenities.text = "{ $amenitiesCount Amenities }"
+        
+        // Dummy interest count consistent with adapter
+        val interestedCount = (5..25).random()
+        tvInterested.text = "{ $interestedCount Interested }"
 
         tvDescription.text = property.description ?: "No description available."
 

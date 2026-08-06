@@ -10,8 +10,8 @@
         <item name="colorOnSurface">@color/modern_text</item>
         <item name="colorOnSurfaceVariant">@color/pending_gray</item>
         <item name="colorOutline">@color/modern_primary</item>
-        <item name="android:fontFamily">@font/roboto</item>
-        <item name="fontFamily">@font/roboto</item>
+        <item name="android:fontFamily">@font/figtree</item>
+        <item name="fontFamily">@font/figtree</item>
 
         <!-- EditText Styles -->
         <item name="editTextStyle">@style/App.EditText.Style</item>
@@ -76,8 +76,8 @@
         <item name="android:padding">12dp</item>
         <item name="android:textSize">16sp</item>
         <item name="android:textColorHint">?attr/colorOnSurfaceVariant</item>
-        <item name="android:fontFamily">@font/roboto</item>
-        <item name="fontFamily">@font/roboto</item>
+        <item name="android:fontFamily">@font/figtree</item>
+        <item name="fontFamily">@font/figtree</item>
     </style>
 
     <!-- Button Style -->
@@ -123,17 +123,20 @@
     <style name="App.BottomNav.TextAppearance" parent="TextAppearance.Material3.LabelSmall">
         <item name="android:textStyle">normal</item>
         <item name="android:letterSpacing">0.02</item>
-        <item name="android:fontFamily">@font/roboto</item>
-        <item name="fontFamily">@font/roboto</item>
+        <item name="android:fontFamily">@font/figtree</item>
+        <item name="fontFamily">@font/figtree</item>
     </style>
     <!-- BHK Tag Style -->
     <style name="App.BhkTag" parent="Widget.AppCompat.TextView">
         <item name="android:background">@drawable/bg_bhk_tag</item>
-        <item name="android:padding">4dp</item>
+        <item name="android:paddingLeft">8dp</item>
+        <item name="android:paddingRight">8dp</item>
+        <item name="android:paddingTop">10dp</item>
+        <item name="android:paddingBottom">10dp</item>
         <item name="android:textColor">?attr/colorPrimary</item>
         <item name="android:textSize">13sp</item>
-        <item name="android:textStyle">bold</item>
-        <item name="android:fontFamily">@font/roboto</item>
+        <item name="android:textStyle">normal</item>
+        <item name="android:fontFamily">@font/figtree</item>
         <item name="android:gravity">center</item>
         <item name="android:includeFontPadding">false</item>
     </style>

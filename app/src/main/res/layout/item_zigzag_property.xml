@@ -36,16 +36,19 @@
             style="@style/App.BhkTag"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:paddingHorizontal="16dp"
-            android:paddingVertical="4dp"
+            android:background="@drawable/bg_property_type_left"
+            android:paddingLeft="16dp"
+            android:paddingRight="16dp"
+            android:paddingTop="10dp"
+            android:paddingBottom="10dp"
             android:textSize="14sp"
             android:textColor="#E53935"
+            android:textStyle="bold"
             android:layout_marginBottom="6dp"
             app:layout_constraintBottom_toTopOf="@id/cardImageLeft"
-            app:layout_constraintStart_toStartOf="@id/cardImageLeft"
-            app:layout_constraintEnd_toEndOf="@id/cardImageLeft"
+            app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintHorizontal_bias="0.0"
+            app:layout_constraintVertical_bias="0.35"
             app:layout_constraintVertical_chainStyle="packed"
             android:transitionName="property_type"
             tools:text="APARTMENT" />
@@ -191,7 +194,8 @@
                     android:textSize="11sp"
                     android:textStyle="bold"
                     android:includeFontPadding="false"
-                    android:gravity="start" />
+                    android:gravity="start"
+                    android:transitionName="property_interested" />
                 <TextView
                     android:id="@+id/tvAmenitiesLeft"
                     android:layout_width="wrap_content"
@@ -201,6 +205,7 @@
                     android:textStyle="bold"
                     android:gravity="end"
                     android:includeFontPadding="false"
+                    android:transitionName="property_amenities"
                     tools:text="12 Amenities" />
             </LinearLayout>
 
@@ -212,24 +217,32 @@
                 android:gravity="center_vertical">
                 <TextView
                     android:id="@+id/tvBathLeft"
-                    android:layout_width="0dp"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
                     android:textColor="?attr/colorOnSurfaceVariant"
-                    android:textSize="15sp"
-                    android:textStyle="bold"
+                    android:textSize="14sp"
                     android:gravity="start"
                     android:includeFontPadding="false"
                     android:transitionName="property_bath"
-                    tools:text="2 BathRoom" />
+                    tools:text="2 Bath" />
+                <View android:layout_width="6dp" android:layout_height="0dp" />
+                <TextView
+                    android:id="@+id/tvFloorLeft"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="?attr/colorOnSurfaceVariant"
+                    android:textSize="14sp"
+                    android:gravity="center"
+                    android:includeFontPadding="false"
+                    android:transitionName="property_floor"
+                    tools:text="2nd Flr" />
+                <View android:layout_width="6dp" android:layout_height="0dp" />
                 <TextView
                     android:id="@+id/tvAreaLeft"
-                    android:layout_width="0dp"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
                     android:textColor="?attr/colorOnSurfaceVariant"
-                    android:textSize="15sp"
-                    android:textStyle="bold"
+                    android:textSize="14sp"
                     android:gravity="end"
                     android:includeFontPadding="false"
                     android:transitionName="property_area"
@@ -241,13 +254,13 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="6dp"
                 android:orientation="horizontal"
-                android:gravity="center_vertical">
+                android:gravity="center">
 
                 <TextView
                     android:id="@+id/tvLocationLeft"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:gravity="start|center_vertical"
+                    android:gravity="center"
                     android:textColor="?attr/colorOnSurface"
                     android:textSize="13sp"
                     android:includeFontPadding="false"
@@ -365,16 +378,19 @@
             style="@style/App.BhkTag"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:paddingHorizontal="16dp"
-            android:paddingVertical="4dp"
+            android:background="@drawable/bg_property_type_right"
+            android:paddingLeft="16dp"
+            android:paddingRight="16dp"
+            android:paddingTop="10dp"
+            android:paddingBottom="10dp"
             android:textSize="14sp"
             android:textColor="#E53935"
+            android:textStyle="bold"
             android:layout_marginBottom="6dp"
             app:layout_constraintBottom_toTopOf="@id/cardImageRight"
-            app:layout_constraintEnd_toEndOf="@id/cardImageRight"
-            app:layout_constraintStart_toStartOf="@id/cardImageRight"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintHorizontal_bias="1.0"
+            app:layout_constraintVertical_bias="0.35"
             app:layout_constraintVertical_chainStyle="packed"
             android:transitionName="property_type"
             tools:text="VILLA" />
@@ -520,6 +536,7 @@
                     android:textStyle="bold"
                     android:gravity="start"
                     android:includeFontPadding="false"
+                    android:transitionName="property_amenities"
                     tools:text="8 Amenities" />
                 <TextView
                     android:id="@+id/tvInterestedRight"
@@ -531,7 +548,8 @@
                     android:textColor="#0D47A1"
                     android:textSize="11sp"
                     android:textStyle="bold"
-                    android:includeFontPadding="false" />
+                    android:includeFontPadding="false"
+                    android:transitionName="property_interested" />
             </LinearLayout>
 
             <LinearLayout
@@ -542,29 +560,36 @@
                 android:gravity="center_vertical">
                 <TextView
                     android:id="@+id/tvAreaRight"
-                    android:layout_width="0dp"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
                     android:textColor="?attr/colorOnSurfaceVariant"
-                    android:textSize="15sp"
-                    android:textStyle="bold"
+                    android:textSize="14sp"
                     android:gravity="start"
                     android:includeFontPadding="false"
                     android:transitionName="property_area"
                     tools:text="2500 Sqft" />
-
+                <View android:layout_width="6dp" android:layout_height="0dp" />
+                <TextView
+                    android:id="@+id/tvFloorRight"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="?attr/colorOnSurfaceVariant"
+                    android:textSize="14sp"
+                    android:gravity="center"
+                    android:includeFontPadding="false"
+                    android:transitionName="property_floor"
+                    tools:text="3rd Flr" />
+                <View android:layout_width="6dp" android:layout_height="0dp" />
                 <TextView
                     android:id="@+id/tvBathRight"
-                    android:layout_width="0dp"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
                     android:textColor="?attr/colorOnSurfaceVariant"
-                    android:textSize="15sp"
-                    android:textStyle="bold"
+                    android:textSize="14sp"
                     android:gravity="end"
                     android:includeFontPadding="false"
                     android:transitionName="property_bath"
-                    tools:text="3 BathRoom" />
+                    tools:text="3 Bath" />
             </LinearLayout>
 
             <LinearLayout
@@ -572,7 +597,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="6dp"
                 android:orientation="horizontal"
-                android:gravity="center_vertical|end">
+                android:gravity="center">
                 <ImageView
                     android:id="@+id/ivFilterLocationRight"
                     android:layout_width="10dp"
@@ -584,7 +609,7 @@
                     android:id="@+id/tvLocationRight"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:gravity="end|center_vertical"
+                    android:gravity="center"
                     android:textColor="?attr/colorOnSurface"
                     android:textSize="13sp"
                     android:includeFontPadding="false"
