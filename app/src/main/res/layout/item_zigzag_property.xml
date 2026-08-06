@@ -231,6 +231,21 @@
                     app:cornerRadius="8dp"
                     app:icon="@android:drawable/stat_notify_chat"
                     app:iconSize="14dp" />
+
+                <Space android:layout_width="8dp" android:layout_height="wrap_content" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnStarLeft"
+                    style="@style/Widget.Material3.Button.TonalButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="32dp"
+                    android:insetTop="0dp"
+                    android:insetBottom="0dp"
+                    android:text="Star"
+                    android:textSize="10sp"
+                    app:cornerRadius="8dp"
+                    app:icon="@android:drawable/btn_star"
+                    app:iconSize="14dp" />
             </LinearLayout>
         </LinearLayout>
     </androidx.constraintlayout.widget.ConstraintLayout>
@@ -460,6 +475,21 @@
                     android:textSize="10sp"
                     app:cornerRadius="8dp"
                     app:icon="@android:drawable/stat_notify_chat"
+                    app:iconSize="14dp" />
+
+                <Space android:layout_width="8dp" android:layout_height="wrap_content" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnStarRight"
+                    style="@style/Widget.Material3.Button.TonalButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="32dp"
+                    android:insetTop="0dp"
+                    android:insetBottom="0dp"
+                    android:text="Star"
+                    android:textSize="10sp"
+                    app:cornerRadius="8dp"
+                    app:icon="@android:drawable/btn_star"
                     app:iconSize="14dp" />
             </LinearLayout>
         </LinearLayout>
