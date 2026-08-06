@@ -1,0 +1,3 @@
+- [x] Update `fragment_property_pricing.xml` stepSize
+- [x] Refine `PropertyPricingFragment.kt` snapping logic
+- [/] Verify build

@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true"
+    android:background="?android:attr/windowBackground">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="8dp">
+
+        <LinearLayout
+            android:id="@+id/llTopRow"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilArea"
+                style="@style/App.TextInputLayout.Style"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginEnd="4dp"
+                app:errorIconDrawable="@drawable/ic_error_slick"
+                android:hint="Area"
+                app:suffixText="Sqft">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etArea"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="number"
+                    android:textStyle="bold"
+                    android:textAlignment="viewEnd"
+                    android:textSize="14sp" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilPrice"
+                style="@style/App.TextInputLayout.Style"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1.2"
+                android:layout_marginHorizontal="4dp"
+                android:hint="Price"
+                app:errorIconDrawable="@drawable/ic_error_slick"
+                app:suffixText="INR">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etPrice"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="numberDecimal"
+                    android:textStyle="bold"
+                    android:textAlignment="viewEnd"
+                    android:textSize="14sp" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <CheckBox
+                android:id="@+id/cbNegotiable"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Negotiable"
+                android:textSize="12sp"
+                android:checked="true" />
+        </LinearLayout>
+
+        <com.google.android.material.slider.Slider
+           android:id="@+id/sliderPrice"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:valueFrom="0.0"
+            android:valueTo="100000.0"
+            android:stepSize="100.0"
+            android:value="0.0"
+            app:tickVisible="false"
+            app:labelBehavior="gone"
+            app:thumbRadius="10dp"
+            app:trackHeight="1.5dp"
+            app:thumbColor="?attr/colorSurface"
+            app:thumbStrokeColor="?attr/colorPrimary"
+            app:thumbStrokeWidth="2dp"
+            app:thumbElevation="0dp"
+            app:trackColorActive="?attr/colorPrimary"
+            app:trackColorInactive="?attr/colorSurfaceVariant"
+            app:layout_constraintTop_toBottomOf="@id/llTopRow" />
+        <View
+            android:id="@+id/boxRooms"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:background="@drawable/edit_text_bg"
+            app:layout_constraintBottom_toBottomOf="@id/llRooms"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="@id/llRooms"
+            android:layout_margin="-4dp"/>
+
+        <TextView
+            android:id="@+id/tvRoomsLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="?attr/colorSurfaceVariant"
+            android:paddingHorizontal="8dp"
+            android:paddingVertical="2dp"
+            android:text="Bedrooms"
+            android:textStyle="bold"
+            android:textSize="12sp"
+            android:textColor="?attr/colorOnSurface"
+            app:layout_constraintBottom_toTopOf="@id/boxRooms"
+            app:layout_constraintStart_toStartOf="@id/boxRooms"
+            app:layout_constraintTop_toTopOf="@id/boxRooms"
+            android:layout_marginStart="12dp"
+            android:elevation="1dp" />
+
+        <LinearLayout
+            android:id="@+id/llRooms"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="32dp"
+            android:orientation="horizontal"
+            android:padding="4dp"
+            android:weightSum="5"
+            android:gravity="center_vertical"
+            app:layout_constraintTop_toBottomOf="@id/sliderPrice">
+            <com.google.android.material.chip.Chip android:id="@+id/chipRoom1" style="@style/Widget.Material3.Chip.Filter" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="1" android:checkable="true" android:textAlignment="center" android:padding="0dp" android:minHeight="40dp" />
+            <com.google.android.material.chip.Chip android:id="@+id/chipRoom2" style="@style/Widget.Material3.Chip.Filter" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="2" android:checkable="true" android:textAlignment="center" android:padding="0dp" android:minHeight="40dp" />
+            <com.google.android.material.chip.Chip android:id="@+id/chipRoom3" style="@style/Widget.Material3.Chip.Filter" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="3" android:checkable="true" android:textAlignment="center" android:padding="0dp" android:minHeight="40dp" />
+            <com.google.android.material.chip.Chip android:id="@+id/chipRoom4" style="@style/Widget.Material3.Chip.Filter" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="4" android:checkable="true" android:textAlignment="center" android:padding="0dp" android:minHeight="40dp" />
+            <com.google.android.material.chip.Chip android:id="@+id/chipRoom5" style="@style/Widget.Material3.Chip.Filter" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="5+" android:checkable="true" android:textAlignment="center" android:padding="0dp" android:minHeight="40dp" />
+        </LinearLayout>
+
+        <View
+            android:id="@+id/boxBaths"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:background="@drawable/edit_text_bg"
+            app:layout_constraintBottom_toBottomOf="@id/llBaths"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="@id/llBaths"
+            android:layout_margin="-4dp"/>
+
+        <TextView
+            android:id="@+id/tvBathsLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="?attr/colorSurfaceVariant"
+            android:paddingHorizontal="8dp"
+            android:paddingVertical="2dp"
+            android:text="Bathrooms"
+            android:textStyle="bold"
+            android:textSize="12sp"
+            android:textColor="?attr/colorOnSurface"
+            app:layout_constraintBottom_toTopOf="@id/boxBaths"
+            app:layout_constraintStart_toStartOf="@id/boxBaths"
+            app:layout_constraintTop_toTopOf="@id/boxBaths"
+            android:layout_marginStart="12dp"
+            android:elevation="1dp" />
+
+        <LinearLayout
+            android:id="@+id/llBaths"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="32dp"
+            android:orientation="horizontal"
+            android:padding="4dp"
+            android:weightSum="5"
+            android:gravity="center_vertical"
+            app:layout_constraintTop_toBottomOf="@id/llRooms">
+            <com.google.android.material.chip.Chip android:id="@+id/chipBath1" style="@style/Widget.Material3.Chip.Filter" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="1" android:checkable="true" android:textAlignment="center" android:padding="0dp" android:minHeight="40dp" />
+            <com.google.android.material.chip.Chip android:id="@+id/chipBath2" style="@style/Widget.Material3.Chip.Filter" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="2" android:checkable="true" android:textAlignment="center" android:padding="0dp" android:minHeight="40dp" />
+            <com.google.android.material.chip.Chip android:id="@+id/chipBath3" style="@style/Widget.Material3.Chip.Filter" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="3" android:checkable="true" android:textAlignment="center" android:padding="0dp" android:minHeight="40dp" />
+            <com.google.android.material.chip.Chip android:id="@+id/chipBath4" style="@style/Widget.Material3.Chip.Filter" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="4" android:checkable="true" android:textAlignment="center" android:padding="0dp" android:minHeight="40dp" />
+            <com.google.android.material.chip.Chip android:id="@+id/chipBath5" style="@style/Widget.Material3.Chip.Filter" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="5+" android:checkable="true" android:textAlignment="center" android:padding="0dp" android:minHeight="40dp" />
+        </LinearLayout>
+
+        <androidx.cardview.widget.CardView
+            android:id="@+id/mapCard"
+            android:layout_width="match_parent"
+            android:layout_height="200dp"
+            android:layout_marginTop="16dp"
+            app:cardCornerRadius="8dp"
+            app:cardElevation="2dp"
+            app:layout_constraintTop_toBottomOf="@id/tvLocationCoords">
+            <FrameLayout android:layout_width="match_parent" android:layout_height="match_parent">
+                <ImageView android:id="@+id/ivMiniMap" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="centerCrop" android:src="@android:drawable/ic_dialog_map" android:background="?attr/colorSurfaceVariant" />
+                <com.google.android.material.button.MaterialButton android:id="@+id/btnSelectLocation" style="@style/Widget.Material3.Button.TonalButton" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="center" android:text="Open Map" />
+            </FrameLayout>
+        </androidx.cardview.widget.CardView>
+
+        <TextView
+            android:id="@+id/tvLocationCoords"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Coordinates: Not selected"
+            android:textColor="?attr/colorOnSurface"
+            app:layout_constraintTop_toBottomOf="@id/llBaths"
+            app:layout_constraintStart_toStartOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</ScrollView>

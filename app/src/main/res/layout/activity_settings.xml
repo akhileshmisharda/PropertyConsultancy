@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="?android:attr/windowBackground"
+    android:fitsSystemWindows="true">
+
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="@color/white"
+        app:layout_constraintTop_toTopOf="parent">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Appearance Settings"
+            android:textColor="?attr/colorOnSurface"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+    </androidx.appcompat.widget.Toolbar>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toTopOf="@id/layoutActions"
+        app:layout_constraintTop_toBottomOf="@id/toolbar">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Select Theme Preset"
+                android:textStyle="bold"
+                android:textColor="?attr/colorOnSurface" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:orientation="horizontal"
+                android:baselineAligned="false">
+                <RadioButton android:id="@+id/rbTheme1" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Blue" android:layout_marginEnd="4dp" />
+                <RadioButton android:id="@+id/rbTheme2" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Green" android:layout_marginHorizontal="4dp" />
+                <RadioButton android:id="@+id/rbTheme3" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Orange" android:layout_marginStart="4dp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:orientation="horizontal"
+                android:baselineAligned="false">
+                <RadioButton android:id="@+id/rbTheme4" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Purple" android:layout_marginEnd="4dp" />
+                <RadioButton android:id="@+id/rbTheme5" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Red" android:layout_marginHorizontal="4dp" />
+                <RadioButton android:id="@+id/rbTheme6" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Navy" android:layout_marginStart="4dp" />
+            </LinearLayout>
+
+            <Space android:layout_width="match_parent" android:layout_height="24dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Customize Selection"
+                android:textStyle="bold"
+                android:textColor="?attr/colorOnSurface" />
+
+            <!-- Row 1: Screen & Input BG -->
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:paddingVertical="4dp" android:baselineAligned="false">
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center_vertical" android:padding="4dp">
+                    <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Screen BG" android:textSize="12sp" />
+                    <View android:id="@+id/btnEditScreenBg" android:layout_width="32dp" android:layout_height="32dp" android:background="#DDD" android:elevation="2dp" />
+                </LinearLayout>
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center_vertical" android:padding="4dp">
+                    <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Input BG" android:textSize="12sp" />
+                    <View android:id="@+id/btnEditInputBg" android:layout_width="32dp" android:layout_height="32dp" android:background="#DDD" android:elevation="2dp" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- Row 2: Input Text & Input Hint -->
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:paddingVertical="4dp" android:baselineAligned="false">
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center_vertical" android:padding="4dp">
+                    <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Input Text" android:textSize="12sp" />
+                    <View android:id="@+id/btnEditInputText" android:layout_width="32dp" android:layout_height="32dp" android:background="#DDD" android:elevation="2dp" />
+                </LinearLayout>
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center_vertical" android:padding="4dp">
+                    <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Input Hint" android:textSize="12sp" />
+                    <View android:id="@+id/btnEditInputHint" android:layout_width="32dp" android:layout_height="32dp" android:background="#DDD" android:elevation="2dp" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- Row 3: Button BG & Button Text -->
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:paddingVertical="4dp" android:baselineAligned="false">
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center_vertical" android:padding="4dp">
+                    <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Button BG" android:textSize="12sp" />
+                    <View android:id="@+id/btnEditButtonBg" android:layout_width="32dp" android:layout_height="32dp" android:background="#DDD" android:elevation="2dp" />
+                </LinearLayout>
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center_vertical" android:padding="4dp">
+                    <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Button Text" android:textSize="12sp" />
+                    <View android:id="@+id/btnEditButtonText" android:layout_width="32dp" android:layout_height="32dp" android:background="#DDD" android:elevation="2dp" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- Row 4: Input Border & Button Border -->
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:paddingVertical="4dp" android:baselineAligned="false">
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center_vertical" android:padding="4dp">
+                    <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Input Border" android:textSize="12sp" />
+                    <View android:id="@+id/btnEditInputBorder" android:layout_width="32dp" android:layout_height="32dp" android:background="#DDD" android:elevation="2dp" />
+                </LinearLayout>
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center_vertical" android:padding="4dp">
+                    <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Button Border" android:textSize="12sp" />
+                    <View android:id="@+id/btnEditButtonBorder" android:layout_width="32dp" android:layout_height="32dp" android:background="#DDD" android:elevation="2dp" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <Space android:layout_width="match_parent" android:layout_height="24dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="App Preferences"
+                android:textStyle="bold"
+                android:textColor="?attr/colorOnSurface" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:paddingVertical="8dp">
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Search Page Size" />
+                <Spinner
+                    android:id="@+id/spinnerPageSize"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:entries="@array/page_size_options" />
+            </LinearLayout>
+
+            <Space android:layout_width="match_parent" android:layout_height="24dp" />
+
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="12dp">
+                <LinearLayout
+                    android:id="@+id/layoutPreview"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+                    <EditText
+                        android:id="@+id/etPreview"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="Preview Input (Empty)"
+                        android:padding="12dp"
+                        android:enabled="false"
+                        android:inputType="none"
+                        android:importantForAutofill="no" />
+                    <Space android:layout_width="match_parent" android:layout_height="12dp" />
+                    <Button
+                        android:id="@+id/btnPreview"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Preview Button" />
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+        </LinearLayout>
+    </ScrollView>
+
+    <LinearLayout
+        android:id="@+id/layoutActions"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp"
+        app:layout_constraintBottom_toBottomOf="parent">
+        <Button
+            android:id="@+id/btnApply"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Save and Apply Theme" />
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

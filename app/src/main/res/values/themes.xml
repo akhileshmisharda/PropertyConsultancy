@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- Base Theme -->
+    <style name="Theme.PropertyConsultancy" parent="Theme.Material3.Light.NoActionBar">
+        <item name="colorPrimary">@color/modern_primary</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="android:windowBackground">@color/modern_bg</item>
+        <item name="colorSurfaceVariant">@color/modern_bg</item>
+        <item name="colorOnSurface">@color/modern_text</item>
+        <item name="colorOnSurfaceVariant">@color/pending_gray</item>
+        <item name="colorOutline">@color/modern_primary</item>
+
+        <!-- EditText Styles -->
+        <item name="editTextStyle">@style/App.EditText.Style</item>
+        <item name="textInputOutlinedStyle">@style/App.TextInputLayout.Style</item>
+
+        <!-- Button Styles -->
+        <item name="materialButtonStyle">@style/App.Button.Style</item>
+    </style>
+
+    <style name="Theme.PropertyConsultancy.Theme1" parent="Theme.PropertyConsultancy">
+        <item name="colorPrimary">@color/theme1_primary</item>
+        <item name="android:windowBackground">@color/theme1_bg</item>
+        <item name="colorSurfaceVariant">@color/theme1_input_bg</item>
+        <item name="colorOnSurface">@color/theme1_text</item>
+        <item name="colorOutline">@color/theme1_primary</item>
+    </style>
+
+    <style name="Theme.PropertyConsultancy.Theme2" parent="Theme.PropertyConsultancy">
+        <item name="colorPrimary">@color/theme2_primary</item>
+        <item name="android:windowBackground">@color/theme2_bg</item>
+        <item name="colorSurfaceVariant">@color/theme2_input_bg</item>
+        <item name="colorOnSurface">@color/theme2_text</item>
+        <item name="colorOutline">@color/theme2_primary</item>
+    </style>
+
+    <style name="Theme.PropertyConsultancy.Theme3" parent="Theme.PropertyConsultancy">
+        <item name="colorPrimary">@color/theme3_primary</item>
+        <item name="android:windowBackground">@color/theme3_bg</item>
+        <item name="colorSurfaceVariant">@color/theme3_input_bg</item>
+        <item name="colorOnSurface">@color/theme3_text</item>
+        <item name="colorOutline">@color/theme3_primary</item>
+    </style>
+
+    <style name="Theme.PropertyConsultancy.Theme4" parent="Theme.PropertyConsultancy">
+        <item name="colorPrimary">@color/theme4_primary</item>
+        <item name="android:windowBackground">@color/theme4_bg</item>
+        <item name="colorSurfaceVariant">@color/theme4_input_bg</item>
+        <item name="colorOnSurface">@color/theme4_text</item>
+        <item name="colorOutline">@color/theme4_primary</item>
+    </style>
+
+    <style name="Theme.PropertyConsultancy.Theme5" parent="Theme.PropertyConsultancy">
+        <item name="colorPrimary">@color/theme5_primary</item>
+        <item name="android:windowBackground">@color/theme5_bg</item>
+        <item name="colorSurfaceVariant">@color/theme5_input_bg</item>
+        <item name="colorOnSurface">@color/theme5_text</item>
+        <item name="colorOutline">@color/theme5_primary</item>
+    </style>
+
+    <style name="Theme.PropertyConsultancy.Theme6" parent="Theme.PropertyConsultancy">
+        <item name="colorPrimary">@color/theme6_primary</item>
+        <item name="android:windowBackground">@color/theme6_bg</item>
+        <item name="colorSurfaceVariant">@color/theme6_input_bg</item>
+        <item name="colorOnSurface">@color/theme6_text</item>
+        <item name="colorOutline">@color/theme6_primary</item>
+    </style>
+
+    <!-- Edit Text Style -->
+    <style name="App.EditText.Style" parent="Widget.AppCompat.EditText">
+        <item name="android:background">@drawable/edit_text_bg</item>
+        <item name="android:textColor">?attr/colorOnSurface</item>
+        <item name="android:padding">12dp</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:textColorHint">?attr/colorOnSurfaceVariant</item>
+    </style>
+
+    <!-- Button Style -->
+    <style name="App.Button.Style" parent="Widget.Material3.Button">
+        <item name="backgroundTint">?attr/colorPrimary</item>
+        <item name="android:textColor">?attr/colorOnPrimary</item>
+        <item name="android:insetTop">0dp</item>
+        <item name="android:insetBottom">0dp</item>
+        <item name="shapeAppearanceOverlay">@style/App.RoundedCorners</item>
+    </style>
+
+    <!-- Rounded Corners -->
+    <style name="App.RoundedCorners" parent="">
+        <item name="cornerSize">20dp</item>
+    </style>
+
+    <style name="Widget.App.Indicator.Circle" parent="Widget.Material3.BottomNavigationView.ActiveIndicator">
+        <item name="android:width">46dp</item>
+        <item name="android:height">46dp</item>
+        <item name="marginHorizontal">0dp</item>
+        <item name="color">#1A2E7D32</item>
+        <item name="shapeAppearance">@style/ShapeAppearance.App.Circle</item>
+    </style>
+
+    <style name="ShapeAppearance.App.Circle" parent="ShapeAppearance.Material3.SmallComponent">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">50%</item>
+    </style>
+
+    <style name="Widget.App.Indicator.Empty" parent="Widget.Material3.BottomNavigationView.ActiveIndicator">
+        <item name="android:width">0dp</item>
+        <item name="android:height">0dp</item>
+        <item name="color">@android:color/transparent</item>
+    </style>
+
+    <style name="App.TextInputLayout.Style" parent="Widget.Material3.TextInputLayout.OutlinedBox">
+        <item name="boxStrokeWidth">0.25dp</item>
+        <item name="boxStrokeWidthFocused">0.25dp</item>
+        <item name="shapeAppearanceOverlay">@style/App.RoundedCorners</item>
+    </style>
+
+    <!-- Modern Sans Typography for Navigation -->
+    <style name="App.BottomNav.TextAppearance" parent="TextAppearance.Material3.LabelSmall">
+        <item name="android:textStyle">normal</item>
+        <item name="android:letterSpacing">0.02</item>
+    </style>
+    <!-- BHK Tag Style -->
+    <style name="App.BhkTag" parent="Widget.AppCompat.TextView">
+        <item name="android:background">@drawable/bg_bhk_tag</item>
+        <item name="android:padding">4dp</item>
+        <item name="android:textColor">?attr/colorPrimary</item>
+        <item name="android:textSize">13sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:gravity">center</item>
+    </style>
+</resources>

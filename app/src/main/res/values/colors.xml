@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="purple_200">#FFBB86FC</color>
+    <color name="purple_500">#FF6200EE</color>
+    <color name="purple_700">#FF3700B3</color>
+    <color name="teal_200">#FF03DAC5</color>
+    <color name="teal_700">#FF018786</color>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+
+    <!-- Modern Premium Theme Colors -->
+    <color name="modern_primary">#00695C</color> <!-- Deep Teal -->
+    <color name="modern_primary_light">#43A047</color> <!-- Emerald -->
+    <color name="modern_bg">#F1F8E9</color> <!-- Light Mint Background -->
+    <color name="modern_surface">#FFFFFF</color>
+    <color name="modern_text">#004D40</color>
+
+    <!-- Theme 1: Blue (Legacy) -->
+    <color name="theme1_primary">#2D3E7B</color>
+    <color name="theme1_bg">#F0F4FF</color>
+    <color name="theme1_input_bg">#F3F5F9</color>
+    <color name="theme1_text">#1A237E</color>
+
+    <!-- Theme 2: Green -->
+    <color name="theme2_primary">#2E7D32</color>
+    <color name="theme2_bg">#F1F8E9</color>
+    <color name="theme2_input_bg">#E8F5E9</color>
+    <color name="theme2_text">#1B5E20</color>
+
+    <!-- Theme 3: Orange -->
+    <color name="theme3_primary">#E65100</color>
+    <color name="theme3_bg">#FFF3E0</color>
+    <color name="theme3_input_bg">#FFF8E1</color>
+    <color name="theme3_text">#BF360C</color>
+
+    <!-- Theme 4: Purple -->
+    <color name="theme4_primary">#4A148C</color>
+    <color name="theme4_bg">#F3E5F5</color>
+    <color name="theme4_input_bg">#F3E5F5</color>
+    <color name="theme4_text">#311B92</color>
+
+    <!-- Theme 5: Red -->
+    <color name="theme5_primary">#B71C1C</color>
+    <color name="theme5_bg">#FFEBEE</color>
+    <color name="theme5_input_bg">#FFEBEE</color>
+    <color name="theme5_text">#7F0000</color>
+
+    <!-- Theme 6: Navy -->
+    <color name="theme6_primary">#0D47A1</color>
+    <color name="theme6_bg">#E3F2FD</color>
+    <color name="theme6_input_bg">#E1F5FE</color>
+    <color name="theme6_text">#01579B</color>
+
+    <!-- Semantic colors -->
+    <color name="success_green">#2E7D32</color>
+    <color name="error_red">#C62828</color>
+    <color name="pending_gray">#757575</color>
+
+    <!-- Legacy compatibility (Redirected to Modern Theme) -->
+    <color name="blue_primary">@color/modern_primary</color>
+    <color name="blue_secondary">@color/modern_primary_light</color>
+    <color name="blue_light">@color/modern_bg</color>
+    <color name="gray_input">@color/modern_bg</color>
+    <color name="blue_text">@color/modern_text</color>
+</resources>

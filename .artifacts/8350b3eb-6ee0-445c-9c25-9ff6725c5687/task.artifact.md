@@ -1,0 +1,5 @@
+- [x] Create `CurvedBottomNavigationView.kt` custom view
+- [x] Add `Widget.App.Indicator.Circle` style to `themes.xml`
+- [x] Replace `BottomNavigationView` with `CurvedBottomNavigationView` in `activity_main.xml`
+- [x] Clean up `MainActivity.kt` legacy indicator logic
+- [x] Final UI verification and refinement
