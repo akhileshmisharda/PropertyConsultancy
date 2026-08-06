@@ -40,6 +40,7 @@ class SearchPropertyAdapter(
         
         val tvFacingLeft: TextView = view.findViewById(R.id.tvFacingLeft)
         val tvRoadSizeLeft: TextView = view.findViewById(R.id.tvRoadSizeLeft)
+        val tvFurnishedLeft: TextView = view.findViewById(R.id.tvFurnishedLeft)
         val tvPropertyTypeLeft: TextView = view.findViewById(R.id.tvPropertyTypeLeft)
         
         val ivFilterPriceLeft: View = view.findViewById(R.id.ivFilterPriceLeft)
@@ -63,6 +64,7 @@ class SearchPropertyAdapter(
         
         val tvFacingRight: TextView = view.findViewById(R.id.tvFacingRight)
         val tvRoadSizeRight: TextView = view.findViewById(R.id.tvRoadSizeRight)
+        val tvFurnishedRight: TextView = view.findViewById(R.id.tvFurnishedRight)
         val tvPropertyTypeRight: TextView = view.findViewById(R.id.tvPropertyTypeRight)
         
         val ivFilterPriceRight: View = view.findViewById(R.id.ivFilterPriceRight)
@@ -89,7 +91,7 @@ class SearchPropertyAdapter(
         if (isLeft) {
             holder.layoutLeft.visibility = View.VISIBLE
             holder.layoutRight.visibility = View.GONE
-            bindData(property, holder.tvTitleLeft, holder.tvPriceLeft, holder.tvLocationLeft, holder.tvBhkLeft, holder.tvBathLeft, holder.tvAreaLeft, holder.tvInterestedLeft, holder.tvAmenitiesLeft, holder.ivImageLeft, holder.tvImgCountLeft, holder.ivVideoIconLeft, holder.ivFilterPriceLeft, holder.ivFilterBhkLeft, holder.ivFilterLocationLeft, holder.ivFilterProTypeLeft, holder.tvFacingLeft, holder.tvRoadSizeLeft, holder.tvPropertyTypeLeft)
+            bindData(property, holder.tvTitleLeft, holder.tvPriceLeft, holder.tvLocationLeft, holder.tvBhkLeft, holder.tvBathLeft, holder.tvAreaLeft, holder.tvInterestedLeft, holder.tvAmenitiesLeft, holder.ivImageLeft, holder.tvImgCountLeft, holder.ivVideoIconLeft, holder.ivFilterPriceLeft, holder.ivFilterBhkLeft, holder.ivFilterLocationLeft, holder.ivFilterProTypeLeft, holder.tvFacingLeft, holder.tvRoadSizeLeft, holder.tvFurnishedLeft, holder.tvPropertyTypeLeft)
             
             holder.ivImageLeft.transitionName = "property_image_$position"
             holder.tvTitleLeft.transitionName = "property_title_$position"
@@ -99,7 +101,7 @@ class SearchPropertyAdapter(
         } else {
             holder.layoutLeft.visibility = View.GONE
             holder.layoutRight.visibility = View.VISIBLE
-            bindData(property, holder.tvTitleRight, holder.tvPriceRight, holder.tvLocationRight, holder.tvBhkRight, holder.tvBathRight, holder.tvAreaRight, holder.tvInterestedRight, holder.tvAmenitiesRight, holder.ivImageRight, holder.tvImgCountRight, holder.ivVideoIconRight, holder.ivFilterPriceRight, holder.ivFilterBhkRight, holder.ivFilterLocationRight, holder.ivFilterProTypeRight, holder.tvFacingRight, holder.tvRoadSizeRight, holder.tvPropertyTypeRight)
+            bindData(property, holder.tvTitleRight, holder.tvPriceRight, holder.tvLocationRight, holder.tvBhkRight, holder.tvBathRight, holder.tvAreaRight, holder.tvInterestedRight, holder.tvAmenitiesRight, holder.ivImageRight, holder.tvImgCountRight, holder.ivVideoIconRight, holder.ivFilterPriceRight, holder.ivFilterBhkRight, holder.ivFilterLocationRight, holder.ivFilterProTypeRight, holder.tvFacingRight, holder.tvRoadSizeRight, holder.tvFurnishedRight, holder.tvPropertyTypeRight)
             
             holder.ivImageRight.transitionName = "property_image_$position"
             holder.tvTitleRight.transitionName = "property_title_$position"
@@ -160,7 +162,7 @@ class SearchPropertyAdapter(
         stopImageCycle(holder.bindingAdapterPosition)
     }
 
-    private fun bindData(property: PropertyDTO, tvTitle: TextView, tvPrice: TextView, tvLocation: TextView, tvBhk: TextView, tvBath: TextView, tvArea: TextView, tvInterested: TextView, tvAmenities: TextView, ivImage: ImageView, tvImgCount: TextView, ivVideoIcon: ImageView, ivFilterPrice: View, ivFilterBhk: View, ivFilterLocation: View, ivFilterProType: View, tvFacing: TextView, tvRoadSize: TextView, tvPropertyType: TextView) {
+    private fun bindData(property: PropertyDTO, tvTitle: TextView, tvPrice: TextView, tvLocation: TextView, tvBhk: TextView, tvBath: TextView, tvArea: TextView, tvInterested: TextView, tvAmenities: TextView, ivImage: ImageView, tvImgCount: TextView, ivVideoIcon: ImageView, ivFilterPrice: View, ivFilterBhk: View, ivFilterLocation: View, ivFilterProType: View, tvFacing: TextView, tvRoadSize: TextView, tvFurnished: TextView, tvPropertyType: TextView) {
         tvTitle.text = property.title?.uppercase() ?: "PREMIUM PROPERTY"
         
         val price = property.pricePerMonth ?: 0.0
@@ -187,6 +189,11 @@ class SearchPropertyAdapter(
         
         tvFacing.text = "Facing : ${getOptionName(property.facingId?.let { listOf(it) }, "Facing")}"
         tvRoadSize.text = "Road : ${getOptionName(property.roadSizeId?.let { listOf(it) }, "Road")}"
+        
+        // Furnished logic: check if any amenity name contains "Furnished" or check common keywords in description
+        val isFurnished = property.description?.contains("furnished", true) == true || 
+                          property.amenities?.any { it.name.contains("furnished", true) } == true
+        tvFurnished.text = if (isFurnished) "Furnished" else "Unfurnished"
         
         tvPropertyType.text = getOptionName(property.proTypeId?.let { listOf(it) }, "PropertyType").uppercase()
 
