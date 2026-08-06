@@ -8,6 +8,7 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import coil3.load
 import com.example.propertyconsultancy.R
+import com.example.propertyconsultancy.data.cache.CategoryCache
 import com.example.propertyconsultancy.data.dto.PropertyDTO
 
 class SearchPropertyAdapter(
@@ -18,7 +19,8 @@ class SearchPropertyAdapter(
     var currentCity: String? = null,
     var currentBhk: Int? = null,
     var currentMinPrice: Double? = null,
-    var currentMaxPrice: Double? = null
+    var currentMaxPrice: Double? = null,
+    var currentProTypeIds: List<Int> = emptyList()
 ) : RecyclerView.Adapter<SearchPropertyAdapter.ViewHolder>() {
 
     class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
@@ -33,14 +35,17 @@ class SearchPropertyAdapter(
         val tvAreaLeft: TextView = view.findViewById(R.id.tvAreaLeft)
         val tvInterestedLeft: TextView = view.findViewById(R.id.tvInterestedLeft)
         val tvAmenitiesLeft: TextView = view.findViewById(R.id.tvAmenitiesLeft)
-        val btnCallLeft: View = view.findViewById(R.id.btnCallLeft)
-        val btnChatLeft: View = view.findViewById(R.id.btnChatLeft)
         val tvImgCountLeft: TextView = view.findViewById(R.id.tvImgCountLeft)
         val ivVideoIconLeft: ImageView = view.findViewById(R.id.ivVideoIconLeft)
+        
+        val tvFacingLeft: TextView = view.findViewById(R.id.tvFacingLeft)
+        val tvRoadSizeLeft: TextView = view.findViewById(R.id.tvRoadSizeLeft)
+        val tvPropertyTypeLeft: TextView = view.findViewById(R.id.tvPropertyTypeLeft)
         
         val ivFilterPriceLeft: View = view.findViewById(R.id.ivFilterPriceLeft)
         val ivFilterBhkLeft: View = view.findViewById(R.id.ivFilterBhkLeft)
         val ivFilterLocationLeft: View = view.findViewById(R.id.ivFilterLocationLeft)
+        val ivFilterProTypeLeft: View = view.findViewById(R.id.ivFilterProTypeLeft)
 
         // Right Layout Views
         val layoutRight: View = view.findViewById(R.id.layoutRight)
@@ -53,14 +58,17 @@ class SearchPropertyAdapter(
         val tvAreaRight: TextView = view.findViewById(R.id.tvAreaRight)
         val tvInterestedRight: TextView = view.findViewById(R.id.tvInterestedRight)
         val tvAmenitiesRight: TextView = view.findViewById(R.id.tvAmenitiesRight)
-        val btnCallRight: View = view.findViewById(R.id.btnCallRight)
-        val btnChatRight: View = view.findViewById(R.id.btnChatRight)
         val tvImgCountRight: TextView = view.findViewById(R.id.tvImgCountRight)
         val ivVideoIconRight: ImageView = view.findViewById(R.id.ivVideoIconRight)
+        
+        val tvFacingRight: TextView = view.findViewById(R.id.tvFacingRight)
+        val tvRoadSizeRight: TextView = view.findViewById(R.id.tvRoadSizeRight)
+        val tvPropertyTypeRight: TextView = view.findViewById(R.id.tvPropertyTypeRight)
         
         val ivFilterPriceRight: View = view.findViewById(R.id.ivFilterPriceRight)
         val ivFilterBhkRight: View = view.findViewById(R.id.ivFilterBhkRight)
         val ivFilterLocationRight: View = view.findViewById(R.id.ivFilterLocationRight)
+        val ivFilterProTypeRight: View = view.findViewById(R.id.ivFilterProTypeRight)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -81,7 +89,7 @@ class SearchPropertyAdapter(
         if (isLeft) {
             holder.layoutLeft.visibility = View.VISIBLE
             holder.layoutRight.visibility = View.GONE
-            bindData(property, holder.tvTitleLeft, holder.tvPriceLeft, holder.tvLocationLeft, holder.tvBhkLeft, holder.tvBathLeft, holder.tvAreaLeft, holder.tvInterestedLeft, holder.tvAmenitiesLeft, holder.ivImageLeft, holder.btnCallLeft, holder.btnChatLeft, holder.tvImgCountLeft, holder.ivVideoIconLeft, holder.ivFilterPriceLeft, holder.ivFilterBhkLeft, holder.ivFilterLocationLeft)
+            bindData(property, holder.tvTitleLeft, holder.tvPriceLeft, holder.tvLocationLeft, holder.tvBhkLeft, holder.tvBathLeft, holder.tvAreaLeft, holder.tvInterestedLeft, holder.tvAmenitiesLeft, holder.ivImageLeft, holder.tvImgCountLeft, holder.ivVideoIconLeft, holder.ivFilterPriceLeft, holder.ivFilterBhkLeft, holder.ivFilterLocationLeft, holder.ivFilterProTypeLeft, holder.tvFacingLeft, holder.tvRoadSizeLeft, holder.tvPropertyTypeLeft)
             
             holder.ivImageLeft.transitionName = "property_image_$position"
             holder.tvTitleLeft.transitionName = "property_title_$position"
@@ -91,7 +99,7 @@ class SearchPropertyAdapter(
         } else {
             holder.layoutLeft.visibility = View.GONE
             holder.layoutRight.visibility = View.VISIBLE
-            bindData(property, holder.tvTitleRight, holder.tvPriceRight, holder.tvLocationRight, holder.tvBhkRight, holder.tvBathRight, holder.tvAreaRight, holder.tvInterestedRight, holder.tvAmenitiesRight, holder.ivImageRight, holder.btnCallRight, holder.btnChatRight, holder.tvImgCountRight, holder.ivVideoIconRight, holder.ivFilterPriceRight, holder.ivFilterBhkRight, holder.ivFilterLocationRight)
+            bindData(property, holder.tvTitleRight, holder.tvPriceRight, holder.tvLocationRight, holder.tvBhkRight, holder.tvBathRight, holder.tvAreaRight, holder.tvInterestedRight, holder.tvAmenitiesRight, holder.ivImageRight, holder.tvImgCountRight, holder.ivVideoIconRight, holder.ivFilterPriceRight, holder.ivFilterBhkRight, holder.ivFilterLocationRight, holder.ivFilterProTypeRight, holder.tvFacingRight, holder.tvRoadSizeRight, holder.tvPropertyTypeRight)
             
             holder.ivImageRight.transitionName = "property_image_$position"
             holder.tvTitleRight.transitionName = "property_title_$position"
@@ -152,14 +160,14 @@ class SearchPropertyAdapter(
         stopImageCycle(holder.bindingAdapterPosition)
     }
 
-    private fun bindData(property: PropertyDTO, tvTitle: TextView, tvPrice: TextView, tvLocation: TextView, tvBhk: TextView, tvBath: TextView, tvArea: TextView, tvInterested: TextView, tvAmenities: TextView, ivImage: ImageView, btnCall: View, btnChat: View, tvImgCount: TextView, ivVideoIcon: ImageView, ivFilterPrice: View, ivFilterBhk: View, ivFilterLocation: View) {
+    private fun bindData(property: PropertyDTO, tvTitle: TextView, tvPrice: TextView, tvLocation: TextView, tvBhk: TextView, tvBath: TextView, tvArea: TextView, tvInterested: TextView, tvAmenities: TextView, ivImage: ImageView, tvImgCount: TextView, ivVideoIcon: ImageView, ivFilterPrice: View, ivFilterBhk: View, ivFilterLocation: View, ivFilterProType: View, tvFacing: TextView, tvRoadSize: TextView, tvPropertyType: TextView) {
         tvTitle.text = property.title?.uppercase() ?: "PREMIUM PROPERTY"
         
         val price = property.pricePerMonth ?: 0.0
         val formatter = java.text.DecimalFormat("#,###")
         tvPrice.text = "₹ ${formatter.format(price)}"
         
-        tvLocation.text = "${property.city}"
+        tvLocation.text = if (property.state.isNullOrEmpty()) "${property.city}" else "${property.city}, ${property.state}"
         
         val bhk = property.bedrooms ?: 0
         val baths = property.bathrooms?.toInt() ?: 0
@@ -169,12 +177,27 @@ class SearchPropertyAdapter(
         tvBath.text = "$baths BathRoom"
         tvArea.text = "$area Sqft"
         
+        // Facing, RoadSize, Status mapping
+        val categories = CategoryCache.getCategories(tvTitle.context)
+        fun getOptionName(ids: List<Int>?, group: String): String {
+            if (ids.isNullOrEmpty()) return "N/A"
+            val options = categories?.find { it.name.contains(group, true) }?.options
+            return options?.find { it.categoryId == ids.first() }?.option ?: "ID: ${ids.first()}"
+        }
+        
+        tvFacing.text = "Facing : ${getOptionName(property.facingId?.let { listOf(it) }, "Facing")}"
+        tvRoadSize.text = "Road : ${getOptionName(property.roadSizeId?.let { listOf(it) }, "Road")}"
+        
+        tvPropertyType.text = getOptionName(property.proTypeId?.let { listOf(it) }, "PropertyType").uppercase()
+
         // Filter Indicators
         ivFilterLocation.visibility = if (!currentCity.isNullOrEmpty()) View.VISIBLE else View.GONE
         ivFilterBhk.visibility = if (currentBhk != null && currentBhk == bhk) View.VISIBLE else View.GONE
         
         val isPriceFiltered = (currentMinPrice != null && price >= currentMinPrice!!) || (currentMaxPrice != null && price <= currentMaxPrice!!)
         ivFilterPrice.visibility = if (isPriceFiltered) View.VISIBLE else View.GONE
+
+        ivFilterProType.visibility = if (currentProTypeIds.isNotEmpty() && currentProTypeIds.contains(property.proTypeId)) View.VISIBLE else View.GONE
 
         // Dummy logic for interested people
         val interestedCount = (5..25).random()
@@ -202,9 +225,6 @@ class SearchPropertyAdapter(
             imageUrl
         }
         ivImage.load(fullImageUrl ?: R.drawable.ic_app_logo)
-        
-        btnCall.setOnClickListener { android.widget.Toast.makeText(tvTitle.context, "Calling owner...", android.widget.Toast.LENGTH_SHORT).show() }
-        btnChat.setOnClickListener { onChatClick(property) }
     }
 
     override fun getItemCount(): Int = properties.size

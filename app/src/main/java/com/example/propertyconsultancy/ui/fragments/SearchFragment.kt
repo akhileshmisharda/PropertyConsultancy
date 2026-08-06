@@ -452,6 +452,7 @@ class SearchFragment : Fragment() {
             try {
                 val response = RetrofitInstance.api.getProperties(
                     city = city,
+                    categoryId = if (viewModel.selectedProTypeIds.size == 1) viewModel.selectedProTypeIds.first() else null,
                     minPrice = viewModel.minPrice,
                     maxPrice = viewModel.maxPrice,
                     bedrooms = viewModel.bedrooms,
@@ -481,6 +482,7 @@ class SearchFragment : Fragment() {
                     propertyAdapter.currentBhk = viewModel.bedrooms
                     propertyAdapter.currentMinPrice = viewModel.minPrice
                     propertyAdapter.currentMaxPrice = viewModel.maxPrice
+                    propertyAdapter.currentProTypeIds = viewModel.selectedProTypeIds
                     
                     propertyAdapter.updateData(properties)
                     rvSearchResults.scrollToPosition(0)

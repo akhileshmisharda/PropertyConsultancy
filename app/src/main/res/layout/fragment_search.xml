@@ -27,7 +27,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:padding="12dp"
+                android:paddingHorizontal="12dp"
+                android:paddingVertical="4dp"
                 android:gravity="center_vertical"
                 android:visibility="gone">
 
@@ -70,31 +71,32 @@
                 <!-- Mandatory City Search -->
                 <RelativeLayout
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
+                    android:layout_height="38dp"
                     android:background="@drawable/edit_text_bg"
                     android:paddingEnd="4dp">
 
                     <FrameLayout
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
+                        android:layout_height="match_parent"
                         android:layout_toStartOf="@id/layoutSearchActions">
                         <AutoCompleteTextView
                             android:id="@+id/etSearchCity"
                             android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
+                            android:layout_height="match_parent"
                             android:background="@null"
                             android:hint="Search City..."
                             android:inputType="text"
-                            android:padding="12dp"
+                            android:paddingStart="12dp"
+                            android:paddingEnd="12dp"
                             android:completionThreshold="1"
                             android:textColor="@color/theme1_text"
-                            android:textSize="16sp" />
+                            android:textSize="14sp" />
                         <ImageView
                             android:id="@+id/ivFilterCity"
                             android:layout_width="10dp"
                             android:layout_height="10dp"
                             android:layout_gravity="start|top"
-                            android:layout_marginTop="6dp"
+                            android:layout_marginTop="4dp"
                             android:layout_marginStart="6dp"
                             android:src="@drawable/ic_filter_indicator"
                             android:visibility="gone" />
@@ -103,7 +105,7 @@
                     <LinearLayout
                         android:id="@+id/layoutSearchActions"
                         android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
+                        android:layout_height="match_parent"
                         android:layout_alignParentEnd="true"
                         android:layout_centerVertical="true"
                         android:gravity="center_vertical"
@@ -116,19 +118,20 @@
                             android:layout_marginEnd="4dp"
                             android:text="[ 5 Per Page ]"
                             android:textColor="#2196F3"
-                            android:textSize="9sp"
+                            android:textSize="8sp"
                             android:textStyle="bold" />
 
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/btnDoSearch"
                             android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
+                            android:layout_height="28dp"
                             android:layout_marginEnd="4dp"
                             android:insetTop="0dp"
                             android:insetBottom="0dp"
                             android:text="Apply"
+                            android:textSize="10sp"
                             android:textAllCaps="false"
-                            app:cornerRadius="12dp" />
+                            app:cornerRadius="6dp" />
                     </LinearLayout>
                 </RelativeLayout>
 
