@@ -174,7 +174,7 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
+                android:layout_marginTop="6dp"
                 android:orientation="horizontal"
                 android:gravity="center_vertical">
                 <TextView
@@ -208,32 +208,12 @@
                     android:id="@+id/tvBathLeft"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1.2"
+                    android:layout_weight="1"
                     android:textColor="?attr/colorOnSurfaceVariant"
                     android:textSize="15sp"
                     android:textStyle="bold"
                     android:gravity="start"
                     tools:text="2 BathRoom" />
-                <LinearLayout
-                    android:layout_width="70dp"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center">
-                    <ImageView
-                        android:id="@+id/ivFilterBhkLeft"
-                        android:layout_width="10dp"
-                        android:layout_height="10dp"
-                        android:layout_marginEnd="2dp"
-                        android:src="@drawable/ic_filter_indicator"
-                        android:visibility="gone" />
-                    <TextView
-                        android:id="@+id/tvBhkLeft"
-                        style="@style/App.BhkTag"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:gravity="center"
-                        tools:text="2 BHK" />
-                </LinearLayout>
                 <TextView
                     android:id="@+id/tvAreaLeft"
                     android:layout_width="0dp"
@@ -249,8 +229,10 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
                 android:orientation="horizontal"
                 android:gravity="center_vertical">
+
                 <TextView
                     android:id="@+id/tvLocationLeft"
                     android:layout_width="wrap_content"
@@ -272,7 +254,7 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
+                android:layout_marginTop="6dp"
                 android:orientation="horizontal"
                 android:gravity="center_vertical">
 
@@ -295,6 +277,47 @@
                     android:layout_weight="1"
                     android:gravity="center"
                     tools:text="40ft" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="horizontal"
+                    android:gravity="center">
+                    <ImageView
+                        android:id="@+id/ivFilterBhkLeft"
+                        android:layout_width="10dp"
+                        android:layout_height="10dp"
+                        android:layout_marginEnd="2dp"
+                        android:src="@drawable/ic_filter_indicator"
+                        android:visibility="gone" />
+                    <TextView
+                        android:id="@+id/tvBhkLeft"
+                        style="@style/App.BhkTag"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        tools:text="2 BHK" />
+                </LinearLayout>
+
+                <Space android:layout_width="4dp" android:layout_height="wrap_content" />
+
+                <TextView
+                    android:id="@+id/tvFurnishedLeft"
+                    style="@style/App.BhkTag"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    tools:text="Furnished" />
             </LinearLayout>
         </LinearLayout>
     </androidx.constraintlayout.widget.ConstraintLayout>
@@ -466,7 +489,7 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
+                android:layout_marginTop="6dp"
                 android:orientation="horizontal"
                 android:gravity="center_vertical">
                 <TextView
@@ -507,32 +530,11 @@
                     android:gravity="start"
                     tools:text="2500 Sqft" />
 
-                <LinearLayout
-                    android:layout_width="70dp"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center">
-                    <ImageView
-                        android:id="@+id/ivFilterBhkRight"
-                        android:layout_width="10dp"
-                        android:layout_height="10dp"
-                        android:layout_marginEnd="2dp"
-                        android:src="@drawable/ic_filter_indicator"
-                        android:visibility="gone" />
-                    <TextView
-                        android:id="@+id/tvBhkRight"
-                        style="@style/App.BhkTag"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:gravity="center"
-                        tools:text="4 BHK" />
-                </LinearLayout>
-
                 <TextView
                     android:id="@+id/tvBathRight"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1.2"
+                    android:layout_weight="1"
                     android:textColor="?attr/colorOnSurfaceVariant"
                     android:textSize="15sp"
                     android:textStyle="bold"
@@ -543,6 +545,7 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
                 android:orientation="horizontal"
                 android:gravity="center_vertical|end">
                 <ImageView
@@ -566,7 +569,7 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
+                android:layout_marginTop="6dp"
                 android:gravity="start"
                 android:orientation="horizontal">
 
@@ -589,6 +592,47 @@
                     android:layout_weight="1"
                     android:gravity="center"
                     tools:text="60ft" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="horizontal"
+                    android:gravity="center">
+                    <ImageView
+                        android:id="@+id/ivFilterBhkRight"
+                        android:layout_width="10dp"
+                        android:layout_height="10dp"
+                        android:layout_marginEnd="2dp"
+                        android:src="@drawable/ic_filter_indicator"
+                        android:visibility="gone" />
+                    <TextView
+                        android:id="@+id/tvBhkRight"
+                        style="@style/App.BhkTag"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        tools:text="4 BHK" />
+                </LinearLayout>
+
+                <Space android:layout_width="4dp" android:layout_height="wrap_content" />
+
+                <TextView
+                    android:id="@+id/tvFurnishedRight"
+                    style="@style/App.BhkTag"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    tools:text="Furnished" />
             </LinearLayout>
         </LinearLayout>
     </androidx.constraintlayout.widget.ConstraintLayout>

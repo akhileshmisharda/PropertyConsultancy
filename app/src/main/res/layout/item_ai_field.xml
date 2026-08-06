@@ -49,7 +49,6 @@
         android:text="Choices: Nagpur, Bhilwara, Mumbai..."
         android:textSize="10sp"
         android:textColor="#999999"
-        android:fontFamily="sans-serif-light"
         android:visibility="visible" />
 
 </LinearLayout>
