@@ -46,22 +46,42 @@
                 android:id="@+id/tvExploreTitle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
+                android:layout_marginTop="8dp"
                 android:textColor="@color/theme1_text"
                 android:textSize="28sp"
                 android:textStyle="bold"
                 android:transitionName="property_title"
                 tools:text="Skyline Apartment" />
 
-            <TextView
-                android:id="@+id/tvExplorePrice"
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:textColor="@color/theme2_primary"
-                android:textSize="22sp"
-                android:textStyle="bold"
-                tools:text="₹28,000/mo" />
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginTop="4dp">
+                <TextView
+                    android:id="@+id/tvExplorePrice"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:textColor="@color/theme2_primary"
+                    android:textSize="22sp"
+                    android:textStyle="bold"
+                    android:transitionName="property_price"
+                    tools:text="₹28,000/mo" />
+                <TextView
+                    android:id="@+id/tvExplorePropertyType"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingHorizontal="12dp"
+                    android:paddingVertical="4dp"
+                    android:background="@drawable/bg_zigzag_card"
+                    android:textColor="#E53935"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:transitionName="property_type"
+                    tools:text="APARTMENT" />
+            </LinearLayout>
 
             <View
                 android:layout_width="match_parent"
@@ -76,17 +96,79 @@
                 android:drawablePadding="8dp"
                 android:textColor="@color/theme1_text"
                 android:textSize="16sp"
+                android:transitionName="property_location"
                 app:drawableStartCompat="@android:drawable/ic_menu_mylocation"
                 tools:text="Model Town, Nagpur" />
 
-            <TextView
-                android:id="@+id/tvExploreStats"
+            <GridLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                android:textColor="@color/theme1_text"
-                android:textSize="16sp"
-                tools:text="2 BHK | 1300 sqft | 2nd Floor" />
+                android:columnCount="2"
+                android:alignmentMode="alignMargins">
+
+                <TextView
+                    android:id="@+id/tvExploreBhk"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="16dp"
+                    android:layout_marginBottom="8dp"
+                    android:textColor="@color/theme1_text"
+                    android:textSize="16sp"
+                    android:transitionName="property_bhk"
+                    tools:text="2 BHK" />
+
+                <TextView
+                    android:id="@+id/tvExploreArea"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp"
+                    android:textColor="@color/theme1_text"
+                    android:textSize="16sp"
+                    android:transitionName="property_area"
+                    tools:text="1300 sqft" />
+
+                <TextView
+                    android:id="@+id/tvExploreFacing"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="16dp"
+                    android:layout_marginBottom="8dp"
+                    android:textColor="@color/theme1_text"
+                    android:textSize="16sp"
+                    android:transitionName="property_facing"
+                    tools:text="Facing: East" />
+
+                <TextView
+                    android:id="@+id/tvExploreRoadSize"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp"
+                    android:textColor="@color/theme1_text"
+                    android:textSize="16sp"
+                    android:transitionName="property_roadsize"
+                    tools:text="Road: 40ft" />
+
+                <TextView
+                    android:id="@+id/tvExploreFurnished"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="16dp"
+                    android:textColor="@color/theme1_text"
+                    android:textSize="16sp"
+                    android:transitionName="property_furnished"
+                    tools:text="Furnished" />
+
+                <TextView
+                    android:id="@+id/tvExploreBath"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/theme1_text"
+                    android:textSize="16sp"
+                    android:transitionName="property_bath"
+                    tools:text="2 Bathrooms" />
+
+            </GridLayout>
 
             <TextView
                 android:layout_width="match_parent"

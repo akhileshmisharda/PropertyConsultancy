@@ -47,6 +47,7 @@
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintHorizontal_bias="0.0"
             app:layout_constraintVertical_chainStyle="packed"
+            android:transitionName="property_type"
             tools:text="APARTMENT" />
 
         <ImageView
@@ -154,6 +155,8 @@
                         android:textSize="18sp"
                         android:textStyle="bold"
                         android:gravity="start"
+                        android:includeFontPadding="false"
+                        android:transitionName="property_price"
                         tools:text="₹ 28,000" />
                 </LinearLayout>
                 <TextView
@@ -167,6 +170,7 @@
                     android:textStyle="bold"
                     android:maxLines="1"
                     android:ellipsize="end"
+                    android:includeFontPadding="false"
                     android:transitionName="property_title"
                     tools:text="SKYLINE APARTMENT" />
             </LinearLayout>
@@ -186,6 +190,7 @@
                     android:textColor="#0D47A1"
                     android:textSize="11sp"
                     android:textStyle="bold"
+                    android:includeFontPadding="false"
                     android:gravity="start" />
                 <TextView
                     android:id="@+id/tvAmenitiesLeft"
@@ -195,6 +200,7 @@
                     android:textSize="11sp"
                     android:textStyle="bold"
                     android:gravity="end"
+                    android:includeFontPadding="false"
                     tools:text="12 Amenities" />
             </LinearLayout>
 
@@ -213,6 +219,8 @@
                     android:textSize="15sp"
                     android:textStyle="bold"
                     android:gravity="start"
+                    android:includeFontPadding="false"
+                    android:transitionName="property_bath"
                     tools:text="2 BathRoom" />
                 <TextView
                     android:id="@+id/tvAreaLeft"
@@ -223,6 +231,8 @@
                     android:textSize="15sp"
                     android:textStyle="bold"
                     android:gravity="end"
+                    android:includeFontPadding="false"
+                    android:transitionName="property_area"
                     tools:text="1300 Sqft" />
             </LinearLayout>
 
@@ -237,10 +247,11 @@
                     android:id="@+id/tvLocationLeft"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="0dp"
                     android:gravity="start|center_vertical"
                     android:textColor="?attr/colorOnSurface"
                     android:textSize="13sp"
+                    android:includeFontPadding="false"
+                    android:transitionName="property_location"
                     tools:text="Model Town" />
                 <ImageView
                     android:id="@+id/ivFilterLocationLeft"
@@ -265,6 +276,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:gravity="center"
+                    android:transitionName="property_facing"
                     tools:text="East" />
 
                 <Space android:layout_width="4dp" android:layout_height="wrap_content" />
@@ -276,6 +288,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:gravity="center"
+                    android:transitionName="property_roadsize"
                     tools:text="40ft" />
             </LinearLayout>
 
@@ -305,6 +318,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:gravity="center"
+                        android:transitionName="property_bhk"
                         tools:text="2 BHK" />
                 </LinearLayout>
 
@@ -317,6 +331,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:gravity="center"
+                    android:transitionName="property_furnished"
                     tools:text="Furnished" />
             </LinearLayout>
         </LinearLayout>
@@ -361,6 +376,7 @@
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintHorizontal_bias="1.0"
             app:layout_constraintVertical_chainStyle="packed"
+            android:transitionName="property_type"
             tools:text="VILLA" />
 
         <ImageView
@@ -459,6 +475,7 @@
                     android:textStyle="bold"
                     android:maxLines="1"
                     android:ellipsize="end"
+                    android:includeFontPadding="false"
                     android:transitionName="property_title"
                     tools:text="FOREST SLATE VILLA" />
                 <LinearLayout
@@ -482,6 +499,8 @@
                         android:textStyle="bold"
                         android:layout_marginStart="8dp"
                         android:gravity="end"
+                        android:includeFontPadding="false"
+                        android:transitionName="property_price"
                         tools:text="₹ 75,000" />
                 </LinearLayout>
             </LinearLayout>
@@ -500,6 +519,7 @@
                     android:textSize="11sp"
                     android:textStyle="bold"
                     android:gravity="start"
+                    android:includeFontPadding="false"
                     tools:text="8 Amenities" />
                 <TextView
                     android:id="@+id/tvInterestedRight"
@@ -510,7 +530,8 @@
                     android:text="8 Interested"
                     android:textColor="#0D47A1"
                     android:textSize="11sp"
-                    android:textStyle="bold" />
+                    android:textStyle="bold"
+                    android:includeFontPadding="false" />
             </LinearLayout>
 
             <LinearLayout
@@ -528,6 +549,8 @@
                     android:textSize="15sp"
                     android:textStyle="bold"
                     android:gravity="start"
+                    android:includeFontPadding="false"
+                    android:transitionName="property_area"
                     tools:text="2500 Sqft" />
 
                 <TextView
@@ -539,6 +562,8 @@
                     android:textSize="15sp"
                     android:textStyle="bold"
                     android:gravity="end"
+                    android:includeFontPadding="false"
+                    android:transitionName="property_bath"
                     tools:text="3 BathRoom" />
             </LinearLayout>
 
@@ -559,10 +584,11 @@
                     android:id="@+id/tvLocationRight"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="0dp"
                     android:gravity="end|center_vertical"
                     android:textColor="?attr/colorOnSurface"
                     android:textSize="13sp"
+                    android:includeFontPadding="false"
+                    android:transitionName="property_location"
                     tools:text="Civil Lines" />
             </LinearLayout>
 
@@ -580,6 +606,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:gravity="center"
+                    android:transitionName="property_facing"
                     tools:text="West" />
 
                 <Space android:layout_width="4dp" android:layout_height="wrap_content" />
@@ -591,6 +618,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:gravity="center"
+                    android:transitionName="property_roadsize"
                     tools:text="60ft" />
             </LinearLayout>
 
@@ -620,6 +648,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:gravity="center"
+                        android:transitionName="property_bhk"
                         tools:text="4 BHK" />
                 </LinearLayout>
 
@@ -632,6 +661,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:gravity="center"
+                    android:transitionName="property_furnished"
                     tools:text="Furnished" />
             </LinearLayout>
         </LinearLayout>

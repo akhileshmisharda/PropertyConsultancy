@@ -193,9 +193,9 @@ class SearchFragment : Fragment() {
         tvPageSizeInfoSummary.text = pageSizeText
 
         rvSearchResults.layoutManager = StaggeredGridLayoutManager(1, StaggeredGridLayoutManager.VERTICAL)
-        propertyAdapter = com.example.propertyconsultancy.ui.adapters.SearchPropertyAdapter(emptyList(), onItemClick = { property, img, title ->
+        propertyAdapter = com.example.propertyconsultancy.ui.adapters.SearchPropertyAdapter(emptyList(), onItemClick = { property, sharedElements ->
             viewModel.lastClickedPosition = viewModel.searchResults.indexOf(property)
-            (activity as? MainActivity)?.openPropertyExplore(property, img, title)
+            (activity as? MainActivity)?.openPropertyExplore(property, sharedElements)
         }, onFilterClick = { type, value ->
             handleQuickFilter(type, value)
         }, onChatClick = { property ->

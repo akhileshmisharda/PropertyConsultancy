@@ -13,7 +13,7 @@ import com.example.propertyconsultancy.data.dto.PropertyDTO
 
 class SearchPropertyAdapter(
     private var properties: List<PropertyDTO>,
-    private val onItemClick: (PropertyDTO, View, View) -> Unit,
+    private val onItemClick: (PropertyDTO, Map<String, View>) -> Unit,
     private val onFilterClick: (String, Any) -> Unit,
     private val onChatClick: (PropertyDTO) -> Unit,
     var currentCity: String? = null,
@@ -88,26 +88,35 @@ class SearchPropertyAdapter(
         // Clear previous animations/cycles for this VH
         stopImageCycle(position)
 
+        val views = if (isLeft) {
+            listOf(holder.ivImageLeft, holder.tvTitleLeft, holder.tvPriceLeft, holder.tvLocationLeft, holder.tvBhkLeft, holder.tvAreaLeft, holder.tvFacingLeft, holder.tvRoadSizeLeft, holder.tvFurnishedLeft, holder.tvBathLeft, holder.tvPropertyTypeLeft)
+        } else {
+            listOf(holder.ivImageRight, holder.tvTitleRight, holder.tvPriceRight, holder.tvLocationRight, holder.tvBhkRight, holder.tvAreaRight, holder.tvFacingRight, holder.tvRoadSizeRight, holder.tvFurnishedRight, holder.tvBathRight, holder.tvPropertyTypeRight)
+        }
+
+        val sharedElements = mutableMapOf<String, View>()
+        val prefixes = listOf("property_image", "property_title", "property_price", "property_location", "property_bhk", "property_area", "property_facing", "property_roadsize", "property_furnished", "property_bath", "property_type")
+        
+        views.forEachIndexed { index, view ->
+            val name = "${prefixes[index]}_$position"
+            view.transitionName = name
+            sharedElements[name] = view
+        }
+
         if (isLeft) {
             holder.layoutLeft.visibility = View.VISIBLE
             holder.layoutRight.visibility = View.GONE
             bindData(property, holder.tvTitleLeft, holder.tvPriceLeft, holder.tvLocationLeft, holder.tvBhkLeft, holder.tvBathLeft, holder.tvAreaLeft, holder.tvInterestedLeft, holder.tvAmenitiesLeft, holder.ivImageLeft, holder.tvImgCountLeft, holder.ivVideoIconLeft, holder.ivFilterPriceLeft, holder.ivFilterBhkLeft, holder.ivFilterLocationLeft, holder.ivFilterProTypeLeft, holder.tvFacingLeft, holder.tvRoadSizeLeft, holder.tvFurnishedLeft, holder.tvPropertyTypeLeft)
             
-            holder.ivImageLeft.transitionName = "property_image_$position"
-            holder.tvTitleLeft.transitionName = "property_title_$position"
-            
             setupImageCycle(property, holder.ivImageLeft, position)
-            holder.itemView.setOnClickListener { onItemClick(property, holder.ivImageLeft, holder.tvTitleLeft) }
+            holder.itemView.setOnClickListener { onItemClick(property, sharedElements) }
         } else {
             holder.layoutLeft.visibility = View.GONE
             holder.layoutRight.visibility = View.VISIBLE
             bindData(property, holder.tvTitleRight, holder.tvPriceRight, holder.tvLocationRight, holder.tvBhkRight, holder.tvBathRight, holder.tvAreaRight, holder.tvInterestedRight, holder.tvAmenitiesRight, holder.ivImageRight, holder.tvImgCountRight, holder.ivVideoIconRight, holder.ivFilterPriceRight, holder.ivFilterBhkRight, holder.ivFilterLocationRight, holder.ivFilterProTypeRight, holder.tvFacingRight, holder.tvRoadSizeRight, holder.tvFurnishedRight, holder.tvPropertyTypeRight)
             
-            holder.ivImageRight.transitionName = "property_image_$position"
-            holder.tvTitleRight.transitionName = "property_title_$position"
-            
             setupImageCycle(property, holder.ivImageRight, position)
-            holder.itemView.setOnClickListener { onItemClick(property, holder.ivImageRight, holder.tvTitleRight) }
+            holder.itemView.setOnClickListener { onItemClick(property, sharedElements) }
         }
     }
 
