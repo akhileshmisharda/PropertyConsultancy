@@ -111,6 +111,15 @@
                         android:gravity="center_vertical"
                         android:orientation="horizontal">
 
+                        <ImageButton
+                            android:id="@+id/btnAiFilter"
+                            android:layout_width="32dp"
+                            android:layout_height="32dp"
+                            android:layout_marginEnd="4dp"
+                            android:background="?attr/selectableItemBackgroundBorderless"
+                            android:src="@android:drawable/ic_btn_speak_now"
+                            app:tint="@color/theme1_primary" />
+
                         <TextView
                             android:id="@+id/tvPageSizeInfo"
                             android:layout_width="wrap_content"

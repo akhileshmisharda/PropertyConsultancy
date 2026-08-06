@@ -66,6 +66,7 @@ class SearchFragment : Fragment() {
     
     private lateinit var tvPageSizeInfo: TextView
     private lateinit var tvPageSizeInfoSummary: TextView
+    private lateinit var btnAiFilter: View
     private lateinit var ivFilterCity: ImageView
     private lateinit var ivFilterMinPrice: ImageView
     private lateinit var ivFilterMaxPrice: ImageView
@@ -126,6 +127,12 @@ class SearchFragment : Fragment() {
             updateFoldVisibility()
         }
 
+        btnAiFilter.setOnClickListener {
+            com.example.propertyconsultancy.ui.dialogs.AiFilterDialog { requirement ->
+                parseAiRequirement(requirement)
+            }.show(parentFragmentManager, "AiFilterDialog")
+        }
+
         btnClearFilters.setOnClickListener {
             clearAllFilters()
         }
@@ -169,6 +176,7 @@ class SearchFragment : Fragment() {
         
         tvPageSizeInfo = view.findViewById(R.id.tvPageSizeInfo)
         tvPageSizeInfoSummary = view.findViewById(R.id.tvPageSizeInfoSummary)
+        btnAiFilter = view.findViewById(R.id.btnAiFilter)
         ivFilterCity = view.findViewById(R.id.ivFilterCity)
         ivFilterMinPrice = view.findViewById(R.id.ivFilterMinPrice)
         ivFilterMaxPrice = view.findViewById(R.id.ivFilterMaxPrice)
@@ -702,5 +710,127 @@ class SearchFragment : Fragment() {
 
     private fun openChat(property: com.example.propertyconsultancy.data.dto.PropertyDTO) {
         (activity as? MainActivity)?.openChat(property)
+    }
+
+    private fun parseAiRequirement(requirement: String) {
+        val text = requirement.lowercase()
+        Log.d("[AI]", "Parsing Requirement: $text")
+
+        // Reset previous filters if needed or just update them?
+        // User probably wants to ADD to or REFRESH filters. 
+        // Let's clear numeric filters for a fresh AI interpretation.
+        viewModel.minPrice = null
+        viewModel.maxPrice = null
+        viewModel.bedrooms = null
+        
+        // 1. BHK Extraction
+        val bhkWords = mapOf("one" to 1, "two" to 2, "three" to 3, "four" to 4, "five" to 5)
+        var bhkValue: Int? = null
+        val bhkRegex = Regex("(\\d+)\\s*bhk")
+        bhkRegex.find(text)?.groupValues?.get(1)?.toIntOrNull()?.let { bhkValue = it }
+        if (bhkValue == null) {
+            bhkWords.forEach { (word, value) -> if (text.contains(word)) bhkValue = value }
+        }
+        bhkValue?.let {
+            viewModel.bedrooms = it
+            etBedrooms.setText(it.toString())
+        }
+
+        // 2. Price Extraction (e.g., "under 30k", "rent 20000", "kiraya 15k", "kiraye pe")
+        fun parsePrice(input: String): Double? {
+            val clean = input.replace(",", "").replace(" ", "")
+                .replace("hazaar", "000")
+                .replace("thousand", "000")
+            val num = Regex("(\\d+\\.?\\d*)").find(clean)?.groupValues?.get(1)?.toDoubleOrNull() ?: return null
+            return when {
+                clean.contains("cr") || clean.contains("crore") -> num * 10000000
+                clean.contains("lakh") || clean.contains("lac") -> num * 100000
+                clean.contains("k") -> num * 1000
+                else -> num
+            }
+        }
+
+        val budgetTriggers = listOf("under", "below", "within", "budget", "rent", "kiraya", "kiraye", "price", "less than")
+        val minPriceTriggers = listOf("above", "more than", "greater than", "start")
+
+        if (budgetTriggers.any { text.contains(it) }) {
+            // Find the trigger word and parse the segment after it
+            val trigger = budgetTriggers.find { text.contains(it) }!!
+            val segment = text.substringAfter(trigger)
+            parsePrice(segment)?.let {
+                viewModel.maxPrice = it
+                etMaxPrice.setText(it.toInt().toString())
+            }
+        } else if (minPriceTriggers.any { text.contains(it) }) {
+            val trigger = minPriceTriggers.find { text.contains(it) }!!
+            val segment = text.substringAfter(trigger)
+            parsePrice(segment)?.let {
+                viewModel.minPrice = it
+                etMinPrice.setText(it.toInt().toString())
+            }
+        }
+
+        // 3. City Extraction
+        allCities.forEach { city ->
+            if (text.contains(city.lowercase())) {
+                viewModel.lastSearchCity = city
+                etSearchCity.setText(city)
+            }
+        }
+
+        // 4. Type Extraction (Multi-value support with Synonyms)
+        val categories = CategoryCache.getCategories(requireContext())
+        val typeOptions = categories?.find { it.name.contains("Type", true) }?.options ?: emptyList()
+        val foundTypeIds = mutableSetOf<Int>()
+        val foundTypeNames = mutableSetOf<String>()
+        
+        // Define Synonyms
+        val synonyms = mapOf(
+            "ghar" to "House",
+            "makan" to "House",
+            "flat" to "Apartment",
+            "apartment" to "Apartment",
+            "villa" to "Villa",
+            "office" to "Office",
+            "shop" to "Shop",
+            "dukan" to "Shop",
+            "plot" to "Plot",
+            "zamin" to "Plot"
+        )
+        
+        synonyms.forEach { (keyword, targetName) ->
+            if (text.contains(keyword)) {
+                typeOptions.find { it.option.equals(targetName, true) }?.let {
+                    foundTypeIds.add(it.categoryId)
+                    foundTypeNames.add(it.option)
+                }
+            }
+        }
+        
+        // Also check direct names
+        typeOptions.forEach { option ->
+            if (text.contains(option.option.lowercase())) {
+                foundTypeIds.add(option.categoryId)
+                foundTypeNames.add(option.option)
+            }
+        }
+        
+        if (foundTypeIds.isNotEmpty()) {
+            viewModel.selectedProTypeIds = foundTypeIds.toList()
+            etFilterProType.setText(foundTypeNames.joinToString(", "))
+        }
+
+        updateFilterIndicators()
+        updateFilterHints()
+
+        if (viewModel.lastSearchCity.isNotEmpty()) {
+            viewModel.currentPage = 0
+            saveFiltersToPersistence()
+            performSearch(viewModel.lastSearchCity)
+        } else {
+            viewModel.isMainFilterVisible = true
+            updateFoldVisibility()
+            Toast.makeText(requireContext(), "Filters set! Please specify a city to search.", Toast.LENGTH_LONG).show()
+        }
     }
 }

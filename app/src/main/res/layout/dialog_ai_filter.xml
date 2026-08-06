@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    app:cardCornerRadius="24dp"
+    app:cardElevation="12dp"
+    android:layout_margin="16dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <TextView
+            android:id="@+id/tvAiHint"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Tell me your requirement..."
+            android:textSize="14sp"
+            android:textColor="?attr/colorPrimary"
+            android:textStyle="bold|italic"
+            android:gravity="center"
+            android:layout_marginBottom="8dp" />
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp">
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilAiInput"
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_toStartOf="@id/layoutMicContainer"
+                android:layout_marginEnd="12dp"
+                app:startIconDrawable="@android:drawable/ic_menu_close_clear_cancel"
+                app:startIconTint="#888888"
+                app:boxCornerRadiusTopStart="16dp"
+                app:boxCornerRadiusTopEnd="16dp"
+                app:boxCornerRadiusBottomStart="16dp"
+                app:boxCornerRadiusBottomEnd="16dp">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etAiInput"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="e.g. 2 BHK ghar in Nagpur..."
+                    android:gravity="top"
+                    android:minLines="2"
+                    android:maxLines="3"
+                    android:textSize="14sp" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <FrameLayout
+                android:id="@+id/layoutMicContainer"
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true">
+
+                <View
+                    android:id="@+id/viewPulse"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/bg_circle_pulse"
+                    android:visibility="gone" />
+
+                <com.google.android.material.floatingactionbutton.FloatingActionButton
+                    android:id="@+id/fabMic"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:src="@android:drawable/ic_btn_speak_now"
+                    app:fabCustomSize="48dp"
+                    app:backgroundTint="?attr/colorPrimary"
+                    app:tint="@color/white"
+                    app:elevation="2dp" />
+            </FrameLayout>
+        </RelativeLayout>
+
+        <com.google.android.material.progressindicator.LinearProgressIndicator
+            android:id="@+id/aiProgress"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:indeterminate="true"
+            android:visibility="gone"
+            android:layout_marginTop="4dp" />
+
+        <!-- Fields Display Area -->
+        <LinearLayout
+            android:id="@+id/layoutFields"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginTop="16dp"
+            android:divider="?android:attr/listDivider"
+            android:showDividers="middle">
+
+            <!-- Template for a field row -->
+            <include layout="@layout/item_ai_field" android:id="@+id/rowCity" />
+            <include layout="@layout/item_ai_field" android:id="@+id/rowType" />
+            <include layout="@layout/item_ai_field" android:id="@+id/rowBhk" />
+            <include layout="@layout/item_ai_field" android:id="@+id/rowBudget" />
+            <include layout="@layout/item_ai_field" android:id="@+id/rowFacing" />
+            <include layout="@layout/item_ai_field" android:id="@+id/rowRoadSize" />
+            <include layout="@layout/item_ai_field" android:id="@+id/rowFurnished" />
+
+        </LinearLayout>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnApplyAi"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:layout_marginTop="16dp"
+            android:text="Search Properties"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            app:cornerRadius="16dp" />
+
+        <TextView
+            android:id="@+id/tvAiStatus"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Hold mic icon to speak"
+            android:textSize="11sp"
+            android:layout_marginTop="8dp"
+            android:layout_gravity="center"
+            android:textColor="?attr/colorOnSurfaceVariant" />
+
+    </LinearLayout>
+</androidx.cardview.widget.CardView>

@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingVertical="6dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <TextView
+            android:id="@+id/tvFieldLabel"
+            android:layout_width="80dp"
+            android:layout_height="wrap_content"
+            android:text="City"
+            android:textSize="12sp"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvFieldValue"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Speak city name..."
+            android:textSize="13sp"
+            android:textColor="#BBBBBB"
+            android:layout_marginStart="8dp" />
+
+        <ImageButton
+            android:id="@+id/btnClearField"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@android:drawable/ic_menu_close_clear_cancel"
+            app:tint="@color/error_red"
+            android:visibility="gone" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/tvFieldChoices"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="88dp"
+        android:text="Choices: Nagpur, Bhilwara, Mumbai..."
+        android:textSize="10sp"
+        android:textColor="#999999"
+        android:fontFamily="sans-serif-light"
+        android:visibility="visible" />
+
+</LinearLayout>
