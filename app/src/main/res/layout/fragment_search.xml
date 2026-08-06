@@ -40,6 +40,16 @@
                     android:textStyle="bold"
                     android:textColor="@color/theme1_text" />
 
+                <TextView
+                    android:id="@+id/tvPageSizeInfoSummary"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="8dp"
+                    android:text="[ 5 Per Page ]"
+                    android:textColor="#2196F3"
+                    android:textSize="9sp"
+                    android:textStyle="bold" />
+
                 <ImageButton
                     android:id="@+id/btnEditFilters"
                     android:layout_width="40dp"
@@ -58,38 +68,69 @@
                 android:padding="16dp">
 
                 <!-- Mandatory City Search -->
-                <LinearLayout
+                <RelativeLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:background="@drawable/edit_text_bg"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal"
                     android:paddingEnd="4dp">
 
-                    <AutoCompleteTextView
-                        android:id="@+id/etSearchCity"
-                        android:layout_width="0dp"
+                    <FrameLayout
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:background="@null"
-                        android:hint="Search City..."
-                        android:inputType="text"
-                        android:padding="12dp"
-                        android:completionThreshold="1"
-                        android:textColor="@color/theme1_text"
-                        android:textSize="16sp" />
+                        android:layout_toStartOf="@id/layoutSearchActions">
+                        <AutoCompleteTextView
+                            android:id="@+id/etSearchCity"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:background="@null"
+                            android:hint="Search City..."
+                            android:inputType="text"
+                            android:padding="12dp"
+                            android:completionThreshold="1"
+                            android:textColor="@color/theme1_text"
+                            android:textSize="16sp" />
+                        <ImageView
+                            android:id="@+id/ivFilterCity"
+                            android:layout_width="10dp"
+                            android:layout_height="10dp"
+                            android:layout_gravity="start|top"
+                            android:layout_marginTop="6dp"
+                            android:layout_marginStart="6dp"
+                            android:src="@drawable/ic_filter_indicator"
+                            android:visibility="gone" />
+                    </FrameLayout>
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnDoSearch"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Apply"
-                    android:textAllCaps="false"
-                    app:cornerRadius="12dp"
-                    android:insetTop="0dp"
-                    android:insetBottom="0dp"
-                    android:layout_marginEnd="4dp" />
-            </LinearLayout>
+                    <LinearLayout
+                        android:id="@+id/layoutSearchActions"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:id="@+id/tvPageSizeInfo"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="4dp"
+                            android:text="[ 5 Per Page ]"
+                            android:textColor="#2196F3"
+                            android:textSize="9sp"
+                            android:textStyle="bold" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnDoSearch"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="4dp"
+                            android:insetTop="0dp"
+                            android:insetBottom="0dp"
+                            android:text="Apply"
+                            android:textAllCaps="false"
+                            app:cornerRadius="12dp" />
+                    </LinearLayout>
+                </RelativeLayout>
 
                 <!-- Favourite Cities -->
                 <HorizontalScrollView
@@ -184,31 +225,57 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal">
-                        <com.google.android.material.textfield.TextInputLayout
-                            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                        <FrameLayout
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1">
-                            <com.google.android.material.textfield.TextInputEditText
-                                android:id="@+id/etMinPrice"
+                            <com.google.android.material.textfield.TextInputLayout
+                                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
                                 android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:hint="Min Price"
-                                android:inputType="number" />
-                        </com.google.android.material.textfield.TextInputLayout>
+                                android:layout_height="wrap_content">
+                                <com.google.android.material.textfield.TextInputEditText
+                                    android:id="@+id/etMinPrice"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:hint="Min Price"
+                                    android:inputType="number" />
+                            </com.google.android.material.textfield.TextInputLayout>
+                            <ImageView
+                                android:id="@+id/ivFilterMinPrice"
+                                android:layout_width="12dp"
+                                android:layout_height="12dp"
+                                android:layout_gravity="start|top"
+                                android:layout_marginTop="8dp"
+                                android:layout_marginStart="8dp"
+                                android:src="@drawable/ic_filter_indicator"
+                                android:visibility="gone" />
+                        </FrameLayout>
                         <Space android:layout_width="12dp" android:layout_height="wrap_content" />
-                        <com.google.android.material.textfield.TextInputLayout
-                            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                        <FrameLayout
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1">
-                            <com.google.android.material.textfield.TextInputEditText
-                                android:id="@+id/etMaxPrice"
+                            <com.google.android.material.textfield.TextInputLayout
+                                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
                                 android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:hint="Max Price"
-                                android:inputType="number" />
-                        </com.google.android.material.textfield.TextInputLayout>
+                                android:layout_height="wrap_content">
+                                <com.google.android.material.textfield.TextInputEditText
+                                    android:id="@+id/etMaxPrice"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:hint="Max Price"
+                                    android:inputType="number" />
+                            </com.google.android.material.textfield.TextInputLayout>
+                            <ImageView
+                                android:id="@+id/ivFilterMaxPrice"
+                                android:layout_width="12dp"
+                                android:layout_height="12dp"
+                                android:layout_gravity="start|top"
+                                android:layout_marginTop="8dp"
+                                android:layout_marginStart="8dp"
+                                android:src="@drawable/ic_filter_indicator"
+                                android:visibility="gone" />
+                        </FrameLayout>
                     </LinearLayout>
 
                     <!-- Row 2: Beds & Baths -->
@@ -217,31 +284,57 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="12dp"
                         android:orientation="horizontal">
-                        <com.google.android.material.textfield.TextInputLayout
-                            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                        <FrameLayout
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1">
-                            <com.google.android.material.textfield.TextInputEditText
-                                android:id="@+id/etBedrooms"
+                            <com.google.android.material.textfield.TextInputLayout
+                                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
                                 android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:hint="Beds"
-                                android:inputType="number" />
-                        </com.google.android.material.textfield.TextInputLayout>
+                                android:layout_height="wrap_content">
+                                <com.google.android.material.textfield.TextInputEditText
+                                    android:id="@+id/etBedrooms"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:hint="Beds"
+                                    android:inputType="number" />
+                            </com.google.android.material.textfield.TextInputLayout>
+                            <ImageView
+                                android:id="@+id/ivFilterBedrooms"
+                                android:layout_width="12dp"
+                                android:layout_height="12dp"
+                                android:layout_gravity="start|top"
+                                android:layout_marginTop="8dp"
+                                android:layout_marginStart="8dp"
+                                android:src="@drawable/ic_filter_indicator"
+                                android:visibility="gone" />
+                        </FrameLayout>
                         <Space android:layout_width="12dp" android:layout_height="wrap_content" />
-                        <com.google.android.material.textfield.TextInputLayout
-                            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                        <FrameLayout
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1">
-                            <com.google.android.material.textfield.TextInputEditText
-                                android:id="@+id/etBathrooms"
+                            <com.google.android.material.textfield.TextInputLayout
+                                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
                                 android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:hint="Baths"
-                                android:inputType="numberDecimal" />
-                        </com.google.android.material.textfield.TextInputLayout>
+                                android:layout_height="wrap_content">
+                                <com.google.android.material.textfield.TextInputEditText
+                                    android:id="@+id/etBathrooms"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:hint="Baths"
+                                    android:inputType="numberDecimal" />
+                            </com.google.android.material.textfield.TextInputLayout>
+                            <ImageView
+                                android:id="@+id/ivFilterBathrooms"
+                                android:layout_width="12dp"
+                                android:layout_height="12dp"
+                                android:layout_gravity="start|top"
+                                android:layout_marginTop="8dp"
+                                android:layout_marginStart="8dp"
+                                android:src="@drawable/ic_filter_indicator"
+                                android:visibility="gone" />
+                        </FrameLayout>
                     </LinearLayout>
 
                     <TextView
@@ -274,71 +367,123 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:orientation="horizontal">
-                        <com.google.android.material.textfield.TextInputLayout
-                            style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1">
-                            <com.google.android.material.textfield.MaterialAutoCompleteTextView
-                                android:id="@+id/etFilterFloor"
-                                android:layout_width="match_parent"
+                            <FrameLayout
+                                android:layout_width="0dp"
                                 android:layout_height="wrap_content"
-                                android:hint="Floor"
-                                android:focusable="false"
-                                android:clickable="true" />
-                        </com.google.android.material.textfield.TextInputLayout>
-                        <Space android:layout_width="12dp" android:layout_height="wrap_content" />
-                        <com.google.android.material.textfield.TextInputLayout
-                            style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1">
-                            <com.google.android.material.textfield.MaterialAutoCompleteTextView
-                                android:id="@+id/etFilterFacing"
-                                android:layout_width="match_parent"
+                                android:layout_weight="1">
+                                <com.google.android.material.textfield.TextInputLayout
+                                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content">
+                                    <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                                        android:id="@+id/etFilterFloor"
+                                        android:layout_width="match_parent"
+                                        android:layout_height="wrap_content"
+                                        android:hint="Floor"
+                                        android:focusable="false"
+                                        android:clickable="true" />
+                                </com.google.android.material.textfield.TextInputLayout>
+                                <ImageView
+                                    android:id="@+id/ivFilterFloor"
+                                    android:layout_width="12dp"
+                                    android:layout_height="12dp"
+                                    android:layout_gravity="start|top"
+                                    android:layout_marginTop="8dp"
+                                    android:layout_marginStart="8dp"
+                                    android:src="@drawable/ic_filter_indicator"
+                                    android:visibility="gone" />
+                            </FrameLayout>
+                            <Space android:layout_width="12dp" android:layout_height="wrap_content" />
+                            <FrameLayout
+                                android:layout_width="0dp"
                                 android:layout_height="wrap_content"
-                                android:hint="Facing"
-                                android:focusable="false"
-                                android:clickable="true" />
-                        </com.google.android.material.textfield.TextInputLayout>
-                    </LinearLayout>
+                                android:layout_weight="1">
+                                <com.google.android.material.textfield.TextInputLayout
+                                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content">
+                                    <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                                        android:id="@+id/etFilterFacing"
+                                        android:layout_width="match_parent"
+                                        android:layout_height="wrap_content"
+                                        android:hint="Facing"
+                                        android:focusable="false"
+                                        android:clickable="true" />
+                                </com.google.android.material.textfield.TextInputLayout>
+                                <ImageView
+                                    android:id="@+id/ivFilterFacing"
+                                    android:layout_width="12dp"
+                                    android:layout_height="12dp"
+                                    android:layout_gravity="start|top"
+                                    android:layout_marginTop="8dp"
+                                    android:layout_marginStart="8dp"
+                                    android:src="@drawable/ic_filter_indicator"
+                                    android:visibility="gone" />
+                            </FrameLayout>
+                        </LinearLayout>
 
-                    <!-- Row 4: Road Size & Type (2 in 1 Row) -->
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="12dp"
-                        android:layout_marginBottom="8dp"
-                        android:orientation="horizontal">
-                        <com.google.android.material.textfield.TextInputLayout
-                            style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
-                            android:layout_width="0dp"
+                        <!-- Row 4: Road Size & Type (2 in 1 Row) -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_weight="1">
-                            <com.google.android.material.textfield.MaterialAutoCompleteTextView
-                                android:id="@+id/etFilterRoadSize"
-                                android:layout_width="match_parent"
+                            android:layout_marginTop="12dp"
+                            android:layout_marginBottom="8dp"
+                            android:orientation="horizontal">
+                            <FrameLayout
+                                android:layout_width="0dp"
                                 android:layout_height="wrap_content"
-                                android:hint="Road"
-                                android:focusable="false"
-                                android:clickable="true" />
-                        </com.google.android.material.textfield.TextInputLayout>
-                        <Space android:layout_width="12dp" android:layout_height="wrap_content" />
-                        <com.google.android.material.textfield.TextInputLayout
-                            style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1">
-                            <com.google.android.material.textfield.MaterialAutoCompleteTextView
-                                android:id="@+id/etFilterProType"
-                                android:layout_width="match_parent"
+                                android:layout_weight="1">
+                                <com.google.android.material.textfield.TextInputLayout
+                                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content">
+                                    <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                                        android:id="@+id/etFilterRoadSize"
+                                        android:layout_width="match_parent"
+                                        android:layout_height="wrap_content"
+                                        android:hint="Road"
+                                        android:focusable="false"
+                                        android:clickable="true" />
+                                </com.google.android.material.textfield.TextInputLayout>
+                                <ImageView
+                                    android:id="@+id/ivFilterRoadSize"
+                                    android:layout_width="12dp"
+                                    android:layout_height="12dp"
+                                    android:layout_gravity="start|top"
+                                    android:layout_marginTop="8dp"
+                                    android:layout_marginStart="8dp"
+                                    android:src="@drawable/ic_filter_indicator"
+                                    android:visibility="gone" />
+                            </FrameLayout>
+                            <Space android:layout_width="12dp" android:layout_height="wrap_content" />
+                            <FrameLayout
+                                android:layout_width="0dp"
                                 android:layout_height="wrap_content"
-                                android:hint="Type"
-                                android:focusable="false"
-                                android:clickable="true" />
-                        </com.google.android.material.textfield.TextInputLayout>
+                                android:layout_weight="1">
+                                <com.google.android.material.textfield.TextInputLayout
+                                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content">
+                                    <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                                        android:id="@+id/etFilterProType"
+                                        android:layout_width="match_parent"
+                                        android:layout_height="wrap_content"
+                                        android:hint="Type"
+                                        android:focusable="false"
+                                        android:clickable="true" />
+                                </com.google.android.material.textfield.TextInputLayout>
+                                <ImageView
+                                    android:id="@+id/ivFilterProType"
+                                    android:layout_width="12dp"
+                                    android:layout_height="12dp"
+                                    android:layout_gravity="start|top"
+                                    android:layout_marginTop="8dp"
+                                    android:layout_marginStart="8dp"
+                                    android:src="@drawable/ic_filter_indicator"
+                                    android:visibility="gone" />
+                            </FrameLayout>
+                        </LinearLayout>
                     </LinearLayout>
-                </LinearLayout>
                 </LinearLayout>
             </LinearLayout>
         </LinearLayout>
@@ -357,6 +502,8 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_marginTop="4dp"
+        android:clipToPadding="false"
+        android:paddingHorizontal="4dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toBottomOf="@id/searchProgress" />
 
@@ -369,7 +516,7 @@
         android:gravity="center"
         android:paddingBottom="0dp"
         android:paddingTop="12dp"
-        android:background="@android:color/transparent"
+        android:background="#BFF0F4FF"
         android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
         tools:visibility="visible">

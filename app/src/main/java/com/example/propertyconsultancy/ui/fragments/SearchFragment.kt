@@ -64,6 +64,18 @@ class SearchFragment : Fragment() {
     private lateinit var layoutPagination: View
     private lateinit var layoutPageNumbers: LinearLayout
     
+    private lateinit var tvPageSizeInfo: TextView
+    private lateinit var tvPageSizeInfoSummary: TextView
+    private lateinit var ivFilterCity: ImageView
+    private lateinit var ivFilterMinPrice: ImageView
+    private lateinit var ivFilterMaxPrice: ImageView
+    private lateinit var ivFilterBedrooms: ImageView
+    private lateinit var ivFilterBathrooms: ImageView
+    private lateinit var ivFilterFloor: ImageView
+    private lateinit var ivFilterFacing: ImageView
+    private lateinit var ivFilterRoadSize: ImageView
+    private lateinit var ivFilterProType: ImageView
+    
     private var isInitialLoad = true
     
     private lateinit var viewModel: SearchViewModel
@@ -105,6 +117,7 @@ class SearchFragment : Fragment() {
             updateViewModelFromUI()
             viewModel.lastSearchCity = city // Update city in ViewModel
             saveFiltersToPersistence()
+            updateFilterIndicators()
             performSearch(city)
         }
         
@@ -153,6 +166,23 @@ class SearchFragment : Fragment() {
 
         layoutPagination = view.findViewById(R.id.layoutPagination)
         layoutPageNumbers = view.findViewById(R.id.layoutPageNumbers)
+        
+        tvPageSizeInfo = view.findViewById(R.id.tvPageSizeInfo)
+        tvPageSizeInfoSummary = view.findViewById(R.id.tvPageSizeInfoSummary)
+        ivFilterCity = view.findViewById(R.id.ivFilterCity)
+        ivFilterMinPrice = view.findViewById(R.id.ivFilterMinPrice)
+        ivFilterMaxPrice = view.findViewById(R.id.ivFilterMaxPrice)
+        ivFilterBedrooms = view.findViewById(R.id.ivFilterBedrooms)
+        ivFilterBathrooms = view.findViewById(R.id.ivFilterBathrooms)
+        ivFilterFloor = view.findViewById(R.id.ivFilterFloor)
+        ivFilterFacing = view.findViewById(R.id.ivFilterFacing)
+        ivFilterRoadSize = view.findViewById(R.id.ivFilterRoadSize)
+        ivFilterProType = view.findViewById(R.id.ivFilterProType)
+        
+        val pageSize = sessionManager.getPageSize()
+        val pageSizeText = "[ $pageSize Property Per Page ]"
+        tvPageSizeInfo.text = pageSizeText
+        tvPageSizeInfoSummary.text = pageSizeText
 
         rvSearchResults.layoutManager = StaggeredGridLayoutManager(1, StaggeredGridLayoutManager.VERTICAL)
         propertyAdapter = com.example.propertyconsultancy.ui.adapters.SearchPropertyAdapter(emptyList(), onItemClick = { property, img, title ->
@@ -162,7 +192,12 @@ class SearchFragment : Fragment() {
             handleQuickFilter(type, value)
         }, onChatClick = { property ->
             openChat(property)
-        })
+        },
+        currentCity = viewModel.lastSearchCity,
+        currentBhk = viewModel.bedrooms,
+        currentMinPrice = viewModel.minPrice,
+        currentMaxPrice = viewModel.maxPrice
+        )
         rvSearchResults.adapter = propertyAdapter
         
         setupSwipeGestures()
@@ -261,6 +296,7 @@ class SearchFragment : Fragment() {
         
         restoreState()
         propertyAdapter.updateData(emptyList())
+        updateFilterIndicators()
     }
 
     private fun restoreState() {
@@ -294,6 +330,19 @@ class SearchFragment : Fragment() {
 
         updateFoldVisibility()
         updateFilterHints()
+        updateFilterIndicators()
+    }
+
+    private fun updateFilterIndicators() {
+        ivFilterCity.visibility = if (etSearchCity.text.isNotEmpty()) View.VISIBLE else View.GONE
+        ivFilterMinPrice.visibility = if (etMinPrice.text.isNotEmpty()) View.VISIBLE else View.GONE
+        ivFilterMaxPrice.visibility = if (etMaxPrice.text.isNotEmpty()) View.VISIBLE else View.GONE
+        ivFilterBedrooms.visibility = if (etBedrooms.text.isNotEmpty()) View.VISIBLE else View.GONE
+        ivFilterBathrooms.visibility = if (etBathrooms.text.isNotEmpty()) View.VISIBLE else View.GONE
+        ivFilterFloor.visibility = if (etFilterFloor.text.isNotEmpty()) View.VISIBLE else View.GONE
+        ivFilterFacing.visibility = if (etFilterFacing.text.isNotEmpty()) View.VISIBLE else View.GONE
+        ivFilterRoadSize.visibility = if (etFilterRoadSize.text.isNotEmpty()) View.VISIBLE else View.GONE
+        ivFilterProType.visibility = if (etFilterProType.text.isNotEmpty()) View.VISIBLE else View.GONE
     }
 
     private fun setupFilterToggle() {
@@ -391,6 +440,7 @@ class SearchFragment : Fragment() {
         }
         
         updateFilterHints()
+        updateFilterIndicators()
         searchProgress.visibility = View.VISIBLE
 
         val pageSize = sessionManager.getPageSize()
@@ -426,6 +476,12 @@ class SearchFragment : Fragment() {
                     
                     Log.d("[Pagination]", "Success: Got ${properties.size} items. Total matching in DB: ${viewModel.totalCount}")
                     
+                    // Update adapter filters before updating data
+                    propertyAdapter.currentCity = viewModel.lastSearchCity
+                    propertyAdapter.currentBhk = viewModel.bedrooms
+                    propertyAdapter.currentMinPrice = viewModel.minPrice
+                    propertyAdapter.currentMaxPrice = viewModel.maxPrice
+                    
                     propertyAdapter.updateData(properties)
                     rvSearchResults.scrollToPosition(0)
                     
@@ -446,21 +502,21 @@ class SearchFragment : Fragment() {
 
     private fun setupSwipeGestures() {
         val gestureDetector = android.view.GestureDetector(requireContext(), object : android.view.GestureDetector.SimpleOnGestureListener() {
-            private val SWIPE_THRESHOLD = 100
-            private val SWIPE_VELOCITY_THRESHOLD = 100
+            private val SWIPE_THRESHOLD = 50
+            private val SWIPE_VELOCITY_THRESHOLD = 50
 
             override fun onFling(e1: android.view.MotionEvent?, e2: android.view.MotionEvent, velocityX: Float, velocityY: Float): Boolean {
-                if (e1 == null) return false
+                if (e1 == null || e2 == null) return false
                 val diffX = e2.x - e1.x
                 val diffY = e2.y - e1.y
                 if (Math.abs(diffX) > Math.abs(diffY)) {
                     if (Math.abs(diffX) > SWIPE_THRESHOLD && Math.abs(velocityX) > SWIPE_VELOCITY_THRESHOLD) {
                         if (diffX < 0) {
-                            // Left swipe -> Next Page
-                            onSwipeLeft()
-                        } else {
-                            // Right swipe -> Previous Page
+                            // Left swipe (Finger R -> L) -> Previous Page
                             onSwipeRight()
+                        } else {
+                            // Right swipe (Finger L -> R) -> Next Page
+                            onSwipeLeft()
                         }
                         return true
                     }
@@ -469,10 +525,41 @@ class SearchFragment : Fragment() {
             }
         })
 
-        rvSearchResults.setOnTouchListener { _, event -> 
-            gestureDetector.onTouchEvent(event)
-            false // Return false to allow RV to handle its own scrolls
-        }
+        rvSearchResults.addOnItemTouchListener(object : RecyclerView.OnItemTouchListener {
+            private var startX = 0f
+            private var startY = 0f
+            private var isHorizontalSwipe = false
+
+            override fun onInterceptTouchEvent(rv: RecyclerView, e: android.view.MotionEvent): Boolean {
+                gestureDetector.onTouchEvent(e)
+                
+                when (e.action) {
+                    android.view.MotionEvent.ACTION_DOWN -> {
+                        startX = e.x
+                        startY = e.y
+                        isHorizontalSwipe = false
+                    }
+                    android.view.MotionEvent.ACTION_MOVE -> {
+                        val dx = Math.abs(e.x - startX)
+                        val dy = Math.abs(e.y - startY)
+                        if (dx > 25 && dx > dy) {
+                            isHorizontalSwipe = true
+                        }
+                    }
+                    android.view.MotionEvent.ACTION_UP, android.view.MotionEvent.ACTION_CANCEL -> {
+                        // Let the gesture detector handle the final fling, but we reset for next time
+                        rv.post { isHorizontalSwipe = false }
+                    }
+                }
+                return isHorizontalSwipe
+            }
+
+            override fun onTouchEvent(rv: RecyclerView, e: android.view.MotionEvent) {
+                gestureDetector.onTouchEvent(e)
+            }
+
+            override fun onRequestDisallowInterceptTouchEvent(disallowIntercept: Boolean) {}
+        })
     }
 
     private fun onSwipeLeft() {
@@ -482,7 +569,7 @@ class SearchFragment : Fragment() {
             viewModel.currentPage++
             updateViewModelFromUI()
             performSearch(viewModel.lastSearchCity)
-            Toast.makeText(requireContext(), "Next Page", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), "Next Page\nIn settings you can change properties per page", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -491,7 +578,7 @@ class SearchFragment : Fragment() {
             viewModel.currentPage--
             updateViewModelFromUI()
             performSearch(viewModel.lastSearchCity)
-            Toast.makeText(requireContext(), "Previous Page", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), "Previous Page\nIn settings you can change properties per page", Toast.LENGTH_SHORT).show()
         }
     }
 
