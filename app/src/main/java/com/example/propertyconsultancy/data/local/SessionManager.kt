@@ -14,6 +14,7 @@ class SessionManager(context: Context) {
         private const val KEY_IS_LOGGED_IN = "isLoggedIn"
         private const val KEY_USER_DATA = "userData"
         private const val KEY_DASHBOARD_DATA = "dashboardData"
+        private const val KEY_ACTIVITY_LOGS = "activityLogs"
     }
 
     fun saveUser(user: UserDTO) {
@@ -85,5 +86,28 @@ class SessionManager(context: Context) {
 
     fun getPageSize(): Int {
         return prefs.getInt("search_page_size", 5)
+    }
+
+    fun addActivityLog(title: String, detail: String, type: String = "info") {
+        val logs = getActivityLogs().toMutableList()
+        val newLog = com.example.propertyconsultancy.data.dto.ActivityLogDTO(
+            System.currentTimeMillis(), title, detail, type
+        )
+        logs.add(0, newLog) // Add to top (reverse chronological)
+        
+        // Keep only last 100 logs
+        val trimmedLogs = if (logs.size > 100) logs.take(100) else logs
+        
+        prefs.edit().putString(KEY_ACTIVITY_LOGS, gson.toJson(trimmedLogs)).apply()
+    }
+
+    fun getActivityLogs(): List<com.example.propertyconsultancy.data.dto.ActivityLogDTO> {
+        val json = prefs.getString(KEY_ACTIVITY_LOGS, null)
+        return if (json != null) {
+            val type = object : com.google.gson.reflect.TypeToken<List<com.example.propertyconsultancy.data.dto.ActivityLogDTO>>() {}.type
+            gson.fromJson(json, type)
+        } else {
+            emptyList()
+        }
     }
 }

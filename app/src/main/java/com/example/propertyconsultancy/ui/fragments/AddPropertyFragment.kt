@@ -67,6 +67,9 @@ class AddPropertyFragment : Fragment() {
         sessionManager = SessionManager(requireContext())
         propertyToEdit = arguments?.getSerializable("property") as? PropertyDTO
 
+        val logAction = if (propertyToEdit != null) "Editing property: ${propertyToEdit?.title}" else "Adding new property"
+        sessionManager.addActivityLog("Property Management", logAction, "add")
+
         (activity as? MainActivity)?.let {
             it.updateTitle(if (propertyToEdit != null) "Edit Property" else "Property Addition")
             it.setBottomNavVisibility(false)

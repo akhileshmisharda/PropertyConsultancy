@@ -56,6 +56,8 @@ class SettingsFragment : Fragment() {
         sharedPrefs = requireActivity().getSharedPreferences("ThemePrefs", Context.MODE_PRIVATE)
         currentThemeId = sharedPrefs.getInt("selected_theme_id", 1)
 
+        sessionManager.addActivityLog("Settings", "Accessed app settings", "info")
+
         (activity as? MainActivity)?.updateTitle("Settings")
 
         initViews(view)

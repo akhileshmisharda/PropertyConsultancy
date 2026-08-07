@@ -36,6 +36,7 @@ import com.google.android.material.progressindicator.LinearProgressIndicator
 import com.google.android.material.textfield.MaterialAutoCompleteTextView
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import coil3.load
 import kotlinx.coroutines.launch
 import com.google.android.gms.maps.model.MapStyleOptions
 import android.graphics.PorterDuff
@@ -79,6 +80,19 @@ class SearchFragment : Fragment(), OnMapReadyCallback {
     private lateinit var layoutPageNumbers: LinearLayout
     private lateinit var layoutMapContainer: View
     
+    private lateinit var cardMapProperty: View
+    private lateinit var ivMapProperty: ImageView
+    private lateinit var tvMapPropertyTitle: TextView
+    private lateinit var tvMapPropertyPrice: TextView
+    private lateinit var tvMapPropertyType: TextView
+    private lateinit var tvMapPropertyBath: TextView
+    private lateinit var tvMapPropertyArea: TextView
+    private lateinit var tvMapPropertyLocation: TextView
+    private lateinit var tvMapPropertyBhk: TextView
+    private lateinit var tvMapPropertyFacing: TextView
+    private lateinit var btnMapExplore: com.google.android.material.button.MaterialButton
+    private lateinit var btnMapCloseCard: View
+    
     private lateinit var tvPageSizeInfo: TextView
     private lateinit var tvPageSizeInfoSummary: TextView
     private lateinit var btnAiFilter: View
@@ -98,7 +112,6 @@ class SearchFragment : Fragment(), OnMapReadyCallback {
     private val mapMarkers = mutableListOf<com.google.android.gms.maps.model.Marker>()
     private val captionCycleHandler = android.os.Handler(android.os.Looper.getMainLooper())
     private var captionCycleRunnable: Runnable? = null
-    private var captionCycleIndex = 0
     
     private lateinit var viewModel: SearchViewModel
     private lateinit var sessionManager: SessionManager
@@ -203,6 +216,23 @@ class SearchFragment : Fragment(), OnMapReadyCallback {
         layoutPageNumbers = view.findViewById(R.id.layoutPageNumbers)
         layoutMapContainer = view.findViewById(R.id.layoutMapContainer)
         
+        cardMapProperty = view.findViewById(R.id.cardMapProperty)
+        ivMapProperty = view.findViewById(R.id.ivMapProperty)
+        tvMapPropertyTitle = view.findViewById(R.id.tvMapPropertyTitle)
+        tvMapPropertyPrice = view.findViewById(R.id.tvMapPropertyPrice)
+        tvMapPropertyType = view.findViewById(R.id.tvMapPropertyType)
+        tvMapPropertyBath = view.findViewById(R.id.tvMapPropertyBath)
+        tvMapPropertyArea = view.findViewById(R.id.tvMapPropertyArea)
+        tvMapPropertyLocation = view.findViewById(R.id.tvMapPropertyLocation)
+        tvMapPropertyBhk = view.findViewById(R.id.tvMapPropertyBhk)
+        tvMapPropertyFacing = view.findViewById(R.id.tvMapPropertyFacing)
+        btnMapExplore = view.findViewById(R.id.btnMapExplore)
+        btnMapCloseCard = view.findViewById(R.id.btnMapCloseCard)
+        
+        btnMapCloseCard.setOnClickListener {
+            cardMapProperty.visibility = View.GONE
+        }
+        
         tvPageSizeInfo = view.findViewById(R.id.tvPageSizeInfo)
         tvPageSizeInfoSummary = view.findViewById(R.id.tvPageSizeInfoSummary)
         btnAiFilter = view.findViewById(R.id.btnAiFilter)
@@ -277,27 +307,20 @@ class SearchFragment : Fragment(), OnMapReadyCallback {
         googleMap = map
         googleMap?.uiSettings?.isZoomControlsEnabled = true
         
-        // Apply "Dull" / Silver Map Style
+        // Apply Even More Dull / Flat Map Style
         try {
             val styleJson = """
                 [
-                  { "elementType": "geometry", "stylers": [ { "color": "#f5f5f5" } ] },
+                  { "elementType": "geometry", "stylers": [ { "color": "#e0e0e0" } ] },
                   { "elementType": "labels.icon", "stylers": [ { "visibility": "off" } ] },
-                  { "elementType": "labels.text.fill", "stylers": [ { "color": "#616161" } ] },
-                  { "elementType": "labels.text.stroke", "stylers": [ { "color": "#f5f5f5" } ] },
-                  { "featureType": "administrative.land_parcel", "elementType": "labels.text.fill", "stylers": [ { "color": "#bdbdbd" } ] },
-                  { "featureType": "poi", "elementType": "geometry", "stylers": [ { "color": "#eeeeee" } ] },
-                  { "featureType": "poi", "elementType": "labels.text.fill", "stylers": [ { "color": "#757575" } ] },
-                  { "featureType": "poi.park", "elementType": "geometry", "stylers": [ { "color": "#e5e5e5" } ] },
-                  { "featureType": "road", "elementType": "geometry", "stylers": [ { "color": "#ffffff" } ] },
-                  { "featureType": "road.arterial", "elementType": "labels.text.fill", "stylers": [ { "color": "#757575" } ] },
-                  { "featureType": "road.highway", "elementType": "geometry", "stylers": [ { "color": "#dadada" } ] },
-                  { "featureType": "road.highway", "elementType": "labels.text.fill", "stylers": [ { "color": "#616161" } ] },
-                  { "featureType": "road.local", "elementType": "labels.text.fill", "stylers": [ { "color": "#9e9e9e" } ] },
-                  { "featureType": "transit.line", "elementType": "geometry", "stylers": [ { "color": "#e5e5e5" } ] },
-                  { "featureType": "transit.station", "elementType": "geometry", "stylers": [ { "color": "#eeeeee" } ] },
-                  { "featureType": "water", "elementType": "geometry", "stylers": [ { "color": "#c9c9c9" } ] },
-                  { "featureType": "water", "elementType": "labels.text.fill", "stylers": [ { "color": "#9e9e9e" } ] }
+                  { "elementType": "labels.text.fill", "stylers": [ { "color": "#9e9e9e" } ] },
+                  { "elementType": "labels.text.stroke", "stylers": [ { "color": "#e0e0e0" } ] },
+                  { "featureType": "administrative", "elementType": "geometry", "stylers": [ { "color": "#bdbdbd" } ] },
+                  { "featureType": "poi", "stylers": [ { "visibility": "off" } ] },
+                  { "featureType": "road", "elementType": "geometry", "stylers": [ { "color": "#f5f5f5" } ] },
+                  { "featureType": "road", "elementType": "labels", "stylers": [ { "visibility": "off" } ] },
+                  { "featureType": "transit", "stylers": [ { "visibility": "off" } ] },
+                  { "featureType": "water", "elementType": "geometry", "stylers": [ { "color": "#b0bec5" } ] }
                 ]
             """.trimIndent()
             googleMap?.setMapStyle(MapStyleOptions(styleJson))
@@ -309,6 +332,10 @@ class SearchFragment : Fragment(), OnMapReadyCallback {
 
     private fun toggleViewMode() {
         isMapView = !isMapView
+        
+        val mode = if (isMapView) "Map" else "List"
+        sessionManager.addActivityLog("View Mode", "Switched to $mode view", "map")
+        
         updateViewModeVisibility()
         // Re-fetch to handle different page sizes between Map (all) and List (paged)
         if (viewModel.lastSearchCity.isNotEmpty()) {
@@ -325,6 +352,7 @@ class SearchFragment : Fragment(), OnMapReadyCallback {
         } else {
             rvSearchResults.visibility = View.VISIBLE
             layoutMapContainer.visibility = View.GONE
+            cardMapProperty.visibility = View.GONE // Hide map card in list view
             // Pagination visibility will be updated by updatePaginationUI after search results load
             (btnToggleViewMode as? ImageButton)?.setImageResource(R.drawable.ic_location_pin)
         }
@@ -375,90 +403,225 @@ class SearchFragment : Fragment(), OnMapReadyCallback {
                 (activity as? MainActivity)?.openPropertyExplore(property)
             }
         }
+
+        map.setOnMarkerClickListener { marker ->
+            val property = marker.tag as? com.example.propertyconsultancy.data.dto.PropertyDTO
+            if (property != null) {
+                showPropertyOnMapCard(property)
+                // Returning false allows standard center-on-marker behavior
+            }
+            false
+        }
         
         // Force immediate update with current cycle info
         refreshMarkersWithCaption()
     }
 
+    private fun showPropertyOnMapCard(property: com.example.propertyconsultancy.data.dto.PropertyDTO) {
+        val ctx = context ?: return
+        tvMapPropertyTitle.text = property.title?.uppercase()
+        val formatter = java.text.DecimalFormat("#,###")
+        tvMapPropertyPrice.text = "₹ ${formatter.format(property.pricePerMonth ?: 0.0)}"
+        
+        tvMapPropertyBath.text = "${property.bathrooms?.toInt() ?: 0} Bath"
+        tvMapPropertyArea.text = "${property.areaSqft} Sqft"
+        tvMapPropertyBhk.text = "${property.bedrooms} BHK"
+        
+        val locationText = buildString {
+            if (!property.addressLine2.isNullOrEmpty()) append("${property.addressLine2}, ")
+            append(property.city ?: "")
+        }
+        tvMapPropertyLocation.text = locationText
+
+        val categories = CategoryCache.getCategories(ctx)
+        fun getOptionName(ids: List<Int>?, group: String): String {
+            if (ids.isNullOrEmpty()) return "N/A"
+            val options = categories?.find { it.name.contains(group, true) }?.options
+            return options?.find { it.categoryId == ids.first() }?.option ?: "ID: ${ids.first()}"
+        }
+        
+        tvMapPropertyType.text = getOptionName(property.proTypeId?.let { listOf(it) }, "Type").uppercase()
+        tvMapPropertyFacing.text = getOptionName(property.facingId?.let { listOf(it) }, "Facing")
+        
+        val imageUrl = property.media?.firstOrNull()?.fileUrl ?: property.mediaUrls?.firstOrNull()
+        val fullImageUrl = if (imageUrl != null && !imageUrl.startsWith("http")) {
+            "http://fabkraft.in/property/$imageUrl"
+        } else {
+            imageUrl
+        }
+        
+        ivMapProperty.load(fullImageUrl ?: R.drawable.ic_app_logo)
+        
+        // Prepare Shared Elements
+        val sharedElements = mutableMapOf<String, View>()
+        val prefixes = listOf("IMAGE", "TITLE", "PRICE", "LOCATION", "BHK", "AREA", "FACING", "BATH", "TYPE")
+        val views = listOf(ivMapProperty, tvMapPropertyTitle, tvMapPropertyPrice, tvMapPropertyLocation, tvMapPropertyBhk, tvMapPropertyArea, tvMapPropertyFacing, tvMapPropertyBath, tvMapPropertyType)
+        
+        views.forEachIndexed { index, view ->
+            val name = "property_${prefixes[index].lowercase()}_map"
+            view.transitionName = name
+            sharedElements[name] = view
+        }
+
+        btnMapExplore.setOnClickListener {
+            (activity as? MainActivity)?.openPropertyExplore(property, sharedElements)
+        }
+        
+        cardMapProperty.visibility = View.VISIBLE
+        
+        // Brief animation for pop-up effect
+        cardMapProperty.alpha = 0f
+        cardMapProperty.translationY = 50f
+        cardMapProperty.animate().alpha(1f).translationY(0f).setDuration(300).start()
+    }
+
     private fun startCaptionCycle() {
         captionCycleRunnable = object : Runnable {
             override fun run() {
-                if (!isMapView || googleMap == null) {
-                    captionCycleHandler.postDelayed(this, 3000)
+                if (!isMapView || googleMap == null || mapMarkers.isEmpty()) {
+                    captionCycleHandler.postDelayed(this, 2000)
                     return
                 }
+
+                // Pick 1-3 random markers to update
+                val count = (1..3).random().coerceAtMost(mapMarkers.size)
+                val shuffled = mapMarkers.shuffled().take(count)
                 
-                captionCycleIndex = (captionCycleIndex + 1) % 4 // 0: None, 1: Rent, 2: Title, 3: Type
-                refreshMarkersWithCaption()
-                
-                captionCycleHandler.postDelayed(this, 3500)
+                shuffled.forEach { marker ->
+                    val ctx = context ?: return@forEach
+                    val property = marker.tag as? com.example.propertyconsultancy.data.dto.PropertyDTO ?: return@forEach
+                    val typeIndex = (1..3).random() // 1: Rent, 2: Title, 3: Type
+                    val categories = CategoryCache.getCategories(ctx)
+                    
+                    val caption = when (typeIndex) {
+                        1 -> {
+                            val formatter = java.text.DecimalFormat("#,###")
+                            "₹ ${formatter.format(property.pricePerMonth ?: 0.0)}"
+                        }
+                        2 -> property.title?.take(15)?.uppercase() ?: ""
+                        3 -> {
+                            val group = categories?.find { it.name.contains("Type", true) }
+                            group?.options?.find { it.categoryId == property.proTypeId }?.option ?: "Property"
+                        }
+                        else -> null
+                    }
+
+                    // Show stylish HUD caption
+                    marker.setIcon(getMarkerIcon(R.drawable.ic_hut, caption))
+                    
+                    // Hide it after a short random duration (2.5 - 4.5 seconds)
+                    captionCycleHandler.postDelayed({
+                        if (isAdded && isMapView && googleMap != null) {
+                            marker.setIcon(getMarkerIcon(R.drawable.ic_hut, null))
+                        }
+                    }, (2500..4500).random().toLong())
+                }
+
+                // Schedule next wave of random pop-ups quickly for a busy HUD feel
+                captionCycleHandler.postDelayed(this, (1000..2500).random().toLong())
             }
         }
         captionCycleHandler.postDelayed(captionCycleRunnable!!, 1000)
     }
 
     private fun refreshMarkersWithCaption() {
+        // No longer needed in bulk as we now pop them randomly
         if (!isMapView || googleMap == null) return
-        
-        val categories = CategoryCache.getCategories(requireContext())
-        
-        mapMarkers.forEach { marker ->
-            val property = marker.tag as? com.example.propertyconsultancy.data.dto.PropertyDTO ?: return@forEach
-            
-            val caption = when (captionCycleIndex) {
-                1 -> {
-                    val formatter = java.text.DecimalFormat("#,###")
-                    "₹ ${formatter.format(property.pricePerMonth ?: 0.0)}"
-                }
-                2 -> property.title?.take(15)?.uppercase() ?: ""
-                3 -> {
-                    val group = categories?.find { it.name.contains("Type", true) }
-                    group?.options?.find { it.categoryId == property.proTypeId }?.option ?: "Property"
-                }
-                else -> null
-            }
-            
-            marker.setIcon(getMarkerIcon(R.drawable.ic_hut, caption))
-        }
+        mapMarkers.forEach { it.setIcon(getMarkerIcon(R.drawable.ic_hut, null)) }
     }
 
     private fun getMarkerIcon(resourceId: Int, caption: String?): BitmapDescriptor? {
-        val drawable = ResourcesCompat.getDrawable(resources, resourceId, null) ?: return null
-        val padding = 20
+        val ctx = context ?: return null
+        val drawable = ResourcesCompat.getDrawable(ctx.resources, resourceId, null) ?: return null
         
-        // Measure text if caption exists
-        val paint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
-            textSize = 30f
-            color = android.graphics.Color.WHITE
-            typeface = android.graphics.Typeface.DEFAULT_BOLD
+        // Futuristic HUD Styling - Bigger & Muted
+        val accentColor = android.graphics.Color.parseColor("#E53935") // Vivid Red
+        val hudLineColor = android.graphics.Color.parseColor("#757575") // Muted Gray
+        val textColor = android.graphics.Color.parseColor("#424242") // Darker Gray Text
+        
+        val paintText = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
+            textSize = 34f // Increased Size
+            color = textColor
+            typeface = android.graphics.Typeface.create("sans-serif-condensed", android.graphics.Typeface.BOLD)
         }
-        
-        val textWidth = if (caption != null) paint.measureText(caption) else 0f
+
+        val textWidth = if (caption != null) paintText.measureText(caption) else 0f
         val textHeight = 40f
+        val padding = 18f
         
-        val width = Math.max(drawable.intrinsicWidth, textWidth.toInt() + padding)
-        val height = drawable.intrinsicHeight + (if (caption != null) textHeight.toInt() + padding else 0)
+        // Canvas size: large enough for larger callout layout
+        val width = 500
+        val height = 300
         
         val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
         
-        // 1. Draw Hut Icon (Red, 50% Opacity)
-        val iconLeft = (width - drawable.intrinsicWidth) / 2
-        drawable.setColorFilter(android.graphics.Color.RED, PorterDuff.Mode.SRC_IN)
-        drawable.alpha = 128 
-        drawable.setBounds(iconLeft, height - drawable.intrinsicHeight, iconLeft + drawable.intrinsicWidth, height)
-        drawable.draw(canvas)
+        val centerX = width / 2f
+        val bottomY = height - 40f
         
-        // 2. Draw Caption Bubble if exists
+        // 1. Draw Anchor Hut
+        drawable.setColorFilter(accentColor, PorterDuff.Mode.SRC_IN)
+        drawable.alpha = 220
+        val iconSize = 48 // Bigger Icon
+        drawable.setBounds((centerX - iconSize/2).toInt(), (bottomY - iconSize).toInt(), (centerX + iconSize/2).toInt(), bottomY.toInt())
+        drawable.draw(canvas)
+
         if (caption != null) {
-            val bubblePaint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
-                color = android.graphics.Color.argb(200, 229, 57, 53) // Semi-transparent Red
+            val isRight = (0..1).random() == 0
+            val linePaint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
+                color = hudLineColor
+                strokeWidth = 2.5f // Thicker lines
+                style = android.graphics.Paint.Style.STROKE
+            }
+            val nodePaint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
+                color = accentColor
                 style = android.graphics.Paint.Style.FILL
             }
-            val rect = android.graphics.RectF(0f, 0f, textWidth + padding, textHeight + 10)
-            rect.offset((width - rect.width()) / 2, 0f)
-            canvas.drawRoundRect(rect, 10f, 10f, bubblePaint)
-            canvas.drawText(caption, rect.left + padding/2, rect.top + 32, paint)
+
+            // 2. Futuristic Callout Geometry (Bigger)
+            val startY = bottomY - iconSize - 4
+            val vLineLen = 45f
+            val dLineX = if (isRight) 70f else -70f
+            val dLineY = 40f
+            
+            val p1 = android.graphics.PointF(centerX, startY)
+            val p2 = android.graphics.PointF(centerX, startY - vLineLen)
+            val p3 = android.graphics.PointF(centerX + dLineX, startY - vLineLen - dLineY)
+            val p4 = android.graphics.PointF(p3.x + (if (isRight) 25 else -25), p3.y)
+            
+            val path = android.graphics.Path()
+            path.moveTo(p1.x, p1.y)
+            path.lineTo(p2.x, p2.y)
+            path.lineTo(p3.x, p3.y)
+            path.lineTo(p4.x, p4.y)
+            canvas.drawPath(path, linePaint)
+            
+            canvas.drawCircle(p1.x, p1.y, 5f, nodePaint)
+            canvas.drawCircle(p3.x, p3.y, 6f, nodePaint)
+
+            // 3. Stylish Callout Box (Bigger)
+            val boxWidth = textWidth + padding * 2
+            val boxHeight = textHeight + 20
+            val boxLeft = if (isRight) p4.x else p4.x - boxWidth
+            val boxTop = p4.y - boxHeight / 2
+            
+            val bgPaint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
+                color = android.graphics.Color.argb(25, 0, 0, 0)
+                style = android.graphics.Paint.Style.FILL
+            }
+            canvas.drawRect(boxLeft, boxTop, boxLeft + boxWidth, boxTop + boxHeight, bgPaint)
+            
+            val accentBarPaint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
+                color = accentColor
+                style = android.graphics.Paint.Style.FILL
+            }
+            val barX = if (isRight) boxLeft else boxLeft + boxWidth - 6f
+            canvas.drawRect(barX, boxTop, barX + 6f, boxTop + boxHeight, accentBarPaint)
+            
+            canvas.drawLine(boxLeft, boxTop, boxLeft + boxWidth, boxTop, linePaint)
+            canvas.drawLine(boxLeft, boxTop + boxHeight, boxLeft + boxWidth, boxTop + boxHeight, linePaint)
+            
+            canvas.drawText(caption, boxLeft + padding, boxTop + textHeight + 5, paintText)
         }
         
         return BitmapDescriptorFactory.fromBitmap(bitmap)
@@ -647,6 +810,8 @@ class SearchFragment : Fragment(), OnMapReadyCallback {
     private fun performSearch(city: String) {
         if (city.isEmpty()) return
         
+        sessionManager.addActivityLog("Property Search", "Searched for properties in $city", "search")
+        
         viewModel.lastSearchCity = city
         viewModel.lastClickedPosition = -1
         
@@ -720,10 +885,10 @@ class SearchFragment : Fragment(), OnMapReadyCallback {
                     updatePaginationUI(pageSize)
                     updateFoldVisibility() 
                 } else {
-                    Toast.makeText(requireContext(), response.message ?: "Search failed", Toast.LENGTH_SHORT).show()
+                    context?.let { Toast.makeText(it, response.message ?: "Search failed", Toast.LENGTH_SHORT).show() }
                 }
             } catch (e: Exception) {
-                Toast.makeText(requireContext(), "Error fetching properties", Toast.LENGTH_SHORT).show()
+                context?.let { Toast.makeText(it, "Error fetching properties", Toast.LENGTH_SHORT).show() }
             } finally {
                 searchProgress.visibility = View.GONE
             }
@@ -821,9 +986,10 @@ class SearchFragment : Fragment(), OnMapReadyCallback {
     }
 
     private fun populatePageNumbers(totalPages: Int) {
+        val ctx = context ?: return
         layoutPageNumbers.removeAllViews()
-        val context = requireContext()
-        val density = resources.displayMetrics.density
+        val context = ctx
+        val density = context.resources.displayMetrics.density
         val size = (30 * density).toInt()
         val margin = (4 * density).toInt()
 

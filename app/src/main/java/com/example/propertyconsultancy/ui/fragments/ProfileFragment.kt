@@ -87,6 +87,8 @@ class ProfileFragment : Fragment() {
         sessionManager = SessionManager(requireContext())
         user = sessionManager.getUser()
 
+        sessionManager.addActivityLog("Profile", "Viewed personal profile", "info")
+
         (activity as? MainActivity)?.updateTitle("Profile")
 
         initViews(view)

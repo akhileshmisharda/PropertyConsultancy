@@ -54,6 +54,9 @@ class PropertyExploreFragment : Fragment() {
         
         val property = property ?: return
         
+        val sessionManager = com.example.propertyconsultancy.data.local.SessionManager(requireContext())
+        sessionManager.addActivityLog("Property Detail", "Viewed property: ${property.title}", "view")
+        
         val vpMedia = view.findViewById<androidx.viewpager2.widget.ViewPager2>(R.id.vpExploreMedia)
         val tabLayout = view.findViewById<com.google.android.material.tabs.TabLayout>(R.id.tabMediaDots)
         

@@ -33,6 +33,9 @@ class ChatFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         (activity as? MainActivity)?.updateTitle("Chat with Owner")
 
+        val sessionManager = com.example.propertyconsultancy.data.local.SessionManager(requireContext())
+        sessionManager.addActivityLog("Chat", "Opened chat for property: ${property?.title ?: "Unknown"}", "chat")
+
         rvMessages = view.findViewById(R.id.rvChatMessages)
         etMessage = view.findViewById(R.id.etChatMessage)
         btnSend = view.findViewById(R.id.btnChatSend)

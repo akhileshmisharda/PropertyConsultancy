@@ -40,6 +40,8 @@ class DashboardFragment : Fragment() {
         sessionManager = SessionManager(requireContext())
         (activity as? MainActivity)?.updateTitle("Dashboard")
         initViews(view)
+        
+        sessionManager.addActivityLog("Dashboard", "Accessed landlord dashboard", "view")
     }
 
     override fun onResume() {

@@ -147,3 +147,10 @@ data class SliderImageDTO(
     @SerializedName("imageUrl") val imageUrl: String,
     @SerializedName("title") val title: String? = null
 )
+
+data class ActivityLogDTO(
+    val timestamp: Long,
+    val title: String,
+    val detail: String,
+    val type: String = "info" // info, search, map, view, etc.
+) : Serializable
