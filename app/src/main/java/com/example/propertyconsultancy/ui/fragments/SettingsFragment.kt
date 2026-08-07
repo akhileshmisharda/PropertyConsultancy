@@ -15,7 +15,7 @@ import com.example.propertyconsultancy.R
 import com.example.propertyconsultancy.data.local.SessionManager
 import com.example.propertyconsultancy.ui.activities.LoginActivity
 import com.example.propertyconsultancy.ui.activities.MainActivity
-
+//updating...
 class SettingsFragment : Fragment() {
 
     private lateinit var sessionManager: SessionManager
