@@ -155,22 +155,19 @@ class MainActivity : BaseActivity() {
             .commit()
     }
 
-    fun openPropertyExplore(property: PropertyDTO, sharedImage: View? = null, sharedTitle: View? = null) {
+    fun openPropertyExplore(property: PropertyDTO, sharedElements: Map<String, View>? = null) {
         val fragment = PropertyExploreFragment()
         val bundle = Bundle()
         bundle.putSerializable("property", property)
         
-        if (sharedImage != null) bundle.putString("TRANSITION_IMAGE_NAME", sharedImage.transitionName)
-        if (sharedTitle != null) bundle.putString("TRANSITION_TITLE_NAME", sharedTitle.transitionName)
-        
-        fragment.arguments = bundle
-        
         val transaction = supportFragmentManager.beginTransaction()
         
-        if (sharedImage != null && sharedTitle != null) {
-            transaction.addSharedElement(sharedImage, sharedImage.transitionName)
-            transaction.addSharedElement(sharedTitle, sharedTitle.transitionName)
+        sharedElements?.forEach { (name, view) ->
+            transaction.addSharedElement(view, name)
+            bundle.putString("TRANSITION_${name.substringBeforeLast("_").uppercase()}_NAME", name)
         }
+        
+        fragment.arguments = bundle
         
         transaction.replace(R.id.nav_host_fragment, fragment, "property_explore")
             .addToBackStack(null)
