@@ -15,7 +15,7 @@ import com.example.propertyconsultancy.R
 import com.example.propertyconsultancy.data.local.SessionManager
 import com.example.propertyconsultancy.ui.activities.LoginActivity
 import com.example.propertyconsultancy.ui.activities.MainActivity
-//updating... 2026-08-08 0057 Rishya
+//updating... 2026-08-08 0057 Rishya..
 
 class SettingsFragment : Fragment() {
 
