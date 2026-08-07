@@ -23,6 +23,8 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
 import androidx.lifecycle.lifecycleScope
 import coil3.load
+import com.google.firebase.FirebaseException
+import com.google.firebase.auth.*
 import com.example.propertyconsultancy.R
 import com.example.propertyconsultancy.data.dto.RegisterRequest
 import com.example.propertyconsultancy.data.local.SessionManager
@@ -39,6 +41,22 @@ class RegisterActivity : BaseActivity() {
     private lateinit var ivProfile: ImageView
     private lateinit var registerProgress: LinearProgressIndicator
     private var speechRecognizer: SpeechRecognizer? = null
+    
+    // Firebase Phone Auth
+    private lateinit var auth: FirebaseAuth
+    private var verificationId: String? = null
+    private var resendToken: PhoneAuthProvider.ForceResendingToken? = null
+    private var isPhoneVerified = false
+    private lateinit var tvVerifiedStatus: TextView
+    private lateinit var ivVerified: ImageView
+    
+    // OTP UI Elements
+    private lateinit var layoutOtp: View
+    private lateinit var etOtp: EditText
+    private lateinit var btnVerifyOtp: View
+    private lateinit var tvOtpCountdown: TextView
+    private lateinit var btnResendOtp: View
+    private var countDownTimer: android.os.CountDownTimer? = null
 
     private val pickImage = registerForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
         if (uri != null) {
@@ -51,6 +69,9 @@ class RegisterActivity : BaseActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_profile)
         sessionManager = SessionManager(this)
+        auth = FirebaseAuth.getInstance()
+        
+        Log.d("sms_debug", "RegisterActivity created. Firebase User: ${auth.currentUser?.phoneNumber ?: "None"}")
         
         setupInsets()
         initRegisterUI()
@@ -71,7 +92,6 @@ class RegisterActivity : BaseActivity() {
         
         // Hide elements that are only for updating profile
         findViewById<View>(R.id.llActive).visibility = View.GONE
-        findViewById<View>(R.id.llVerified).visibility = View.GONE
         findViewById<View>(R.id.llVerifiedEmail).visibility = View.GONE
         findViewById<View>(R.id.llAccountSinceContainer).visibility = View.GONE
         findViewById<View>(R.id.btnChangePasswordToggle).visibility = View.GONE
@@ -98,8 +118,20 @@ class RegisterActivity : BaseActivity() {
         val etPassword = findViewById<EditText>(R.id.etNewPassword)
         val etConfirmPassword = findViewById<EditText>(R.id.etRepeatPassword)
         val btnRegister = findViewById<Button>(R.id.btnUpdate)
+        
+        tvVerifiedStatus = findViewById(R.id.tvVerifiedStatus)
+        ivVerified = findViewById(R.id.ivVerified)
+        val llVerified = findViewById<View>(R.id.llVerified)
+        
+        layoutOtp = findViewById(R.id.layoutOtp)
+        etOtp = findViewById(R.id.etOtp)
+        btnVerifyOtp = findViewById(R.id.btnVerifyOtp)
+        tvOtpCountdown = findViewById(R.id.tvOtpCountdown)
+        btnResendOtp = findViewById(R.id.btnResendOtp)
 
         btnRegister.text = "Create Account"
+        tvVerifiedStatus.text = "Verify"
+        llVerified.visibility = View.VISIBLE
 
         ivProfile.setOnClickListener {
             pickImage.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
@@ -110,6 +142,31 @@ class RegisterActivity : BaseActivity() {
         setupMicButton(findViewById(R.id.btnMicLastName), etLastName)
         setupMicButton(findViewById(R.id.btnMicEmail), etEmail)
         setupMicButton(findViewById(R.id.btnMicPhone), etPhone)
+
+        llVerified.setOnClickListener {
+            val phone = etPhone.text.toString().trim()
+            if (phone.length < 10) {
+                Toast.makeText(this, "Enter valid phone number", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+            hideKeyboard()
+            initiatePhoneVerification(phone)
+        }
+
+        btnVerifyOtp.setOnClickListener {
+            val code = etOtp.text.toString().trim()
+            if (code.length == 6) {
+                hideKeyboard()
+                verifyCode(code)
+            } else {
+                Toast.makeText(this, "Enter 6-digit OTP", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        btnResendOtp.setOnClickListener {
+            val phone = etPhone.text.toString().trim()
+            initiatePhoneVerification(phone, isResend = true)
+        }
 
         btnRegister.setOnClickListener {
             val firstName = etFirstName.text.toString().trim()
@@ -133,9 +190,125 @@ class RegisterActivity : BaseActivity() {
                 Toast.makeText(this, "Passwords do not match", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
+            
+            if (!isPhoneVerified) {
+                Toast.makeText(this, "Please verify your mobile number first", Toast.LENGTH_SHORT).show()
+                // initiatePhoneVerification(phone) // Or just trigger it automatically
+                return@setOnClickListener
+            }
 
-            performRegister(firstName, lastName, email, phone, password, addressLine1, addressLine2, city, state, zipCode)
+            performRegister(firstName, lastName, email, phone, password, addressLine1, addressLine2, city, state, zipCode, mobileVerified = 1)
         }
+    }
+
+    private fun initiatePhoneVerification(phone: String, isResend: Boolean = false) {
+        // Improved phone formatting logic
+        var cleanedPhone = phone.replace(" ", "").replace("-", "")
+        if (cleanedPhone.startsWith("00")) {
+            cleanedPhone = "+" + cleanedPhone.substring(2)
+        }
+        
+        val formattedPhone = if (cleanedPhone.startsWith("+")) cleanedPhone else "+91$cleanedPhone" 
+        
+        Log.d("sms_debug", "Initiating verification for: $formattedPhone (Resend: $isResend)")
+        
+        registerProgress.visibility = View.VISIBLE
+        
+        val builder = PhoneAuthOptions.newBuilder(auth)
+            .setPhoneNumber(formattedPhone)
+            .setTimeout(60L, java.util.concurrent.TimeUnit.SECONDS)
+            .setActivity(this)
+            .setCallbacks(object : PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
+                override fun onVerificationCompleted(credential: PhoneAuthCredential) {
+                    Log.d("sms_debug", "onVerificationCompleted: Auto-verification triggered")
+                    registerProgress.visibility = View.GONE
+                    
+                    // If credential has code (automatic reading), set it to UI for user to see
+                    credential.smsCode?.let { 
+                        Log.d("sms_debug", "smsCode auto-retrieved: $it")
+                        etOtp.setText(it)
+                    }
+                    
+                    signInWithPhoneAuthCredential(credential)
+                }
+
+                override fun onVerificationFailed(e: FirebaseException) {
+                    registerProgress.visibility = View.GONE
+                    Log.e("sms_debug", "onVerificationFailed: ${e.message}", e)
+                    Toast.makeText(this@RegisterActivity, "Failed: ${e.message}", Toast.LENGTH_LONG).show()
+                }
+
+                override fun onCodeSent(id: String, token: PhoneAuthProvider.ForceResendingToken) {
+                    Log.d("sms_debug", "onCodeSent: SMS sent successfully.")
+                    registerProgress.visibility = View.GONE
+                    verificationId = id
+                    resendToken = token
+                    
+                    // Show inline OTP layout instead of dialog
+                    layoutOtp.visibility = View.VISIBLE
+                    startCountdown()
+                }
+            })
+            
+        if (isResend && resendToken != null) {
+            builder.setForceResendingToken(resendToken!!)
+        }
+        
+        PhoneAuthProvider.verifyPhoneNumber(builder.build())
+    }
+
+    private fun startCountdown() {
+        countDownTimer?.cancel()
+        btnResendOtp.visibility = View.GONE
+        tvOtpCountdown.visibility = View.VISIBLE
+        
+        countDownTimer = object : android.os.CountDownTimer(60000, 1000) {
+            override fun onTick(millisUntilFinished: Long) {
+                tvOtpCountdown.text = "Resend in ${millisUntilFinished / 1000}s"
+            }
+
+            override fun onFinish() {
+                tvOtpCountdown.visibility = View.GONE
+                btnResendOtp.visibility = View.VISIBLE
+            }
+        }.start()
+    }
+
+    private fun hideKeyboard() {
+        val imm = getSystemService(android.content.Context.INPUT_METHOD_SERVICE) as android.view.inputmethod.InputMethodManager
+        val view = currentFocus ?: View(this)
+        imm.hideSoftInputFromWindow(view.windowToken, 0)
+    }
+
+    private fun verifyCode(code: String) {
+        val id = verificationId ?: return
+        val credential = PhoneAuthProvider.getCredential(id, code)
+        signInWithPhoneAuthCredential(credential)
+    }
+
+    private fun signInWithPhoneAuthCredential(credential: PhoneAuthCredential) {
+        registerProgress.visibility = View.VISIBLE
+        auth.signInWithCredential(credential)
+            .addOnCompleteListener(this) { task ->
+                if (task.isSuccessful) {
+                    // Phone verified successfully!
+                    isPhoneVerified = true
+                    layoutOtp.visibility = View.GONE
+                    countDownTimer?.cancel()
+                    
+                    tvVerifiedStatus.text = "Verified"
+                    tvVerifiedStatus.setTextColor(ContextCompat.getColor(this, R.color.modern_primary))
+                    ivVerified.setImageResource(R.drawable.ic_tick)
+                    ivVerified.setColorFilter(ContextCompat.getColor(this, R.color.modern_primary))
+                    findViewById<View>(R.id.llVerified).setOnClickListener(null)
+                    
+                    Toast.makeText(this, "Phone Number Verified", Toast.LENGTH_SHORT).show()
+                    registerProgress.visibility = View.GONE
+                } else {
+                    registerProgress.visibility = View.GONE
+                    Toast.makeText(this, "Incorrect OTP", Toast.LENGTH_SHORT).show()
+                }
+            }
     }
 
     private fun setupSpeech() {
@@ -211,7 +384,8 @@ class RegisterActivity : BaseActivity() {
 
     private fun performRegister(
         firstName: String, lastName: String, email: String, phone: String, password: String,
-        addressLine1: String, addressLine2: String, city: String, state: String, zipCode: String
+        addressLine1: String, addressLine2: String, city: String, state: String, zipCode: String,
+        mobileVerified: Int = 0
     ) {
         registerProgress.visibility = View.VISIBLE
         Log.d("[php_debug]", "performRegister: Starting registration for $email")
@@ -229,7 +403,8 @@ class RegisterActivity : BaseActivity() {
                     city = city,
                     state = state,
                     zipCode = zipCode,
-                    profileImageUrl = profileImageB64?.let { "data:image/jpeg;base64,$it" }
+                    profileImageUrl = profileImageB64?.let { "data:image/jpeg;base64,$it" },
+                    mobileVerified = mobileVerified
                 )
                 
                 Log.d("[php_debug]", "Sending Register Request: $request")

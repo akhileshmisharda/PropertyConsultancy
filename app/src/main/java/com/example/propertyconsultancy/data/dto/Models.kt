@@ -40,7 +40,9 @@ data class RegisterRequest(
     @SerializedName("address_line_2") val addressLine2: String? = null,
     @SerializedName("city") val city: String? = null,
     @SerializedName("state") val state: String? = null,
-    @SerializedName("zip_code") val zipCode: String? = null
+    @SerializedName("zip_code") val zipCode: String? = null,
+    @SerializedName("mobile_verified") val mobileVerified: Int = 0,
+    @SerializedName("email_verified") val emailVerified: Int = 0
 )
 
 data class AuthResponseDTO(

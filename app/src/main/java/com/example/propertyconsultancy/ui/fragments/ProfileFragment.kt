@@ -33,6 +33,9 @@ import androidx.activity.result.contract.ActivityResultContracts
 import android.util.Base64
 import java.io.InputStream
 import androidx.activity.result.PickVisualMediaRequest
+import com.google.firebase.FirebaseException
+import com.google.firebase.auth.*
+import com.google.firebase.auth.PhoneAuthProvider
 
 class ProfileFragment : Fragment() {
 
@@ -63,12 +66,25 @@ class ProfileFragment : Fragment() {
     
     private lateinit var layoutPasswordChange: View
     private lateinit var btnChangePasswordToggle: TextView
+    
+    // OTP UI Elements
+    private lateinit var layoutOtp: View
+    private lateinit var etOtp: EditText
+    private lateinit var btnVerifyOtp: View
+    private lateinit var tvOtpCountdown: TextView
+    private lateinit var btnResendOtp: View
+    private var countDownTimer: android.os.CountDownTimer? = null
 
     private val colorDarkGreen = android.graphics.Color.parseColor("#1B5E20")
     private val colorRed = android.graphics.Color.parseColor("#C62828")
     private val colorGray = android.graphics.Color.parseColor("#757575")
 
     private var speechRecognizer: SpeechRecognizer? = null
+    
+    // Firebase Phone Auth
+    private lateinit var auth: FirebaseAuth
+    private var verificationId: String? = null
+    private var resendToken: PhoneAuthProvider.ForceResendingToken? = null
 
     private val pickProfileImage = registerForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
         if (uri != null) {
@@ -86,6 +102,7 @@ class ProfileFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         sessionManager = SessionManager(requireContext())
         user = sessionManager.getUser()
+        auth = FirebaseAuth.getInstance()
 
         sessionManager.addActivityLog("Profile", "Viewed personal profile", "info")
 
@@ -101,6 +118,22 @@ class ProfileFragment : Fragment() {
 
         btnUpdate.setOnClickListener { updateProfile() }
         
+        btnVerifyOtp.setOnClickListener {
+            val code = etOtp.text.toString().trim()
+            if (code.length == 6) {
+                hideKeyboard()
+                val id = verificationId ?: return@setOnClickListener
+                val credential = PhoneAuthProvider.getCredential(id, code)
+                verifyAndSignIn(credential)
+            } else {
+                Toast.makeText(requireContext(), "Enter 6-digit OTP", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        btnResendOtp.setOnClickListener {
+            user?.let { initiatePhoneVerification(it.phone, isResend = true) }
+        }
+
         view.findViewById<View>(R.id.btnBack)?.visibility = View.GONE // Hide back button if in tab
 
         btnChangePasswordToggle.setOnClickListener {
@@ -159,6 +192,12 @@ class ProfileFragment : Fragment() {
         etState = view.findViewById(R.id.etState)
         etZipCode = view.findViewById(R.id.etZipCode)
         
+        layoutOtp = view.findViewById(R.id.layoutOtp)
+        etOtp = view.findViewById(R.id.etOtp)
+        btnVerifyOtp = view.findViewById(R.id.btnVerifyOtp)
+        tvOtpCountdown = view.findViewById(R.id.tvOtpCountdown)
+        btnResendOtp = view.findViewById(R.id.btnResendOtp)
+
         layoutPasswordChange = view.findViewById(R.id.layoutPasswordChange)
         btnChangePasswordToggle = view.findViewById(R.id.btnChangePasswordToggle)
         
@@ -226,18 +265,18 @@ class ProfileFragment : Fragment() {
     private fun stopSpeech() { speechRecognizer?.stopListening() }
 
     private fun setupUI() {
-        user?.let {
-            etFirstName.setText(it.firstName)
-            etLastName.setText(it.lastName)
-            etEmail.setText(it.email)
-            etPhone.setText(it.phone)
-            etAddressLine1.setText(it.addressLine1)
-            etAddressLine2.setText(it.addressLine2)
-            etCity.setText(it.city)
-            etState.setText(it.state)
-            etZipCode.setText(it.zipCode)
+        user?.let { userInfo ->
+            etFirstName.setText(userInfo.firstName)
+            etLastName.setText(userInfo.lastName)
+            etEmail.setText(userInfo.email)
+            etPhone.setText(userInfo.phone)
+            etAddressLine1.setText(userInfo.addressLine1)
+            etAddressLine2.setText(userInfo.addressLine2)
+            etCity.setText(userInfo.city)
+            etState.setText(userInfo.state)
+            etZipCode.setText(userInfo.zipCode)
             
-            val profileUrl = it.profileImageUrl
+            val profileUrl = userInfo.profileImageUrl
             val finalUrl = if (profileUrl != null && !profileUrl.startsWith("http") && !profileUrl.startsWith("data:")) {
                 "http://fabkraft.in/property/$profileUrl"
             } else {
@@ -245,7 +284,7 @@ class ProfileFragment : Fragment() {
             }
             ivProfile.load(finalUrl ?: "https://via.placeholder.com/150")
             
-            if (it.status == "active") {
+            if (userInfo.status == "active") {
                 ivStatus.setImageResource(R.drawable.ic_tick); ivStatus.setColorFilter(colorDarkGreen)
                 tvActiveStatus.text = "Active"; tvActiveStatus.setTextColor(colorDarkGreen)
             } else {
@@ -253,42 +292,128 @@ class ProfileFragment : Fragment() {
                 tvActiveStatus.text = "Inactive"; tvActiveStatus.setTextColor(colorRed)
             }
 
-            if (it.mobileVerified == 1) {
+            if (userInfo.mobileVerified == 1) {
                 ivVerified.setImageResource(R.drawable.ic_tick); ivVerified.setColorFilter(colorDarkGreen)
                 tvVerifiedStatus.text = "Verified"; tvVerifiedStatus.setTextColor(colorDarkGreen)
                 tvVerifiedStatus.setOnClickListener(null)
             } else {
                 ivVerified.setImageResource(R.drawable.ic_pending); ivVerified.setColorFilter(colorGray)
                 tvVerifiedStatus.text = "Verify Now"; tvVerifiedStatus.setTextColor(colorRed)
-                tvVerifiedStatus.setOnClickListener { showVerificationDialog("phone") }
+                tvVerifiedStatus.setOnClickListener { initiatePhoneVerification(userInfo.phone) }
             }
 
-            if (it.emailVerified == 1) {
+            if (userInfo.emailVerified == 1) {
                 ivVerifiedEmail.setImageResource(R.drawable.ic_tick); ivVerifiedEmail.setColorFilter(colorDarkGreen)
                 tvVerifiedStatusEmail.text = "Verified"; tvVerifiedStatusEmail.setTextColor(colorDarkGreen)
                 tvVerifiedStatusEmail.setOnClickListener(null)
             } else {
                 ivVerifiedEmail.setImageResource(R.drawable.ic_pending); ivVerifiedEmail.setColorFilter(colorGray)
                 tvVerifiedStatusEmail.text = "Verify Now"; tvVerifiedStatusEmail.setTextColor(colorRed)
-                tvVerifiedStatusEmail.setOnClickListener { showVerificationDialog("email") }
+                tvVerifiedStatusEmail.setOnClickListener { showEmailVerificationDialog() }
             }
             
-            tvAccountSince.text = it.createdAt ?: "N/A"
+            tvAccountSince.text = userInfo.createdAt ?: "N/A"
         }
     }
 
-    private fun showVerificationDialog(type: String) {
+    private fun initiatePhoneVerification(phone: String, isResend: Boolean = false) {
+        var cleanedPhone = phone.replace(" ", "").replace("-", "")
+        if (cleanedPhone.startsWith("00")) {
+            cleanedPhone = "+" + cleanedPhone.substring(2)
+        }
+        val formattedPhone = if (cleanedPhone.startsWith("+")) cleanedPhone else "+91$cleanedPhone"
+        
+        Log.d("sms_debug", "Profile Initiating verification for: $formattedPhone (Resend: $isResend)")
+        
+        Toast.makeText(requireContext(), "Sending OTP...", Toast.LENGTH_SHORT).show()
+        
+        val builder = PhoneAuthOptions.newBuilder(auth)
+            .setPhoneNumber(formattedPhone)
+            .setTimeout(60L, java.util.concurrent.TimeUnit.SECONDS)
+            .setActivity(requireActivity())
+            .setCallbacks(object : PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
+                override fun onVerificationCompleted(credential: PhoneAuthCredential) {
+                    Log.d("sms_debug", "Profile onVerificationCompleted")
+                    
+                    credential.smsCode?.let { 
+                        Log.d("sms_debug", "Profile smsCode auto-retrieved: $it")
+                        etOtp.setText(it)
+                    }
+                    
+                    verifyAndSignIn(credential)
+                }
+
+                override fun onVerificationFailed(e: FirebaseException) {
+                    Log.e("sms_debug", "Profile onVerificationFailed: ${e.message}", e)
+                    Toast.makeText(requireContext(), "Failed: ${e.message}", Toast.LENGTH_LONG).show()
+                }
+
+                override fun onCodeSent(id: String, token: PhoneAuthProvider.ForceResendingToken) {
+                    Log.d("sms_debug", "Profile onCodeSent: $id")
+                    verificationId = id
+                    resendToken = token
+                    
+                    // Show inline OTP layout
+                    layoutOtp.visibility = View.VISIBLE
+                    startCountdown()
+                }
+            })
+            
+        if (isResend && resendToken != null) {
+            builder.setForceResendingToken(resendToken!!)
+        }
+        
+        PhoneAuthProvider.verifyPhoneNumber(builder.build())
+    }
+
+    private fun startCountdown() {
+        countDownTimer?.cancel()
+        btnResendOtp.visibility = View.GONE
+        tvOtpCountdown.visibility = View.VISIBLE
+        
+        countDownTimer = object : android.os.CountDownTimer(60000, 1000) {
+            override fun onTick(millisUntilFinished: Long) {
+                tvOtpCountdown.text = "Resend in ${millisUntilFinished / 1000}s"
+            }
+
+            override fun onFinish() {
+                tvOtpCountdown.visibility = View.GONE
+                btnResendOtp.visibility = View.VISIBLE
+            }
+        }.start()
+    }
+
+    private fun hideKeyboard() {
+        val imm = requireContext().getSystemService(android.content.Context.INPUT_METHOD_SERVICE) as android.view.inputmethod.InputMethodManager
+        imm.hideSoftInputFromWindow(view?.windowToken, 0)
+    }
+
+    private fun verifyAndSignIn(credential: PhoneAuthCredential) {
+        auth.signInWithCredential(credential)
+            .addOnCompleteListener(requireActivity()) { task ->
+                if (task.isSuccessful) {
+                    layoutOtp.visibility = View.GONE
+                    countDownTimer?.cancel()
+                    performVerification("phone")
+                } else {
+                    Toast.makeText(requireContext(), "Verification Failed", Toast.LENGTH_SHORT).show()
+                }
+            }
+    }
+
+    private fun showEmailVerificationDialog() {
         val builder = android.app.AlertDialog.Builder(requireContext())
-        builder.setTitle("Verify ${if (type == "phone") "Mobile" else "Email"}")
+        builder.setTitle("Verify Email")
+        builder.setMessage("Enter the 4-digit code sent to your email (Mock: 1234)")
         
         val input = EditText(requireContext())
-        input.hint = "Enter 4-digit OTP (Mock: 1234)"
+        input.hint = "4-digit OTP"
         input.inputType = android.text.InputType.TYPE_CLASS_NUMBER
         builder.setView(input)
 
         builder.setPositiveButton("Verify") { _, _ ->
             if (input.text.toString() == "1234") {
-                performVerification(type)
+                performVerification("email")
             } else {
                 Toast.makeText(requireContext(), "Invalid OTP", Toast.LENGTH_SHORT).show()
             }

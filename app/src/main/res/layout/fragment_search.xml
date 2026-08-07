@@ -787,8 +787,8 @@
     <!-- Animated HUD Hint Popups -->
     <ImageView
         android:id="@+id/ivHudHintCenter"
-        android:layout_width="300dp"
-        android:layout_height="150dp"
+        android:layout_width="400dp"
+        android:layout_height="200dp"
         android:visibility="gone"
         android:alpha="0"
         app:layout_constraintStart_toStartOf="parent"
@@ -799,8 +799,8 @@
 
     <ImageView
         android:id="@+id/ivHudHintBottom"
-        android:layout_width="300dp"
-        android:layout_height="100dp"
+        android:layout_width="400dp"
+        android:layout_height="150dp"
         android:layout_marginBottom="60dp"
         android:visibility="gone"
         android:alpha="0"
@@ -808,6 +808,47 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         tools:visibility="visible" />
+
+    <!-- Sticky Fragment Hints -->
+    <ImageView
+        android:id="@+id/ivHintStickyAi"
+        android:layout_width="400dp"
+        android:layout_height="200dp"
+        android:visibility="gone"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <ImageView
+        android:id="@+id/ivHintStickyFilter"
+        android:layout_width="400dp"
+        android:layout_height="200dp"
+        android:visibility="gone"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <ImageView
+        android:id="@+id/ivHintStickyViewMode"
+        android:layout_width="400dp"
+        android:layout_height="200dp"
+        android:visibility="gone"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <ImageView
+        android:id="@+id/ivHintStickySwipeLeft"
+        android:layout_width="400dp"
+        android:layout_height="200dp"
+        android:visibility="gone"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <ImageView
+        android:id="@+id/ivHintStickySwipeRight"
+        android:layout_width="400dp"
+        android:layout_height="200dp"
+        android:visibility="gone"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
 
     <ImageView
         android:id="@+id/ivSwipeHintLeft"
