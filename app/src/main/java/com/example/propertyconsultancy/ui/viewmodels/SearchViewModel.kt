@@ -27,4 +27,5 @@ class SearchViewModel : ViewModel() {
     var isMainFilterVisible: Boolean = true
     
     var lastClickedPosition: Int = -1
+    var selectedPropertyOnMap: com.example.propertyconsultancy.data.dto.PropertyDTO? = null
 }

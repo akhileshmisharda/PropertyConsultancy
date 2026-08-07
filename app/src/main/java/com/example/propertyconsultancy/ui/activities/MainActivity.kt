@@ -28,6 +28,8 @@ class MainActivity : BaseActivity() {
     private lateinit var bottomNav: BottomNavigationView
     private lateinit var tvHeaderTitle: android.widget.TextView
     private lateinit var btnHeaderBack: android.widget.ImageButton
+    private lateinit var btnHeaderToggleHints: android.widget.ImageButton
+    private lateinit var ivHudHintHeader: android.widget.ImageView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -44,6 +46,20 @@ class MainActivity : BaseActivity() {
         bottomNav = findViewById(R.id.bottomNavigation)
         tvHeaderTitle = findViewById(R.id.tvHeaderTitle)
         btnHeaderBack = findViewById(R.id.btnHeaderBack)
+        btnHeaderToggleHints = findViewById(R.id.btnHeaderToggleHints)
+        ivHudHintHeader = findViewById(R.id.ivHudHintHeader)
+        
+        updateHintToggleIcon()
+        
+        btnHeaderToggleHints.setOnClickListener {
+            val enabled = !sessionManager.isHintsEnabled()
+            sessionManager.setHintsEnabled(enabled)
+            updateHintToggleIcon()
+            
+            // Show HUD hint for toggle action (bypass check for this specific action so user knows it's working)
+            showHudHint(if (enabled) "HUD Popups: STARTED" else "HUD Popups: STOPPED")
+        }
+        
         setupNavigation()
 
         btnHeaderBack.setOnClickListener {
@@ -120,6 +136,103 @@ class MainActivity : BaseActivity() {
         tvHeaderTitle.text = title
     }
 
+    private fun updateHintToggleIcon() {
+        val enabled = sessionManager.isHintsEnabled()
+        btnHeaderToggleHints.setImageResource(if (enabled) R.drawable.ic_hint_on else R.drawable.ic_hint_off)
+    }
+
+    private fun showHudHint(message: String) {
+        val width = 600
+        val height = 300
+        val bitmap = android.graphics.Bitmap.createBitmap(width, height, android.graphics.Bitmap.Config.ARGB_8888)
+        val canvas = android.graphics.Canvas(bitmap)
+        
+        val accentColor = android.graphics.Color.parseColor("#E53935")
+        val hudLineColor = android.graphics.Color.parseColor("#757575")
+        val textColor = android.graphics.Color.parseColor("#424242")
+        
+        val paintText = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
+            textSize = 30f
+            color = textColor
+            typeface = android.graphics.Typeface.create("sans-serif-condensed", android.graphics.Typeface.BOLD)
+        }
+        
+        val textWidth = paintText.measureText(message)
+        val padding = 20f
+        val boxWidth = textWidth + padding * 2
+        val boxHeight = 70f
+        
+        val linePaint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
+            color = hudLineColor
+            strokeWidth = 2.5f
+            style = android.graphics.Paint.Style.STROKE
+        }
+        
+        val nodePaint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
+            color = accentColor
+            style = android.graphics.Paint.Style.FILL
+        }
+
+        // Anchor at Top Right (pointing to toggle)
+        val anchorX = width - 100f
+        val anchorY = 20f
+        
+        val p1 = android.graphics.PointF(anchorX, anchorY)
+        val p2 = android.graphics.PointF(anchorX, anchorY + 40f)
+        val p3 = android.graphics.PointF(anchorX - 50f, anchorY + 80f)
+        val p4 = android.graphics.PointF(p3.x - 30f, p3.y)
+        
+        val path = android.graphics.Path()
+        path.moveTo(p1.x, p1.y)
+        path.lineTo(p2.x, p2.y)
+        path.lineTo(p3.x, p3.y)
+        path.lineTo(p4.x, p4.y)
+        canvas.drawPath(path, linePaint)
+        
+        canvas.drawCircle(p1.x, p1.y, 5f, nodePaint)
+        canvas.drawCircle(p3.x, p3.y, 6f, nodePaint)
+        
+        val boxLeft = p4.x - boxWidth
+        val boxTop = p4.y - boxHeight / 2
+        
+        val bgPaint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
+            color = android.graphics.Color.argb(45, 0, 0, 0)
+            style = android.graphics.Paint.Style.FILL
+        }
+        canvas.drawRect(boxLeft, boxTop, boxLeft + boxWidth, boxTop + boxHeight, bgPaint)
+        
+        val accentBarPaint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
+            color = accentColor
+            style = android.graphics.Paint.Style.FILL
+        }
+        val barX = boxLeft + boxWidth - 6f
+        canvas.drawRect(barX, boxTop, barX + 6f, boxTop + boxHeight, accentBarPaint)
+        canvas.drawRect(boxLeft, boxTop, boxLeft + boxWidth, boxTop + boxHeight, linePaint)
+        canvas.drawText(message, boxLeft + padding, boxTop + boxHeight / 2 + 10f, paintText)
+
+        ivHudHintHeader.setImageBitmap(bitmap)
+        ivHudHintHeader.visibility = android.view.View.VISIBLE
+        ivHudHintHeader.alpha = 0f
+        ivHudHintHeader.translationY = -20f
+        
+        ivHudHintHeader.animate()
+            .alpha(1f)
+            .translationY(0f)
+            .setDuration(400)
+            .withEndAction {
+                ivHudHintHeader.animate()
+                    .alpha(0f)
+                    .translationY(80f)
+                    .setStartDelay(1500)
+                    .setDuration(500)
+                    .withEndAction {
+                        ivHudHintHeader.visibility = android.view.View.GONE
+                    }
+                    .start()
+            }
+            .start()
+    }
+
     fun setBottomNavVisibility(visible: Boolean) {
         val visibility = if (visible) View.VISIBLE else View.GONE
         bottomNav.visibility = visibility
@@ -128,6 +241,7 @@ class MainActivity : BaseActivity() {
 
     fun loadFragment(fragment: Fragment, tag: String) {
         supportFragmentManager.beginTransaction()
+            .setReorderingAllowed(true)
             .replace(R.id.nav_host_fragment, fragment, tag)
             .commit()
     }
@@ -144,6 +258,7 @@ class MainActivity : BaseActivity() {
         fragment.arguments = bundle
         
         val transaction = supportFragmentManager.beginTransaction()
+        transaction.setReorderingAllowed(true)
         
         if (sharedImage != null && sharedTitle != null) {
             transaction.addSharedElement(sharedImage, sharedImage.transitionName)
@@ -161,6 +276,7 @@ class MainActivity : BaseActivity() {
         bundle.putSerializable("property", property)
         
         val transaction = supportFragmentManager.beginTransaction()
+        transaction.setReorderingAllowed(true)
         
         sharedElements?.forEach { (name, view) ->
             transaction.addSharedElement(view, name)

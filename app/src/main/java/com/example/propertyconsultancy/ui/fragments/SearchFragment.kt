@@ -106,7 +106,13 @@ class SearchFragment : Fragment(), OnMapReadyCallback {
     private lateinit var ivFilterFacing: ImageView
     private lateinit var ivFilterRoadSize: ImageView
     private lateinit var ivFilterProType: ImageView
+    private lateinit var ivSwipeHintLeft: ImageView
+    private lateinit var ivSwipeHintRight: android.widget.ImageView
+    private lateinit var ivHudHintCenter: android.widget.ImageView
+    private lateinit var ivHudHintBottom: android.widget.ImageView
     
+    private enum class HintPointer { UP, DOWN, LEFT, RIGHT, NONE }
+
     private var isMapView = false
     private var googleMap: GoogleMap? = null
     private val mapMarkers = mutableListOf<com.google.android.gms.maps.model.Marker>()
@@ -151,6 +157,7 @@ class SearchFragment : Fragment(), OnMapReadyCallback {
                 Toast.makeText(requireContext(), "Please enter a city", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
+            showHintPopup("Initiating Search in $city")
             viewModel.currentPage = 0 
             updateViewModelFromUI()
             viewModel.lastSearchCity = city
@@ -160,17 +167,20 @@ class SearchFragment : Fragment(), OnMapReadyCallback {
         }
         
         btnEditFilters.setOnClickListener {
+            showHintAtView(it, "Opening Advanced Filters", HintPointer.DOWN)
             viewModel.isMainFilterVisible = true
             updateFoldVisibility()
         }
 
         btnAiFilter.setOnClickListener {
+            showHintAtView(it, "AI Assistant Activated", HintPointer.DOWN)
             com.example.propertyconsultancy.ui.dialogs.AiFilterDialog { requirement ->
                 parseAiRequirement(requirement)
             }.show(parentFragmentManager, "AiFilterDialog")
         }
 
         btnClearFilters.setOnClickListener {
+            showHintPopup("Filters Cleared")
             clearAllFilters()
         }
 
@@ -230,6 +240,7 @@ class SearchFragment : Fragment(), OnMapReadyCallback {
         btnMapCloseCard = view.findViewById(R.id.btnMapCloseCard)
         
         btnMapCloseCard.setOnClickListener {
+            viewModel.selectedPropertyOnMap = null
             cardMapProperty.visibility = View.GONE
         }
         
@@ -246,6 +257,10 @@ class SearchFragment : Fragment(), OnMapReadyCallback {
         ivFilterFacing = view.findViewById(R.id.ivFilterFacing)
         ivFilterRoadSize = view.findViewById(R.id.ivFilterRoadSize)
         ivFilterProType = view.findViewById(R.id.ivFilterProType)
+        ivSwipeHintLeft = view.findViewById(R.id.ivSwipeHintLeft)
+        ivSwipeHintRight = view.findViewById(R.id.ivSwipeHintRight)
+        ivHudHintCenter = view.findViewById(R.id.ivHudHintCenter)
+        ivHudHintBottom = view.findViewById(R.id.ivHudHintBottom)
         
         val pageSize = sessionManager.getPageSize()
         val pageSizeText = "[ $pageSize Property Per Page ]"
@@ -272,10 +287,13 @@ class SearchFragment : Fragment(), OnMapReadyCallback {
         setupSwipeGestures()
 
         postponeEnterTransition()
-        rvSearchResults.viewTreeObserver.addOnPreDrawListener {
-            startPostponedEnterTransition()
-            true
-        }
+        view.viewTreeObserver.addOnPreDrawListener(object : android.view.ViewTreeObserver.OnPreDrawListener {
+            override fun onPreDraw(): Boolean {
+                view.viewTreeObserver.removeOnPreDrawListener(this)
+                startPostponedEnterTransition()
+                return true
+            }
+        })
         
         val favs = listOf("Bhilwara", "Nagpur", "Mumbai", "Pune", "Delhi", "Bangalore")
         favs.forEach { city ->
@@ -332,11 +350,12 @@ class SearchFragment : Fragment(), OnMapReadyCallback {
 
     private fun toggleViewMode() {
         isMapView = !isMapView
+        updateViewModeVisibility()
         
         val mode = if (isMapView) "Map" else "List"
+        showHintAtView(btnToggleViewMode, "Switched to $mode View", HintPointer.DOWN)
         sessionManager.addActivityLog("View Mode", "Switched to $mode view", "map")
         
-        updateViewModeVisibility()
         // Re-fetch to handle different page sizes between Map (all) and List (paged)
         if (viewModel.lastSearchCity.isNotEmpty()) {
             performSearch(viewModel.lastSearchCity)
@@ -407,6 +426,7 @@ class SearchFragment : Fragment(), OnMapReadyCallback {
         map.setOnMarkerClickListener { marker ->
             val property = marker.tag as? com.example.propertyconsultancy.data.dto.PropertyDTO
             if (property != null) {
+                viewModel.selectedPropertyOnMap = property
                 showPropertyOnMapCard(property)
                 // Returning false allows standard center-on-marker behavior
             }
@@ -708,6 +728,10 @@ class SearchFragment : Fragment(), OnMapReadyCallback {
             if (viewModel.lastClickedPosition != -1) {
                 rvSearchResults.scrollToPosition(viewModel.lastClickedPosition)
             }
+            
+            viewModel.selectedPropertyOnMap?.let {
+                showPropertyOnMapCard(it)
+            }
         }
         
         etMinPrice.setText(viewModel.minPrice?.toString() ?: "")
@@ -884,6 +908,7 @@ class SearchFragment : Fragment(), OnMapReadyCallback {
                     
                     updatePaginationUI(pageSize)
                     updateFoldVisibility() 
+                    showSwipeHints()
                 } else {
                     context?.let { Toast.makeText(it, response.message ?: "Search failed", Toast.LENGTH_SHORT).show() }
                 }
@@ -907,9 +932,9 @@ class SearchFragment : Fragment(), OnMapReadyCallback {
                 if (Math.abs(diffX) > Math.abs(diffY)) {
                     if (Math.abs(diffX) > SWIPE_THRESHOLD && Math.abs(velocityX) > SWIPE_VELOCITY_THRESHOLD) {
                         if (diffX < 0) {
-                            onSwipeRight()
+                            onSwipeLeft() // Swipe Left -> Next Page
                         } else {
-                            onSwipeLeft()
+                            onSwipeRight() // Swipe Right -> Previous Page
                         }
                         return true
                     }
@@ -956,19 +981,204 @@ class SearchFragment : Fragment(), OnMapReadyCallback {
         val totalPages = Math.ceil(viewModel.totalCount.toDouble() / pageSize).toInt()
         if (viewModel.currentPage < totalPages - 1) {
             viewModel.currentPage++
+            showBottomHint("Navigating to Page ${viewModel.currentPage + 1}")
             updateViewModelFromUI()
             performSearch(viewModel.lastSearchCity)
-            Toast.makeText(requireContext(), "Next Page", Toast.LENGTH_SHORT).show()
         }
     }
 
     private fun onSwipeRight() {
         if (viewModel.currentPage > 0) {
             viewModel.currentPage--
+            showBottomHint("Navigating to Page ${viewModel.currentPage + 1}")
             updateViewModelFromUI()
             performSearch(viewModel.lastSearchCity)
-            Toast.makeText(requireContext(), "Previous Page", Toast.LENGTH_SHORT).show()
         }
+    }
+
+    private fun showBottomHint(message: String) {
+        if (!sessionManager.isHintsEnabled()) return
+        ivHudHintBottom.setImageBitmap(createHudHintBitmap(message, HintPointer.NONE))
+        animateHudHint(ivHudHintBottom, isCenter = true)
+    }
+
+    private fun showHintAtView(target: View, message: String, pointer: HintPointer) {
+        if (!sessionManager.isHintsEnabled()) return
+        
+        val bitmap = createHudHintBitmap(message, pointer)
+        ivHudHintCenter.setImageBitmap(bitmap)
+        
+        // Ensure measured
+        ivHudHintCenter.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED)
+        
+        val targetLoc = IntArray(2)
+        target.getLocationInWindow(targetLoc)
+        val rootLoc = IntArray(2)
+        view?.getLocationInWindow(rootLoc)
+        
+        val relativeX = targetLoc[0] - rootLoc[0]
+        val relativeY = targetLoc[1] - rootLoc[1]
+        
+        // Bitmap is 600x300, box is in center.
+        // If pointer is UP, anchor is at bottom center of bitmap.
+        // If pointer is DOWN, anchor is at top center of bitmap.
+        
+        val x = relativeX + (target.width / 2) - (bitmap.width / 2)
+        val y = if (pointer == HintPointer.UP) {
+            relativeY - bitmap.height + 10 // Pointing UP to the view (box is above)
+        } else {
+            relativeY + target.height - 10 // Pointing DOWN to the view (box is below)
+        }
+        
+        ivHudHintCenter.translationX = x.toFloat()
+        ivHudHintCenter.translationY = y.toFloat()
+        
+        animateHudHint(ivHudHintCenter, isCenter = false, isManualPos = true)
+    }
+
+    private fun showHintPopup(message: String) {
+        if (!sessionManager.isHintsEnabled()) return
+        // Reset translation for center popup
+        ivHudHintCenter.translationX = 0f
+        ivHudHintCenter.translationY = 0f
+        ivHudHintCenter.setImageBitmap(createHudHintBitmap(message, HintPointer.NONE))
+        animateHudHint(ivHudHintCenter, isCenter = true)
+    }
+
+    private fun createHudHintBitmap(message: String, pointer: HintPointer): Bitmap {
+        val width = 600
+        val height = 300
+        val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(bitmap)
+        
+        val accentColor = android.graphics.Color.parseColor("#E53935")
+        val hudLineColor = android.graphics.Color.parseColor("#757575")
+        val textColor = android.graphics.Color.parseColor("#424242")
+        
+        val paintText = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
+            textSize = 28f
+            color = textColor
+            typeface = android.graphics.Typeface.create("sans-serif-condensed", android.graphics.Typeface.BOLD)
+        }
+        
+        val textWidth = paintText.measureText(message)
+        val padding = 20f
+        val boxWidth = textWidth + padding * 2
+        val boxHeight = 70f
+        
+        val linePaint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
+            color = hudLineColor
+            strokeWidth = 2.5f
+            style = android.graphics.Paint.Style.STROKE
+        }
+        
+        val nodePaint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
+            color = accentColor
+            style = android.graphics.Paint.Style.FILL
+        }
+
+        val boxCenterX = width / 2f
+        val boxCenterY = height / 2f
+        
+        val boxLeft = boxCenterX - boxWidth / 2f
+        val boxTop = boxCenterY - boxHeight / 2f
+
+        // 1. Draw HUD Box
+        val bgPaint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
+            color = android.graphics.Color.argb(45, 0, 0, 0)
+            style = android.graphics.Paint.Style.FILL
+        }
+        canvas.drawRect(boxLeft, boxTop, boxLeft + boxWidth, boxTop + boxHeight, bgPaint)
+        
+        val accentBarPaint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
+            color = accentColor
+            style = android.graphics.Paint.Style.FILL
+        }
+        canvas.drawRect(boxLeft, boxTop, boxLeft + 6f, boxTop + boxHeight, accentBarPaint)
+        canvas.drawRect(boxLeft, boxTop, boxLeft + boxWidth, boxTop + boxHeight, linePaint)
+        canvas.drawText(message, boxLeft + padding, boxTop + boxHeight / 2 + 10f, paintText)
+
+        // 2. Draw Pointer (Tail)
+        if (pointer != HintPointer.NONE) {
+            val anchorX = boxCenterX
+            val anchorY = if (pointer == HintPointer.UP) boxTop + boxHeight else boxTop
+            val targetY = if (pointer == HintPointer.UP) height.toFloat() else 0f
+            
+            val path = android.graphics.Path()
+            path.moveTo(anchorX, anchorY)
+            path.lineTo(anchorX, if (pointer == HintPointer.UP) anchorY + 30 else anchorY - 30)
+            path.lineTo(anchorX - 40, if (pointer == HintPointer.UP) anchorY + 60 else anchorY - 60)
+            path.lineTo(anchorX, targetY)
+            canvas.drawPath(path, linePaint)
+            
+            canvas.drawCircle(anchorX, targetY, 6f, nodePaint)
+            canvas.drawCircle(anchorX, anchorY, 4f, nodePaint)
+        } else {
+            // HUD Decorative Brackets
+            val cs = 15f
+            canvas.drawLine(boxLeft - 10, boxTop - 10, boxLeft + cs, boxTop - 10, linePaint)
+            canvas.drawLine(boxLeft - 10, boxTop - 10, boxLeft - 10, boxTop + cs, linePaint)
+            canvas.drawLine(boxLeft + boxWidth + 10, boxTop + boxHeight + 10, boxLeft + boxWidth - cs, boxTop + boxHeight + 10, linePaint)
+            canvas.drawLine(boxLeft + boxWidth + 10, boxTop + boxHeight + 10, boxLeft + boxWidth + 10, boxTop + boxHeight - cs, linePaint)
+        }
+        
+        return bitmap
+    }
+
+    private fun showSwipeHints() {
+        if (isMapView || !sessionManager.isHintsEnabled()) return
+        
+        val pageSize = sessionManager.getPageSize()
+        val totalPages = Math.ceil(viewModel.totalCount.toDouble() / pageSize).toInt()
+        if (totalPages <= 1) return
+
+        layoutPageNumbers.post {
+            // Next Page Hint
+            if (viewModel.currentPage < totalPages - 1) {
+                val nextBtn = layoutPageNumbers.getChildAt(viewModel.currentPage + 1)
+                if (nextBtn != null) {
+                    showHintAtView(nextBtn, "Swipe Left for Page ${viewModel.currentPage + 2} ===>", HintPointer.UP)
+                }
+            }
+            
+            // Previous Page Hint
+            if (viewModel.currentPage > 0) {
+                val prevBtn = layoutPageNumbers.getChildAt(viewModel.currentPage - 1)
+                if (prevBtn != null) {
+                    // Delay slightly if next hint was also triggered
+                    val delay = if (viewModel.currentPage < totalPages - 1) 3000L else 0L
+                    layoutPageNumbers.postDelayed({
+                        showHintAtView(prevBtn, "<=== Swipe Right for Page ${viewModel.currentPage}", HintPointer.UP)
+                    }, delay)
+                }
+            }
+        }
+    }
+
+    private fun animateHudHint(view: ImageView, isCenter: Boolean = false, isManualPos: Boolean = false) {
+        view.visibility = View.VISIBLE
+        view.alpha = 0f
+        if (!isManualPos) {
+            view.translationX = 0f
+            view.translationY = if (isCenter) 40f else 0f
+        }
+        
+        view.animate()
+            .alpha(1f)
+            .translationYBy(if (isManualPos) -20f else -40f)
+            .setDuration(450)
+            .withEndAction {
+                view.animate()
+                    .alpha(0f)
+                    .translationYBy(100f) // "Fade down" effect
+                    .setStartDelay(2000)
+                    .setDuration(600)
+                    .withEndAction {
+                        view.visibility = View.GONE
+                    }
+                    .start()
+            }
+            .start()
     }
 
     private fun updatePaginationUI(pageSize: Int) {

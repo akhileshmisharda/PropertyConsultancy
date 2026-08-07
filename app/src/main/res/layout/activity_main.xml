@@ -49,6 +49,17 @@
             app:layout_constraintTop_toTopOf="parent" />
 
         <ImageButton
+            android:id="@+id/btnHeaderToggleHints"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_hint_on"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/btnHeaderSettings"
+            app:layout_constraintTop_toTopOf="parent"
+            app:tint="?attr/colorOnSurface" />
+
+        <ImageButton
             android:id="@+id/btnHeaderSettings"
             android:layout_width="48dp"
             android:layout_height="48dp"
@@ -95,5 +106,17 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:menu="@menu/bottom_nav_menu"
         tools:layout_editor_absoluteX="0dp" />
+
+    <ImageView
+        android:id="@+id/ivHudHintHeader"
+        android:layout_width="300dp"
+        android:layout_height="100dp"
+        android:layout_marginTop="70dp"
+        android:visibility="gone"
+        android:alpha="0"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        tools:visibility="visible" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

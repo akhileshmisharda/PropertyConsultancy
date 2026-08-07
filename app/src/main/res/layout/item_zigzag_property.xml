@@ -38,7 +38,7 @@
             android:layout_height="wrap_content"
             android:paddingHorizontal="16dp"
             android:paddingVertical="4dp"
-            android:textSize="14sp"
+            android:textSize="12sp"
             android:textColor="#E53935"
             android:layout_marginBottom="6dp"
             app:layout_constraintBottom_toTopOf="@id/cardImageLeft"
@@ -102,7 +102,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="•••"
-                android:textSize="14sp"
+                android:textSize="12sp"
                 android:textColor="?attr/colorPrimary"
                 android:textStyle="bold" />
 
@@ -151,7 +151,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:textColor="?attr/colorPrimary"
-                        android:textSize="18sp"
+                        android:textSize="16sp"
                         android:textStyle="bold"
                         android:gravity="start"
                         tools:text="₹ 28,000" />
@@ -162,8 +162,8 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:gravity="end"
-                    android:textColor="?attr/colorOnSurface"
-                    android:textSize="15sp"
+                    android:textColor="#37474F"
+                    android:textSize="13sp"
                     android:textStyle="bold"
                     android:maxLines="1"
                     android:ellipsize="end"
@@ -183,7 +183,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="12 Interested"
-                    android:textColor="#0D47A1"
+                    android:textColor="#546E7A"
                     android:textSize="11sp"
                     android:textStyle="bold"
                     android:gravity="start" />
@@ -191,7 +191,7 @@
                     android:id="@+id/tvAmenitiesLeft"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textColor="#0D47A1"
+                    android:textColor="#546E7A"
                     android:textSize="11sp"
                     android:textStyle="bold"
                     android:gravity="end"
@@ -209,8 +209,8 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:textColor="?attr/colorOnSurfaceVariant"
-                    android:textSize="15sp"
+                    android:textColor="#616161"
+                    android:textSize="12sp"
                     android:textStyle="bold"
                     android:gravity="start"
                     tools:text="2 BathRoom" />
@@ -219,8 +219,8 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:textColor="?attr/colorOnSurfaceVariant"
-                    android:textSize="15sp"
+                    android:textColor="#616161"
+                    android:textSize="12sp"
                     android:textStyle="bold"
                     android:gravity="end"
                     tools:text="1300 Sqft" />
@@ -239,8 +239,8 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="0dp"
                     android:gravity="center"
-                    android:textColor="?attr/colorOnSurface"
-                    android:textSize="13sp"
+                    android:textColor="#757575"
+                    android:textSize="11sp"
                     tools:text="Model Town" />
                 <ImageView
                     android:id="@+id/ivFilterLocationLeft"
@@ -352,7 +352,7 @@
             android:layout_height="wrap_content"
             android:paddingHorizontal="16dp"
             android:paddingVertical="4dp"
-            android:textSize="14sp"
+            android:textSize="12sp"
             android:textColor="#E53935"
             android:layout_marginBottom="6dp"
             app:layout_constraintBottom_toTopOf="@id/cardImageRight"
@@ -416,7 +416,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="•••"
-                android:textSize="14sp"
+                android:textSize="12sp"
                 android:textColor="?attr/colorPrimary"
                 android:textStyle="bold" />
 
@@ -454,8 +454,8 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:gravity="start"
-                    android:textColor="?attr/colorOnSurface"
-                    android:textSize="15sp"
+                    android:textColor="#37474F"
+                    android:textSize="13sp"
                     android:textStyle="bold"
                     android:maxLines="1"
                     android:ellipsize="end"
@@ -478,7 +478,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:textColor="?attr/colorPrimary"
-                        android:textSize="18sp"
+                        android:textSize="16sp"
                         android:textStyle="bold"
                         android:layout_marginStart="8dp"
                         android:gravity="end"
@@ -496,7 +496,7 @@
                     android:id="@+id/tvAmenitiesRight"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textColor="#0D47A1"
+                    android:textColor="#546E7A"
                     android:textSize="11sp"
                     android:textStyle="bold"
                     android:gravity="start"
@@ -508,7 +508,7 @@
                     android:layout_weight="1"
                     android:gravity="end"
                     android:text="8 Interested"
-                    android:textColor="#0D47A1"
+                    android:textColor="#546E7A"
                     android:textSize="11sp"
                     android:textStyle="bold" />
             </LinearLayout>
@@ -524,8 +524,8 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:textColor="?attr/colorOnSurfaceVariant"
-                    android:textSize="15sp"
+                    android:textColor="#616161"
+                    android:textSize="12sp"
                     android:textStyle="bold"
                     android:gravity="start"
                     tools:text="2500 Sqft" />
@@ -535,8 +535,8 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:textColor="?attr/colorOnSurfaceVariant"
-                    android:textSize="15sp"
+                    android:textColor="#616161"
+                    android:textSize="12sp"
                     android:textStyle="bold"
                     android:gravity="end"
                     tools:text="3 BathRoom" />
@@ -561,8 +561,8 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="0dp"
                     android:gravity="center"
-                    android:textColor="?attr/colorOnSurface"
-                    android:textSize="13sp"
+                    android:textColor="#757575"
+                    android:textSize="11sp"
                     tools:text="Civil Lines" />
             </LinearLayout>
 

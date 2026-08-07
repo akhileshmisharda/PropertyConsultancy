@@ -15,6 +15,15 @@ class SessionManager(context: Context) {
         private const val KEY_USER_DATA = "userData"
         private const val KEY_DASHBOARD_DATA = "dashboardData"
         private const val KEY_ACTIVITY_LOGS = "activityLogs"
+        private const val KEY_HINTS_ENABLED = "hintsEnabled"
+    }
+
+    fun isHintsEnabled(): Boolean {
+        return prefs.getBoolean(KEY_HINTS_ENABLED, true)
+    }
+
+    fun setHintsEnabled(enabled: Boolean) {
+        prefs.edit().putBoolean(KEY_HINTS_ENABLED, enabled).apply()
     }
 
     fun saveUser(user: UserDTO) {

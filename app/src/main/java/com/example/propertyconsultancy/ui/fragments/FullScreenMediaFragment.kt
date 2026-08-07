@@ -16,9 +16,13 @@ class FullScreenMediaFragment : androidx.fragment.app.Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        sharedElementEnterTransition = android.transition.TransitionInflater.from(requireContext())
+        val transition = android.transition.TransitionInflater.from(requireContext())
             .inflateTransition(android.R.transition.move)
             .setDuration(400)
+        sharedElementEnterTransition = transition
+        sharedElementReturnTransition = transition
+        
+        postponeEnterTransition()
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -45,6 +49,22 @@ class FullScreenMediaFragment : androidx.fragment.app.Fragment() {
         }
         viewPager.adapter = adapter
         viewPager.setCurrentItem(startIndex, false)
+        
+        viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
+            override fun onPageSelected(position: Int) {
+                val result = Bundle()
+                result.putInt("current_position", position)
+                parentFragmentManager.setFragmentResult("media_position", result)
+            }
+        })
+
+        view.viewTreeObserver.addOnPreDrawListener(object : android.view.ViewTreeObserver.OnPreDrawListener {
+            override fun onPreDraw(): Boolean {
+                view.viewTreeObserver.removeOnPreDrawListener(this)
+                startPostponedEnterTransition()
+                return true
+            }
+        })
         
         if (mediaUrls.size > 1) {
             TabLayoutMediator(tabLayout, viewPager) { _, _ -> }.attach()

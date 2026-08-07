@@ -8,6 +8,7 @@ import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.viewpager2.widget.ViewPager2
 import coil3.load
 import com.example.propertyconsultancy.R
 import com.example.propertyconsultancy.data.dto.PropertyDTO
@@ -24,11 +25,16 @@ class PropertyExploreFragment : Fragment() {
         
         val transition = android.transition.TransitionInflater.from(requireContext())
             .inflateTransition(android.R.transition.move)
-            .setDuration(450)
+            .setDuration(500)
             
         sharedElementEnterTransition = transition
         sharedElementReturnTransition = transition
         
+        parentFragmentManager.setFragmentResultListener("media_position", this) { _, bundle ->
+            val position = bundle.getInt("current_position")
+            view?.findViewById<androidx.viewpager2.widget.ViewPager2>(R.id.vpExploreMedia)?.setCurrentItem(position, false)
+        }
+
         postponeEnterTransition()
     }
 
@@ -131,6 +137,7 @@ class PropertyExploreFragment : Fragment() {
             fullScreen.arguments = args
             
             parentFragmentManager.beginTransaction()
+                .setReorderingAllowed(true)
                 .addSharedElement(vpMedia, vpMedia.transitionName)
                 .replace(R.id.nav_host_fragment, fullScreen, "FullScreenMedia")
                 .addToBackStack(null)
