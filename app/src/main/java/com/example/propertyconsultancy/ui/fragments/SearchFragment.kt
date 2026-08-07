@@ -95,6 +95,10 @@ class SearchFragment : Fragment(), OnMapReadyCallback {
     
     private var isMapView = false
     private var googleMap: GoogleMap? = null
+    private val mapMarkers = mutableListOf<com.google.android.gms.maps.model.Marker>()
+    private val captionCycleHandler = android.os.Handler(android.os.Looper.getMainLooper())
+    private var captionCycleRunnable: Runnable? = null
+    private var captionCycleIndex = 0
     
     private lateinit var viewModel: SearchViewModel
     private lateinit var sessionManager: SessionManager
@@ -300,6 +304,7 @@ class SearchFragment : Fragment(), OnMapReadyCallback {
         } catch (e: Exception) {}
 
         updateMapMarkers()
+        startCaptionCycle()
     }
 
     private fun toggleViewMode() {
@@ -325,14 +330,21 @@ class SearchFragment : Fragment(), OnMapReadyCallback {
         }
     }
 
+    override fun onDestroyView() {
+        captionCycleRunnable?.let { captionCycleHandler.removeCallbacks(it) }
+        mapMarkers.forEach { it.remove() }
+        mapMarkers.clear()
+        super.onDestroyView()
+    }
+
     private fun updateMapMarkers() {
         val map = googleMap ?: return
-        map.clear()
+        mapMarkers.forEach { it.remove() }
+        mapMarkers.clear()
         
         val properties = viewModel.searchResults
         if (properties.isEmpty()) return
 
-        val hutIcon = getMarkerIcon(R.drawable.ic_hut)
         var firstPos: LatLng? = null
         properties.forEach { property ->
             val lat = property.latitude
@@ -341,13 +353,15 @@ class SearchFragment : Fragment(), OnMapReadyCallback {
                 val pos = LatLng(lat, lng)
                 if (firstPos == null) firstPos = pos
                 
-                map.addMarker(
+                val marker = map.addMarker(
                     MarkerOptions()
                         .position(pos)
-                        .title(property.title)
-                        .snippet("₹${property.pricePerMonth?.toInt()} | ${property.bedrooms} BHK")
-                        .icon(hutIcon ?: BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE))
-                )?.tag = property
+                        .icon(getMarkerIcon(R.drawable.ic_hut, null))
+                )
+                if (marker != null) {
+                    marker.tag = property
+                    mapMarkers.add(marker)
+                }
             }
         }
 
@@ -361,20 +375,92 @@ class SearchFragment : Fragment(), OnMapReadyCallback {
                 (activity as? MainActivity)?.openPropertyExplore(property)
             }
         }
+        
+        // Force immediate update with current cycle info
+        refreshMarkersWithCaption()
     }
 
-    private fun getMarkerIcon(resourceId: Int): BitmapDescriptor? {
-        val drawable = ResourcesCompat.getDrawable(resources, resourceId, null) ?: return null
-        val canvas = Canvas()
-        val bitmap = Bitmap.createBitmap(drawable.intrinsicWidth, drawable.intrinsicHeight, Bitmap.Config.ARGB_8888)
-        canvas.setBitmap(bitmap)
+    private fun startCaptionCycle() {
+        captionCycleRunnable = object : Runnable {
+            override fun run() {
+                if (!isMapView || googleMap == null) {
+                    captionCycleHandler.postDelayed(this, 3000)
+                    return
+                }
+                
+                captionCycleIndex = (captionCycleIndex + 1) % 4 // 0: None, 1: Rent, 2: Title, 3: Type
+                refreshMarkersWithCaption()
+                
+                captionCycleHandler.postDelayed(this, 3500)
+            }
+        }
+        captionCycleHandler.postDelayed(captionCycleRunnable!!, 1000)
+    }
+
+    private fun refreshMarkersWithCaption() {
+        if (!isMapView || googleMap == null) return
         
-        // Apply Red Tint and 50% Opacity (Alpha 128)
+        val categories = CategoryCache.getCategories(requireContext())
+        
+        mapMarkers.forEach { marker ->
+            val property = marker.tag as? com.example.propertyconsultancy.data.dto.PropertyDTO ?: return@forEach
+            
+            val caption = when (captionCycleIndex) {
+                1 -> {
+                    val formatter = java.text.DecimalFormat("#,###")
+                    "₹ ${formatter.format(property.pricePerMonth ?: 0.0)}"
+                }
+                2 -> property.title?.take(15)?.uppercase() ?: ""
+                3 -> {
+                    val group = categories?.find { it.name.contains("Type", true) }
+                    group?.options?.find { it.categoryId == property.proTypeId }?.option ?: "Property"
+                }
+                else -> null
+            }
+            
+            marker.setIcon(getMarkerIcon(R.drawable.ic_hut, caption))
+        }
+    }
+
+    private fun getMarkerIcon(resourceId: Int, caption: String?): BitmapDescriptor? {
+        val drawable = ResourcesCompat.getDrawable(resources, resourceId, null) ?: return null
+        val padding = 20
+        
+        // Measure text if caption exists
+        val paint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
+            textSize = 30f
+            color = android.graphics.Color.WHITE
+            typeface = android.graphics.Typeface.DEFAULT_BOLD
+        }
+        
+        val textWidth = if (caption != null) paint.measureText(caption) else 0f
+        val textHeight = 40f
+        
+        val width = Math.max(drawable.intrinsicWidth, textWidth.toInt() + padding)
+        val height = drawable.intrinsicHeight + (if (caption != null) textHeight.toInt() + padding else 0)
+        
+        val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(bitmap)
+        
+        // 1. Draw Hut Icon (Red, 50% Opacity)
+        val iconLeft = (width - drawable.intrinsicWidth) / 2
         drawable.setColorFilter(android.graphics.Color.RED, PorterDuff.Mode.SRC_IN)
         drawable.alpha = 128 
-        
-        drawable.setBounds(0, 0, drawable.intrinsicWidth, drawable.intrinsicHeight)
+        drawable.setBounds(iconLeft, height - drawable.intrinsicHeight, iconLeft + drawable.intrinsicWidth, height)
         drawable.draw(canvas)
+        
+        // 2. Draw Caption Bubble if exists
+        if (caption != null) {
+            val bubblePaint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
+                color = android.graphics.Color.argb(200, 229, 57, 53) // Semi-transparent Red
+                style = android.graphics.Paint.Style.FILL
+            }
+            val rect = android.graphics.RectF(0f, 0f, textWidth + padding, textHeight + 10)
+            rect.offset((width - rect.width()) / 2, 0f)
+            canvas.drawRoundRect(rect, 10f, 10f, bubblePaint)
+            canvas.drawText(caption, rect.left + padding/2, rect.top + 32, paint)
+        }
+        
         return BitmapDescriptorFactory.fromBitmap(bitmap)
     }
 

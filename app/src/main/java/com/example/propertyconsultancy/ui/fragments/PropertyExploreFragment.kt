@@ -24,17 +24,19 @@ class PropertyExploreFragment : Fragment() {
         
         val transition = android.transition.TransitionInflater.from(requireContext())
             .inflateTransition(android.R.transition.move)
-            .setDuration(400)
+            .setDuration(450)
             
         sharedElementEnterTransition = transition
         sharedElementReturnTransition = transition
+        
+        postponeEnterTransition()
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         val view = inflater.inflate(R.layout.fragment_property_explore, container, false)
         
-        val prefixes = listOf("IMAGE", "TITLE", "PRICE", "LOCATION", "BHK", "AREA", "FACING", "ROADSIZE", "FURNISHED", "BATH", "TYPE", "INTERESTED", "AMENITIES", "FLOOR")
-        val viewIds = listOf(R.id.vpExploreMedia, R.id.tvExploreTitle, R.id.tvExplorePrice, R.id.tvExploreLocation, R.id.tvExploreBhk, R.id.tvExploreArea, R.id.tvExploreFacing, R.id.tvExploreRoadSize, R.id.tvExploreFurnished, R.id.tvExploreBath, R.id.tvExplorePropertyType, R.id.tvExploreInterested, R.id.tvExploreAmenities, R.id.tvExploreFloor)
+        val prefixes = listOf("IMAGE", "TITLE", "PRICE", "LOCATION", "BHK", "AREA", "FACING", "ROADSIZE", "FURNISHED", "BATH", "TYPE", "INTERESTED", "AMENITIES")
+        val viewIds = listOf(R.id.vpExploreMedia, R.id.tvExploreTitle, R.id.tvExplorePrice, R.id.tvExploreLocation, R.id.tvExploreBhk, R.id.tvExploreArea, R.id.tvExploreFacing, R.id.tvExploreRoadSize, R.id.tvExploreFurnished, R.id.tvExploreBath, R.id.tvExplorePropertyType, R.id.tvExploreInterested, R.id.tvExploreAmenities)
         
         prefixes.forEachIndexed { index, prefix ->
             val transitionName = arguments?.getString("TRANSITION_PROPERTY_${prefix}_NAME")
@@ -133,6 +135,12 @@ class PropertyExploreFragment : Fragment() {
         }
         vpMedia.adapter = adapter
         
+        // Start transition once UI is ready
+        view.viewTreeObserver.addOnPreDrawListener {
+            startPostponedEnterTransition()
+            true
+        }
+
         if (mediaUrls.size > 1) {
             com.google.android.material.tabs.TabLayoutMediator(tabLayout, vpMedia) { _, _ -> }.attach()
         } else {
