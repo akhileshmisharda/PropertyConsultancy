@@ -36,6 +36,7 @@ import com.google.android.material.progressindicator.LinearProgressIndicator
 import com.google.android.material.textfield.MaterialAutoCompleteTextView
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import com.example.propertyconsultancy.utils.UrlUtils
 import coil3.load
 import kotlinx.coroutines.launch
 import com.google.android.gms.maps.model.MapStyleOptions
@@ -325,25 +326,6 @@ class SearchFragment : Fragment(), OnMapReadyCallback {
         googleMap = map
         googleMap?.uiSettings?.isZoomControlsEnabled = true
         
-        // Apply Even More Dull / Flat Map Style
-        try {
-            val styleJson = """
-                [
-                  { "elementType": "geometry", "stylers": [ { "color": "#e0e0e0" } ] },
-                  { "elementType": "labels.icon", "stylers": [ { "visibility": "off" } ] },
-                  { "elementType": "labels.text.fill", "stylers": [ { "color": "#9e9e9e" } ] },
-                  { "elementType": "labels.text.stroke", "stylers": [ { "color": "#e0e0e0" } ] },
-                  { "featureType": "administrative", "elementType": "geometry", "stylers": [ { "color": "#bdbdbd" } ] },
-                  { "featureType": "poi", "stylers": [ { "visibility": "off" } ] },
-                  { "featureType": "road", "elementType": "geometry", "stylers": [ { "color": "#f5f5f5" } ] },
-                  { "featureType": "road", "elementType": "labels", "stylers": [ { "visibility": "off" } ] },
-                  { "featureType": "transit", "stylers": [ { "visibility": "off" } ] },
-                  { "featureType": "water", "elementType": "geometry", "stylers": [ { "color": "#b0bec5" } ] }
-                ]
-            """.trimIndent()
-            googleMap?.setMapStyle(MapStyleOptions(styleJson))
-        } catch (e: Exception) {}
-
         updateMapMarkers()
         startCaptionCycle()
     }
@@ -464,13 +446,8 @@ class SearchFragment : Fragment(), OnMapReadyCallback {
         tvMapPropertyFacing.text = getOptionName(property.facingId?.let { listOf(it) }, "Facing")
         
         val imageUrl = property.media?.firstOrNull()?.fileUrl ?: property.mediaUrls?.firstOrNull()
-        val fullImageUrl = if (imageUrl != null && !imageUrl.startsWith("http")) {
-            "http://fabkraft.in/property/$imageUrl"
-        } else {
-            imageUrl
-        }
         
-        ivMapProperty.load(fullImageUrl ?: R.drawable.ic_app_logo)
+        ivMapProperty.load(UrlUtils.getPropertyImageUrl(imageUrl) ?: R.drawable.ic_app_logo)
         
         // Prepare Shared Elements
         val sharedElements = mutableMapOf<String, View>()

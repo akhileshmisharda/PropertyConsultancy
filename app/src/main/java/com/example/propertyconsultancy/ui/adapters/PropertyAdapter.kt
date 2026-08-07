@@ -8,6 +8,7 @@ import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import com.example.propertyconsultancy.utils.UrlUtils
 import coil3.load
 import com.example.propertyconsultancy.R
 import com.example.propertyconsultancy.data.cache.CategoryCache
@@ -70,13 +71,7 @@ class PropertyAdapter(
             ?: property.media?.firstOrNull()?.fileUrl
             ?: property.mediaUrls?.firstOrNull()
         
-        val imageUrl = if (primaryImage != null && !primaryImage.startsWith("http")) {
-            "http://fabkraft.in/property/$primaryImage"
-        } else {
-            primaryImage
-        }
-
-        holder.ivImage.load(imageUrl ?: "https://via.placeholder.com/100")
+        holder.ivImage.load(UrlUtils.getPropertyImageUrl(primaryImage) ?: "https://via.placeholder.com/100")
         
         if (onEdit != null) {
             holder.btnUpdate.visibility = View.VISIBLE

@@ -5,6 +5,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import androidx.recyclerview.widget.RecyclerView
+import com.example.propertyconsultancy.utils.UrlUtils
 import coil3.load
 import com.example.propertyconsultancy.R
 
@@ -27,8 +28,7 @@ class MediaSliderAdapter(
         val url = mediaUrls[position]
         val isVideo = url.endsWith(".mp4") || url.endsWith(".mkv")
         
-        val fullUrl = if (!url.startsWith("http")) "http://fabkraft.in/property/$url" else url
-        holder.imageView.load(fullUrl)
+        holder.imageView.load(UrlUtils.getPropertyImageUrl(url))
         holder.ivVideoIcon.visibility = if (isVideo) View.VISIBLE else View.GONE
         
         holder.itemView.setOnClickListener { onMediaClick(position) }

@@ -16,6 +16,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import androidx.viewpager2.widget.ViewPager2
+import com.example.propertyconsultancy.utils.UrlUtils
 import coil3.load
 import com.example.propertyconsultancy.R
 import com.example.propertyconsultancy.data.cache.CategoryCache
@@ -115,10 +116,8 @@ class AddPropertyFragment : Fragment() {
     private fun loadMedia(property: PropertyDTO) {
         fun processUrl(url: String, isVideo: Boolean) {
             try {
-                val fullUrl = if (!url.startsWith("http") && !url.startsWith("file") && !url.startsWith("content")) {
-                    "http://fabkraft.in/property/$url"
-                } else { url }
-                val uri = Uri.parse(fullUrl)
+                val finalUrl = UrlUtils.getPropertyImageUrl(url) ?: return
+                val uri = Uri.parse(finalUrl)
                 if (isVideo) selectedVideos.add(uri) else selectedImages.add(uri)
             } catch (e: Exception) {}
         }

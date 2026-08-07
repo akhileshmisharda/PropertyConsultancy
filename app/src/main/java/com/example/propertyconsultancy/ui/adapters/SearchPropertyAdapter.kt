@@ -10,6 +10,7 @@ import coil3.load
 import com.example.propertyconsultancy.R
 import com.example.propertyconsultancy.data.cache.CategoryCache
 import com.example.propertyconsultancy.data.dto.PropertyDTO
+import com.example.propertyconsultancy.utils.UrlUtils
 
 class SearchPropertyAdapter(
     private var properties: List<PropertyDTO>,
@@ -132,11 +133,10 @@ class SearchPropertyAdapter(
                 override fun run() {
                     currentIdx = (currentIdx + 1) % images.size
                     val imageUrl = images[currentIdx]
-                    val fullUrl = if (!imageUrl.startsWith("http")) "http://fabkraft.in/property/$imageUrl" else imageUrl
                     
                     // Simple and reliable fade transition
                     ivImage.animate().alpha(0f).setDuration(600).withEndAction {
-                        ivImage.load(fullUrl) {
+                        ivImage.load(UrlUtils.getPropertyImageUrl(imageUrl)) {
                             listener(
                                 onSuccess = { _, _ ->
                                     ivImage.animate().alpha(1f).setDuration(600).start()
@@ -247,12 +247,7 @@ class SearchPropertyAdapter(
         ivVideoIcon.visibility = if (hasVideo) View.VISIBLE else View.GONE
 
         val imageUrl = property.media?.firstOrNull()?.fileUrl ?: mediaUrls.firstOrNull()
-        val fullImageUrl = if (imageUrl != null && !imageUrl.startsWith("http")) {
-            "http://fabkraft.in/property/$imageUrl"
-        } else {
-            imageUrl
-        }
-        ivImage.load(fullImageUrl ?: R.drawable.ic_app_logo)
+        ivImage.load(UrlUtils.getPropertyImageUrl(imageUrl) ?: R.drawable.ic_app_logo)
     }
 
     override fun getItemCount(): Int = properties.size
