@@ -19,6 +19,17 @@ import com.example.propertyconsultancy.data.remote.RetrofitInstance
 import com.example.propertyconsultancy.ui.activities.MainActivity
 import com.example.propertyconsultancy.ui.dialogs.SelectionDialogFragment
 import com.example.propertyconsultancy.ui.viewmodels.SearchViewModel
+import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.android.gms.maps.GoogleMap
+import com.google.android.gms.maps.OnMapReadyCallback
+import com.google.android.gms.maps.SupportMapFragment
+import com.google.android.gms.maps.model.BitmapDescriptor
+import com.google.android.gms.maps.model.BitmapDescriptorFactory
+import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.MarkerOptions
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import androidx.core.content.res.ResourcesCompat
 import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup
 import com.google.android.material.progressindicator.LinearProgressIndicator
@@ -26,8 +37,11 @@ import com.google.android.material.textfield.MaterialAutoCompleteTextView
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.launch
+import com.google.android.gms.maps.model.MapStyleOptions
+import android.graphics.PorterDuff
+import java.util.Locale
 
-class SearchFragment : Fragment() {
+class SearchFragment : Fragment(), OnMapReadyCallback {
 
     private lateinit var layoutSearchSummary: View
     private lateinit var tvSearchSummary: TextView
@@ -63,10 +77,12 @@ class SearchFragment : Fragment() {
     
     private lateinit var layoutPagination: View
     private lateinit var layoutPageNumbers: LinearLayout
+    private lateinit var layoutMapContainer: View
     
     private lateinit var tvPageSizeInfo: TextView
     private lateinit var tvPageSizeInfoSummary: TextView
     private lateinit var btnAiFilter: View
+    private lateinit var btnToggleViewMode: View
     private lateinit var ivFilterCity: ImageView
     private lateinit var ivFilterMinPrice: ImageView
     private lateinit var ivFilterMaxPrice: ImageView
@@ -77,7 +93,8 @@ class SearchFragment : Fragment() {
     private lateinit var ivFilterRoadSize: ImageView
     private lateinit var ivFilterProType: ImageView
     
-    private var isInitialLoad = true
+    private var isMapView = false
+    private var googleMap: GoogleMap? = null
     
     private lateinit var viewModel: SearchViewModel
     private lateinit var sessionManager: SessionManager
@@ -96,14 +113,17 @@ class SearchFragment : Fragment() {
         sessionManager = SessionManager(requireContext())
         
         initViews(view)
+        initMap()
+        
+        // Explicitly set initial visibility based on isMapView (Default: List)
+        updateViewModeVisibility()
+        
         loadSavedFilters()
         restoreState()
         setupFilterToggle()
         setupSelectionInputs()
         fetchCities()
 
-        // Only auto-search if we have a city but NO results yet (initial entry)
-        // If we are coming BACK from details, searchResults will already be populated.
         if (viewModel.lastSearchCity.isNotEmpty() && viewModel.searchResults.isEmpty()) {
             performSearch(viewModel.lastSearchCity)
         }
@@ -116,7 +136,7 @@ class SearchFragment : Fragment() {
             }
             viewModel.currentPage = 0 
             updateViewModelFromUI()
-            viewModel.lastSearchCity = city // Update city in ViewModel
+            viewModel.lastSearchCity = city
             saveFiltersToPersistence()
             updateFilterIndicators()
             performSearch(city)
@@ -135,6 +155,10 @@ class SearchFragment : Fragment() {
 
         btnClearFilters.setOnClickListener {
             clearAllFilters()
+        }
+
+        btnToggleViewMode.setOnClickListener {
+            toggleViewMode()
         }
     }
 
@@ -173,10 +197,12 @@ class SearchFragment : Fragment() {
 
         layoutPagination = view.findViewById(R.id.layoutPagination)
         layoutPageNumbers = view.findViewById(R.id.layoutPageNumbers)
+        layoutMapContainer = view.findViewById(R.id.layoutMapContainer)
         
         tvPageSizeInfo = view.findViewById(R.id.tvPageSizeInfo)
         tvPageSizeInfoSummary = view.findViewById(R.id.tvPageSizeInfoSummary)
         btnAiFilter = view.findViewById(R.id.btnAiFilter)
+        btnToggleViewMode = view.findViewById(R.id.btnToggleViewMode)
         ivFilterCity = view.findViewById(R.id.ivFilterCity)
         ivFilterMinPrice = view.findViewById(R.id.ivFilterMinPrice)
         ivFilterMaxPrice = view.findViewById(R.id.ivFilterMaxPrice)
@@ -204,7 +230,8 @@ class SearchFragment : Fragment() {
         currentCity = viewModel.lastSearchCity,
         currentBhk = viewModel.bedrooms,
         currentMinPrice = viewModel.minPrice,
-        currentMaxPrice = viewModel.maxPrice
+        currentMaxPrice = viewModel.maxPrice,
+        currentProTypeIds = viewModel.selectedProTypeIds
         )
         rvSearchResults.adapter = propertyAdapter
         
@@ -222,11 +249,12 @@ class SearchFragment : Fragment() {
             chip.text = city
             chip.setOnClickListener { 
                 viewModel.currentPage = 0
-                updateViewModelFromUI() // Sync other filters before switching city
+                updateViewModelFromUI()
                 viewModel.lastSearchCity = city
-                viewModel.searchResults = emptyList() // Clear old results
+                viewModel.searchResults = emptyList()
                 viewModel.totalCount = 0
                 propertyAdapter.updateData(emptyList())
+                updateMapMarkers()
                 
                 etSearchCity.setText(city)
                 saveFiltersToPersistence()
@@ -234,6 +262,120 @@ class SearchFragment : Fragment() {
             }
             chipGroupFavCities.addView(chip)
         }
+    }
+
+    private fun initMap() {
+        val mapFragment = childFragmentManager.findFragmentById(R.id.mapResults) as? SupportMapFragment
+        mapFragment?.getMapAsync(this)
+    }
+
+    override fun onMapReady(map: GoogleMap) {
+        googleMap = map
+        googleMap?.uiSettings?.isZoomControlsEnabled = true
+        
+        // Apply "Dull" / Silver Map Style
+        try {
+            val styleJson = """
+                [
+                  { "elementType": "geometry", "stylers": [ { "color": "#f5f5f5" } ] },
+                  { "elementType": "labels.icon", "stylers": [ { "visibility": "off" } ] },
+                  { "elementType": "labels.text.fill", "stylers": [ { "color": "#616161" } ] },
+                  { "elementType": "labels.text.stroke", "stylers": [ { "color": "#f5f5f5" } ] },
+                  { "featureType": "administrative.land_parcel", "elementType": "labels.text.fill", "stylers": [ { "color": "#bdbdbd" } ] },
+                  { "featureType": "poi", "elementType": "geometry", "stylers": [ { "color": "#eeeeee" } ] },
+                  { "featureType": "poi", "elementType": "labels.text.fill", "stylers": [ { "color": "#757575" } ] },
+                  { "featureType": "poi.park", "elementType": "geometry", "stylers": [ { "color": "#e5e5e5" } ] },
+                  { "featureType": "road", "elementType": "geometry", "stylers": [ { "color": "#ffffff" } ] },
+                  { "featureType": "road.arterial", "elementType": "labels.text.fill", "stylers": [ { "color": "#757575" } ] },
+                  { "featureType": "road.highway", "elementType": "geometry", "stylers": [ { "color": "#dadada" } ] },
+                  { "featureType": "road.highway", "elementType": "labels.text.fill", "stylers": [ { "color": "#616161" } ] },
+                  { "featureType": "road.local", "elementType": "labels.text.fill", "stylers": [ { "color": "#9e9e9e" } ] },
+                  { "featureType": "transit.line", "elementType": "geometry", "stylers": [ { "color": "#e5e5e5" } ] },
+                  { "featureType": "transit.station", "elementType": "geometry", "stylers": [ { "color": "#eeeeee" } ] },
+                  { "featureType": "water", "elementType": "geometry", "stylers": [ { "color": "#c9c9c9" } ] },
+                  { "featureType": "water", "elementType": "labels.text.fill", "stylers": [ { "color": "#9e9e9e" } ] }
+                ]
+            """.trimIndent()
+            googleMap?.setMapStyle(MapStyleOptions(styleJson))
+        } catch (e: Exception) {}
+
+        updateMapMarkers()
+    }
+
+    private fun toggleViewMode() {
+        isMapView = !isMapView
+        updateViewModeVisibility()
+        // Re-fetch to handle different page sizes between Map (all) and List (paged)
+        if (viewModel.lastSearchCity.isNotEmpty()) {
+            performSearch(viewModel.lastSearchCity)
+        }
+    }
+
+    private fun updateViewModeVisibility() {
+        if (isMapView) {
+            rvSearchResults.visibility = View.GONE
+            layoutMapContainer.visibility = View.VISIBLE
+            layoutPagination.visibility = View.GONE
+            (btnToggleViewMode as? ImageButton)?.setImageResource(R.drawable.ic_search_modern)
+        } else {
+            rvSearchResults.visibility = View.VISIBLE
+            layoutMapContainer.visibility = View.GONE
+            // Pagination visibility will be updated by updatePaginationUI after search results load
+            (btnToggleViewMode as? ImageButton)?.setImageResource(R.drawable.ic_location_pin)
+        }
+    }
+
+    private fun updateMapMarkers() {
+        val map = googleMap ?: return
+        map.clear()
+        
+        val properties = viewModel.searchResults
+        if (properties.isEmpty()) return
+
+        val hutIcon = getMarkerIcon(R.drawable.ic_hut)
+        var firstPos: LatLng? = null
+        properties.forEach { property ->
+            val lat = property.latitude
+            val lng = property.longitude
+            if (lat != null && lng != null) {
+                val pos = LatLng(lat, lng)
+                if (firstPos == null) firstPos = pos
+                
+                map.addMarker(
+                    MarkerOptions()
+                        .position(pos)
+                        .title(property.title)
+                        .snippet("₹${property.pricePerMonth?.toInt()} | ${property.bedrooms} BHK")
+                        .icon(hutIcon ?: BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE))
+                )?.tag = property
+            }
+        }
+
+        firstPos?.let {
+            map.animateCamera(CameraUpdateFactory.newLatLngZoom(it, 12f))
+        }
+
+        map.setOnInfoWindowClickListener { marker ->
+            val property = marker.tag as? com.example.propertyconsultancy.data.dto.PropertyDTO
+            if (property != null) {
+                (activity as? MainActivity)?.openPropertyExplore(property)
+            }
+        }
+    }
+
+    private fun getMarkerIcon(resourceId: Int): BitmapDescriptor? {
+        val drawable = ResourcesCompat.getDrawable(resources, resourceId, null) ?: return null
+        val canvas = Canvas()
+        val bitmap = Bitmap.createBitmap(drawable.intrinsicWidth, drawable.intrinsicHeight, Bitmap.Config.ARGB_8888)
+        canvas.setBitmap(bitmap)
+        
+        // Apply Red Tint and 50% Opacity (Alpha 128)
+        drawable.setColorFilter(android.graphics.Color.RED, PorterDuff.Mode.SRC_IN)
+        drawable.alpha = 128 
+        
+        drawable.setBounds(0, 0, drawable.intrinsicWidth, drawable.intrinsicHeight)
+        drawable.draw(canvas)
+        return BitmapDescriptorFactory.fromBitmap(bitmap)
     }
 
     private fun loadSavedFilters() {
@@ -273,8 +415,6 @@ class SearchFragment : Fragment() {
         viewModel.maxPrice = etMaxPrice.text.toString().toDoubleOrNull()
         viewModel.bedrooms = etBedrooms.text.toString().toIntOrNull()
         viewModel.bathrooms = etBathrooms.text.toString().toDoubleOrNull()
-        
-        Log.d("[Search]", "ViewModel Updated from UI -> BHK: ${viewModel.bedrooms}, Price: ${viewModel.minPrice}-${viewModel.maxPrice}")
     }
 
     private fun clearAllFilters() {
@@ -304,6 +444,7 @@ class SearchFragment : Fragment() {
         
         restoreState()
         propertyAdapter.updateData(emptyList())
+        updateMapMarkers()
         updateFilterIndicators()
     }
 
@@ -311,6 +452,7 @@ class SearchFragment : Fragment() {
         if (viewModel.lastSearchCity.isNotEmpty()) {
             etSearchCity.setText(viewModel.lastSearchCity)
             propertyAdapter.updateData(viewModel.searchResults)
+            updateMapMarkers()
             tvEmptyState.visibility = if (viewModel.searchResults.isEmpty()) View.VISIBLE else View.GONE
             updatePaginationUI(sessionManager.getPageSize())
             
@@ -369,7 +511,8 @@ class SearchFragment : Fragment() {
 
     private fun updateFoldVisibility() {
         layoutMainFilters.visibility = if (viewModel.isMainFilterVisible) View.VISIBLE else View.GONE
-        layoutSearchSummary.visibility = if (viewModel.isMainFilterVisible) View.GONE else View.VISIBLE
+        // Summary bar is now always visible as requested
+        layoutSearchSummary.visibility = View.VISIBLE
         
         layoutFold1.visibility = if (viewModel.isFold1Visible && viewModel.isMainFilterVisible) View.VISIBLE else View.GONE
         layoutFold2.visibility = if (viewModel.isFold2Visible && viewModel.isMainFilterVisible) View.VISIBLE else View.GONE
@@ -378,9 +521,7 @@ class SearchFragment : Fragment() {
         tvToggleFilters.text = if (viewModel.isFold1Visible) "Hide Filters ▲" else "Show Filters ▼"
         tvToggleFold2.text = if (viewModel.isFold2Visible) "Basic Only ▲" else "Advanced Selection ▼"
         
-        if (!viewModel.isMainFilterVisible) {
-            tvSearchSummary.text = "Search in ${viewModel.lastSearchCity} (${viewModel.totalCount})"
-        }
+        tvSearchSummary.text = "Search in ${viewModel.lastSearchCity} (${viewModel.totalCount})"
     }
 
     private fun updateFilterHints() {
@@ -423,14 +564,10 @@ class SearchFragment : Fragment() {
         viewModel.lastSearchCity = city
         viewModel.lastClickedPosition = -1
         
-        // Detailed logging for filters
-        Log.d("[Search]", "Performing Search in $city")
-        Log.d("[Search]", "Filters -> Price: ${viewModel.minPrice}-${viewModel.maxPrice}, BHK: ${viewModel.bedrooms}, Baths: ${viewModel.bathrooms}")
-        
-        // Reset current results to avoid confusion while loading
         if (viewModel.currentPage == 0) {
             viewModel.searchResults = emptyList()
             propertyAdapter.updateData(emptyList())
+            updateMapMarkers()
             viewModel.totalCount = 0
         }
         
@@ -438,8 +575,6 @@ class SearchFragment : Fragment() {
             tvSearchSummary.text = "Searching in $city..."
         }
         
-        // Only hide filters if we are NOT on a pagination change
-        // But for a fresh search, we hide them
         if (viewModel.isMainFilterVisible && viewModel.currentPage == 0) {
             viewModel.isMainFilterVisible = false
             viewModel.isFold1Visible = false
@@ -451,10 +586,8 @@ class SearchFragment : Fragment() {
         updateFilterIndicators()
         searchProgress.visibility = View.VISIBLE
 
-        val pageSize = sessionManager.getPageSize()
-        val offset = viewModel.currentPage * pageSize
-        
-        Log.d("[Pagination]", "Requesting City: $city, Page: ${viewModel.currentPage}, Limit: $pageSize, Offset: $offset, BHK: ${viewModel.bedrooms}")
+        val pageSize = if (isMapView) 500 else sessionManager.getPageSize()
+        val offset = if (isMapView) 0 else viewModel.currentPage * pageSize
         
         lifecycleScope.launch {
             try {
@@ -473,19 +606,11 @@ class SearchFragment : Fragment() {
                     offset = offset
                 )
                 
-                Log.d("[Search]", "Response Status: ${response.status}, Count: ${response.count}, Data Size: ${response.data?.size}")
-                
                 if (response.status == "success") {
                     val properties = response.data ?: emptyList()
                     viewModel.searchResults = properties
-                    
-                    // CRITICAL: Ensure we use the total matching count from the server, 
-                    // not just the number of properties in this specific page.
                     viewModel.totalCount = response.count ?: properties.size
                     
-                    Log.d("[Pagination]", "Success: Got ${properties.size} items. Total matching in DB: ${viewModel.totalCount}")
-                    
-                    // Update adapter filters before updating data
                     propertyAdapter.currentCity = viewModel.lastSearchCity
                     propertyAdapter.currentBhk = viewModel.bedrooms
                     propertyAdapter.currentMinPrice = viewModel.minPrice
@@ -493,16 +618,25 @@ class SearchFragment : Fragment() {
                     propertyAdapter.currentProTypeIds = viewModel.selectedProTypeIds
                     
                     propertyAdapter.updateData(properties)
-                    rvSearchResults.scrollToPosition(0)
+                    updateMapMarkers()
                     
-                    tvEmptyState.visibility = if (properties.isEmpty()) View.VISIBLE else View.GONE
+                    // Show/Hide views based on results and mode
+                    if (properties.isEmpty()) {
+                        tvEmptyState.visibility = View.VISIBLE
+                        rvSearchResults.visibility = View.GONE
+                        layoutMapContainer.visibility = View.GONE
+                    } else {
+                        tvEmptyState.visibility = View.GONE
+                        updateViewModeVisibility() // Ensure correct view is visible
+                        if (!isMapView) rvSearchResults.scrollToPosition(0)
+                    }
+                    
                     updatePaginationUI(pageSize)
                     updateFoldVisibility() 
                 } else {
                     Toast.makeText(requireContext(), response.message ?: "Search failed", Toast.LENGTH_SHORT).show()
                 }
             } catch (e: Exception) {
-                Log.e("[Search]", "Error: ${e.message}")
                 Toast.makeText(requireContext(), "Error fetching properties", Toast.LENGTH_SHORT).show()
             } finally {
                 searchProgress.visibility = View.GONE
@@ -522,10 +656,8 @@ class SearchFragment : Fragment() {
                 if (Math.abs(diffX) > Math.abs(diffY)) {
                     if (Math.abs(diffX) > SWIPE_THRESHOLD && Math.abs(velocityX) > SWIPE_VELOCITY_THRESHOLD) {
                         if (diffX < 0) {
-                            // Left swipe (Finger moves R -> L) -> Previous Page
                             onSwipeRight()
                         } else {
-                            // Right swipe (Finger moves L -> R) -> Next Page
                             onSwipeLeft()
                         }
                         return true
@@ -542,7 +674,6 @@ class SearchFragment : Fragment() {
 
             override fun onInterceptTouchEvent(rv: RecyclerView, e: android.view.MotionEvent): Boolean {
                 gestureDetector.onTouchEvent(e)
-                
                 when (e.action) {
                     android.view.MotionEvent.ACTION_DOWN -> {
                         startX = e.x
@@ -557,17 +688,14 @@ class SearchFragment : Fragment() {
                         }
                     }
                     android.view.MotionEvent.ACTION_UP, android.view.MotionEvent.ACTION_CANCEL -> {
-                        // Let the gesture detector handle the final fling, but we reset for next time
                         rv.post { isHorizontalSwipe = false }
                     }
                 }
                 return isHorizontalSwipe
             }
-
             override fun onTouchEvent(rv: RecyclerView, e: android.view.MotionEvent) {
                 gestureDetector.onTouchEvent(e)
             }
-
             override fun onRequestDisallowInterceptTouchEvent(disallowIntercept: Boolean) {}
         })
     }
@@ -579,7 +707,7 @@ class SearchFragment : Fragment() {
             viewModel.currentPage++
             updateViewModelFromUI()
             performSearch(viewModel.lastSearchCity)
-            Toast.makeText(requireContext(), "Next Page\nIn settings you can change properties per page", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), "Next Page", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -588,11 +716,15 @@ class SearchFragment : Fragment() {
             viewModel.currentPage--
             updateViewModelFromUI()
             performSearch(viewModel.lastSearchCity)
-            Toast.makeText(requireContext(), "Previous Page\nIn settings you can change properties per page", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), "Previous Page", Toast.LENGTH_SHORT).show()
         }
     }
 
     private fun updatePaginationUI(pageSize: Int) {
+        if (isMapView) {
+            layoutPagination.visibility = View.GONE
+            return
+        }
         val totalPages = Math.ceil(viewModel.totalCount.toDouble() / pageSize).toInt()
         if (totalPages <= 1) {
             layoutPagination.visibility = View.GONE
@@ -606,36 +738,31 @@ class SearchFragment : Fragment() {
         layoutPageNumbers.removeAllViews()
         val context = requireContext()
         val density = resources.displayMetrics.density
-        val size = (30 * density).toInt() // Smaller, round size
+        val size = (30 * density).toInt()
         val margin = (4 * density).toInt()
 
         for (i in 0 until totalPages) {
             val tv = TextView(context)
             val params = LinearLayout.LayoutParams(size, size)
-            params.setMargins(margin, (8 * density).toInt(), margin, 0) // Touches bottom
+            params.setMargins(margin, (8 * density).toInt(), margin, 0)
             tv.layoutParams = params
             tv.gravity = android.view.Gravity.CENTER
             tv.text = (i + 1).toString()
-            tv.textSize = 12f // Smaller font
+            tv.textSize = 12f
             tv.setTypeface(null, android.graphics.Typeface.BOLD)
             
             val drawable = android.graphics.drawable.GradientDrawable()
-            drawable.shape = android.graphics.drawable.GradientDrawable.OVAL // Round
+            drawable.shape = android.graphics.drawable.GradientDrawable.OVAL
 
             if (i == viewModel.currentPage) {
-                // Highlighted: Opaque with theme color
                 drawable.setColor(ContextCompat.getColor(context, R.color.modern_primary))
-                drawable.setStroke(0, android.graphics.Color.TRANSPARENT)
                 tv.setTextColor(android.graphics.Color.WHITE)
             } else {
-                // Others: Fully transparent with primary border
                 drawable.setColor(android.graphics.Color.TRANSPARENT)
                 drawable.setStroke((1 * density).toInt(), ContextCompat.getColor(context, R.color.modern_primary))
                 tv.setTextColor(ContextCompat.getColor(context, R.color.modern_primary))
             }
-            
             tv.background = drawable
-
             tv.setOnClickListener {
                 if (viewModel.currentPage != i) {
                     viewModel.currentPage = i
@@ -650,20 +777,13 @@ class SearchFragment : Fragment() {
     private fun handleQuickFilter(type: String, value: Any) {
         val title = "Quick Filter"
         val message = "Filter by $value $type?\n\n"
-        val explanation = "Tapping an attribute in the list allows you to instantly narrow down results to only properties matching that specific value (e.g., only this BHK or price range)."
-
+        val explanation = "Tapping an attribute in the list allows you to instantly narrow down results to only properties matching that specific value."
         val spannable = android.text.SpannableString(message + explanation)
-        spannable.setSpan(android.text.style.RelativeSizeSpan(0.85f), message.length, spannable.length, android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-        spannable.setSpan(android.text.style.ForegroundColorSpan(android.graphics.Color.DKGRAY), message.length, spannable.length, android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-        spannable.setSpan(android.text.style.StyleSpan(android.graphics.Typeface.ITALIC), message.length, spannable.length, android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-
         androidx.appcompat.app.AlertDialog.Builder(requireContext())
             .setTitle(title).setMessage(spannable)
             .setPositiveButton("Apply Only This") { _, _ ->
                 viewModel.isMainFilterVisible = false
-                // For "Apply Only This", we clear other filters and set this one
                 clearAllFiltersExcept(type, value)
-                
                 viewModel.currentPage = 0
                 saveFiltersToPersistence()
                 performSearch(viewModel.lastSearchCity)
@@ -671,10 +791,7 @@ class SearchFragment : Fragment() {
     }
 
     private fun clearAllFiltersExcept(type: String, value: Any) {
-        // Keep the city
         val currentCity = viewModel.lastSearchCity
-        
-        // Clear all
         viewModel.minPrice = null
         viewModel.maxPrice = null
         viewModel.bedrooms = null
@@ -684,16 +801,9 @@ class SearchFragment : Fragment() {
         viewModel.selectedRoadSizeIds = emptyList()
         viewModel.selectedProTypeIds = emptyList()
         
-        etMinPrice.setText("")
-        etMaxPrice.setText("")
-        etBedrooms.setText("")
-        etBathrooms.setText("")
-        etFilterFloor.setText("")
-        etFilterFacing.setText("")
-        etFilterRoadSize.setText("")
-        etFilterProType.setText("")
+        etMinPrice.setText(""); etMaxPrice.setText(""); etBedrooms.setText(""); etBathrooms.setText("")
+        etFilterFloor.setText(""); etFilterFacing.setText(""); etFilterRoadSize.setText(""); etFilterProType.setText("")
 
-        // Set the one we want
         if (type == "BHK") { 
             val bhk = value as Int
             viewModel.bedrooms = bhk
@@ -703,7 +813,6 @@ class SearchFragment : Fragment() {
             viewModel.maxPrice = price
             etMaxPrice.setText(price.toString())
         }
-        
         viewModel.lastSearchCity = currentCity
         etSearchCity.setText(currentCity)
     }
@@ -714,123 +823,45 @@ class SearchFragment : Fragment() {
 
     private fun parseAiRequirement(requirement: String) {
         val text = requirement.lowercase()
-        Log.d("[AI]", "Parsing Requirement: $text")
-
-        // Reset previous filters if needed or just update them?
-        // User probably wants to ADD to or REFRESH filters. 
-        // Let's clear numeric filters for a fresh AI interpretation.
-        viewModel.minPrice = null
-        viewModel.maxPrice = null
-        viewModel.bedrooms = null
-        
-        // 1. BHK Extraction
+        viewModel.minPrice = null; viewModel.maxPrice = null; viewModel.bedrooms = null
         val bhkWords = mapOf("one" to 1, "two" to 2, "three" to 3, "four" to 4, "five" to 5)
         var bhkValue: Int? = null
         val bhkRegex = Regex("(\\d+)\\s*bhk")
         bhkRegex.find(text)?.groupValues?.get(1)?.toIntOrNull()?.let { bhkValue = it }
-        if (bhkValue == null) {
-            bhkWords.forEach { (word, value) -> if (text.contains(word)) bhkValue = value }
-        }
-        bhkValue?.let {
-            viewModel.bedrooms = it
-            etBedrooms.setText(it.toString())
-        }
+        if (bhkValue == null) bhkWords.forEach { (word, value) -> if (text.contains(word)) bhkValue = value }
+        bhkValue?.let { viewModel.bedrooms = it; etBedrooms.setText(it.toString()) }
 
-        // 2. Price Extraction (e.g., "under 30k", "rent 20000", "kiraya 15k", "kiraye pe")
         fun parsePrice(input: String): Double? {
-            val clean = input.replace(",", "").replace(" ", "")
-                .replace("hazaar", "000")
-                .replace("thousand", "000")
+            val clean = input.replace(",", "").replace(" ", "").replace("hazaar", "000").replace("thousand", "000")
             val num = Regex("(\\d+\\.?\\d*)").find(clean)?.groupValues?.get(1)?.toDoubleOrNull() ?: return null
             return when {
-                clean.contains("cr") || clean.contains("crore") -> num * 10000000
-                clean.contains("lakh") || clean.contains("lac") -> num * 100000
-                clean.contains("k") -> num * 1000
+                clean.contains("cr") || clean.contains("crore") -> num * 1e7
+                clean.contains("lakh") || clean.contains("lac") -> num * 1e5
+                clean.contains("k") -> num * 1e3
                 else -> num
             }
         }
-
         val budgetTriggers = listOf("under", "below", "within", "budget", "rent", "kiraya", "kiraye", "price", "less than")
         val minPriceTriggers = listOf("above", "more than", "greater than", "start")
-
         if (budgetTriggers.any { text.contains(it) }) {
-            // Find the trigger word and parse the segment after it
             val trigger = budgetTriggers.find { text.contains(it) }!!
-            val segment = text.substringAfter(trigger)
-            parsePrice(segment)?.let {
-                viewModel.maxPrice = it
-                etMaxPrice.setText(it.toInt().toString())
-            }
+            parsePrice(text.substringAfter(trigger))?.let { viewModel.maxPrice = it; etMaxPrice.setText(it.toInt().toString()) }
         } else if (minPriceTriggers.any { text.contains(it) }) {
             val trigger = minPriceTriggers.find { text.contains(it) }!!
-            val segment = text.substringAfter(trigger)
-            parsePrice(segment)?.let {
-                viewModel.minPrice = it
-                etMinPrice.setText(it.toInt().toString())
-            }
+            parsePrice(text.substringAfter(trigger))?.let { viewModel.minPrice = it; etMinPrice.setText(it.toInt().toString()) }
         }
 
-        // 3. City Extraction
-        allCities.forEach { city ->
-            if (text.contains(city.lowercase())) {
-                viewModel.lastSearchCity = city
-                etSearchCity.setText(city)
-            }
-        }
-
-        // 4. Type Extraction (Multi-value support with Synonyms)
+        allCities.forEach { city -> if (text.contains(city.lowercase())) { viewModel.lastSearchCity = city; etSearchCity.setText(city) } }
         val categories = CategoryCache.getCategories(requireContext())
         val typeOptions = categories?.find { it.name.contains("Type", true) }?.options ?: emptyList()
-        val foundTypeIds = mutableSetOf<Int>()
-        val foundTypeNames = mutableSetOf<String>()
-        
-        // Define Synonyms
-        val synonyms = mapOf(
-            "ghar" to "House",
-            "makan" to "House",
-            "flat" to "Apartment",
-            "apartment" to "Apartment",
-            "villa" to "Villa",
-            "office" to "Office",
-            "shop" to "Shop",
-            "dukan" to "Shop",
-            "plot" to "Plot",
-            "zamin" to "Plot"
-        )
-        
-        synonyms.forEach { (keyword, targetName) ->
-            if (text.contains(keyword)) {
-                typeOptions.find { it.option.equals(targetName, true) }?.let {
-                    foundTypeIds.add(it.categoryId)
-                    foundTypeNames.add(it.option)
-                }
-            }
-        }
-        
-        // Also check direct names
-        typeOptions.forEach { option ->
-            if (text.contains(option.option.lowercase())) {
-                foundTypeIds.add(option.categoryId)
-                foundTypeNames.add(option.option)
-            }
-        }
-        
-        if (foundTypeIds.isNotEmpty()) {
-            viewModel.selectedProTypeIds = foundTypeIds.toList()
-            etFilterProType.setText(foundTypeNames.joinToString(", "))
-        }
+        val foundTypeIds = mutableSetOf<Int>(); val foundTypeNames = mutableSetOf<String>()
+        val synonyms = mapOf("ghar" to "House", "makan" to "House", "flat" to "Apartment", "apartment" to "Apartment", "villa" to "Villa", "office" to "Office", "shop" to "Shop", "dukan" to "Shop", "plot" to "Plot", "zamin" to "Plot")
+        synonyms.forEach { (keyword, targetName) -> if (text.contains(keyword)) { typeOptions.find { it.option.equals(targetName, true) }?.let { foundTypeIds.add(it.categoryId); foundTypeNames.add(it.option) } } }
+        typeOptions.forEach { option -> if (text.contains(option.option.lowercase())) { foundTypeIds.add(option.categoryId); foundTypeNames.add(option.option) } }
+        if (foundTypeIds.isNotEmpty()) { viewModel.selectedProTypeIds = foundTypeIds.toList(); etFilterProType.setText(foundTypeNames.joinToString(", ")) }
 
-        updateFilterIndicators()
-        updateFilterHints()
-
-        if (viewModel.lastSearchCity.isNotEmpty()) {
-            viewModel.currentPage = 0
-            saveFiltersToPersistence()
-            performSearch(viewModel.lastSearchCity)
-        } else {
-            viewModel.isMainFilterVisible = true
-            updateFoldVisibility()
-            Toast.makeText(requireContext(), "Filters set! Please specify a city to search.", Toast.LENGTH_LONG).show()
-        }
+        updateFilterIndicators(); updateFilterHints()
+        if (viewModel.lastSearchCity.isNotEmpty()) { viewModel.currentPage = 0; saveFiltersToPersistence(); performSearch(viewModel.lastSearchCity) }
+        else { viewModel.isMainFilterVisible = true; updateFoldVisibility(); Toast.makeText(requireContext(), "Filters set! Please specify a city.", Toast.LENGTH_LONG).show() }
     }
 }

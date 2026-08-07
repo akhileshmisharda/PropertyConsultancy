@@ -231,14 +231,14 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="6dp"
                 android:orientation="horizontal"
-                android:gravity="center_vertical">
+                android:gravity="center">
 
                 <TextView
                     android:id="@+id/tvLocationLeft"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="0dp"
-                    android:gravity="start|center_vertical"
+                    android:gravity="center"
                     android:textColor="?attr/colorOnSurface"
                     android:textSize="13sp"
                     tools:text="Model Town" />
@@ -547,7 +547,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="6dp"
                 android:orientation="horizontal"
-                android:gravity="center_vertical|end">
+                android:gravity="center">
                 <ImageView
                     android:id="@+id/ivFilterLocationRight"
                     android:layout_width="10dp"
@@ -560,7 +560,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="0dp"
-                    android:gravity="end|center_vertical"
+                    android:gravity="center"
                     android:textColor="?attr/colorOnSurface"
                     android:textSize="13sp"
                     tools:text="Civil Lines" />

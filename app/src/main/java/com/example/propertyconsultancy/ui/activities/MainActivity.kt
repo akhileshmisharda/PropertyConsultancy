@@ -85,8 +85,8 @@ class MainActivity : BaseActivity() {
                 R.id.nav_dashboard -> { updateTitle("Dashboard"); loadFragment(DashboardFragment(), "dashboard"); true }
                 R.id.nav_listing -> { updateTitle("Listings"); loadFragment(SearchFragment(), "listing"); true }
                 R.id.nav_upgrade -> { 
-                    updateTitle("Upgrade")
-                    Toast.makeText(this, "Upgrade to Premium feature coming soon!", Toast.LENGTH_SHORT).show()
+                    updateTitle("Premium")
+                    Toast.makeText(this, "Premium features coming soon!", Toast.LENGTH_SHORT).show()
                     true 
                 }
                 else -> false
@@ -126,7 +126,7 @@ class MainActivity : BaseActivity() {
         btnHeaderBack.visibility = if (visible) View.GONE else View.VISIBLE
     }
 
-    private fun loadFragment(fragment: Fragment, tag: String) {
+    fun loadFragment(fragment: Fragment, tag: String) {
         supportFragmentManager.beginTransaction()
             .replace(R.id.nav_host_fragment, fragment, tag)
             .commit()

@@ -169,7 +169,11 @@ class SearchPropertyAdapter(
         val formatter = java.text.DecimalFormat("#,###")
         tvPrice.text = "₹ ${formatter.format(price)}"
         
-        tvLocation.text = if (property.state.isNullOrEmpty()) "${property.city}" else "${property.city}, ${property.state}"
+        val locationText = buildString {
+            if (!property.addressLine2.isNullOrEmpty()) append("${property.addressLine2}, ")
+            append(property.city ?: "")
+        }
+        tvLocation.text = locationText
         
         val bhk = property.bedrooms ?: 0
         val baths = property.bathrooms?.toInt() ?: 0

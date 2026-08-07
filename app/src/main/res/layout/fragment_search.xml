@@ -52,6 +52,15 @@
                     android:textStyle="bold" />
 
                 <ImageButton
+                    android:id="@+id/btnToggleViewMode"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_marginEnd="4dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:src="@drawable/ic_location_pin"
+                    app:tint="@color/theme1_primary" />
+
+                <ImageButton
                     android:id="@+id/btnEditFilters"
                     android:layout_width="40dp"
                     android:layout_height="40dp"
@@ -509,15 +518,45 @@
         android:visibility="gone"
         app:layout_constraintTop_toBottomOf="@id/filterCard" />
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rvSearchResults"
+    <!-- Container for both List and Map -->
+    <FrameLayout
+        android:id="@+id/layoutContentContainer"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_marginTop="4dp"
-        android:clipToPadding="false"
-        android:paddingHorizontal="4dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/searchProgress" />
+        app:layout_constraintBottom_toTopOf="@id/layoutPagination"
+        app:layout_constraintTop_toBottomOf="@id/searchProgress">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvSearchResults"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:paddingHorizontal="4dp"
+            android:visibility="visible" />
+
+        <FrameLayout
+            android:id="@+id/layoutMapContainer"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone">
+            <fragment
+                android:id="@+id/mapResults"
+                android:name="com.google.android.gms.maps.SupportMapFragment"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+        </FrameLayout>
+
+        <TextView
+            android:id="@+id/tvEmptyState"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="Discover your unique rental..."
+            android:textColor="@color/pending_gray"
+            android:textSize="16sp"
+            android:visibility="gone" />
+    </FrameLayout>
 
     <!-- Pagination Controls (Overlays RecyclerView) -->
     <LinearLayout
@@ -525,8 +564,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:gravity="center"
-        android:paddingBottom="0dp"
+        android:gravity="center_vertical"
+        android:paddingBottom="4dp"
         android:paddingTop="12dp"
         android:background="#BFF0F4FF"
         android:visibility="gone"
@@ -534,7 +573,7 @@
         tools:visibility="visible">
 
         <HorizontalScrollView
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:scrollbars="none">
             <LinearLayout
@@ -545,17 +584,5 @@
                 android:paddingHorizontal="8dp" />
         </HorizontalScrollView>
     </LinearLayout>
-
-    <TextView
-        android:id="@+id/tvEmptyState"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Discover your unique rental..."
-        android:textColor="@color/pending_gray"
-        android:textSize="16sp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/filterCard" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

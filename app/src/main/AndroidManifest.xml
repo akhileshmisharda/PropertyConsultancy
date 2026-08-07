@@ -42,7 +42,7 @@
             android:windowSoftInputMode="adjustResize" />
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="YOUR_API_KEY_HERE" />
+            android:value="AIzaSyB9-x0y8WH5I6hl1Ls4INqY0SHWnnwMRjM" />
     </application>
 
 </manifest>
