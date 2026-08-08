@@ -13,22 +13,29 @@ import androidx.core.widget.addTextChangedListener
 import com.google.android.material.chip.Chip
 import android.text.Editable
 import android.text.TextWatcher
+import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.android.gms.maps.GoogleMap
+import com.google.android.gms.maps.OnMapReadyCallback
+import com.google.android.gms.maps.SupportMapFragment
+import com.google.android.gms.maps.model.LatLng
 import java.text.DecimalFormat
-import java.text.NumberFormat
 import java.util.Locale
 
-class PropertyPricingFragment : Fragment() {
+class PropertyPricingFragment : Fragment(), OnMapReadyCallback {
 
     private lateinit var etPrice: TextInputEditText
     private lateinit var cbNegotiable: CheckBox
     private lateinit var sliderPrice: Slider
     private lateinit var tvLocation: TextView
-    private lateinit var ivMiniMap: ImageView
     private lateinit var btnSelectLocation: Button
 
     private lateinit var llRooms: LinearLayout
     private lateinit var llBaths: LinearLayout
     private lateinit var etArea: TextInputEditText
+    
+    private var googleMap: GoogleMap? = null
+    private var currentLat: Double = 21.1458 // Default Nagpur
+    private var currentLng: Double = 79.0882
 
     var onMapClick: (() -> Unit)? = null
 
@@ -42,7 +49,6 @@ class PropertyPricingFragment : Fragment() {
         cbNegotiable = view.findViewById(R.id.cbNegotiable)
         sliderPrice = view.findViewById(R.id.sliderPrice)
         tvLocation = view.findViewById(R.id.tvLocationCoords)
-        ivMiniMap = view.findViewById(R.id.ivMiniMap)
         btnSelectLocation = view.findViewById(R.id.btnSelectLocation)
         
         llRooms = view.findViewById(R.id.llRooms)
@@ -57,6 +63,24 @@ class PropertyPricingFragment : Fragment() {
         applyNumberFormatting(etArea)
         
         btnSelectLocation.setOnClickListener { onMapClick?.invoke() }
+        
+        val mapFragment = childFragmentManager.findFragmentById(R.id.mapPricing) as? SupportMapFragment
+        mapFragment?.getMapAsync(this)
+    }
+
+    override fun onMapReady(map: GoogleMap) {
+        googleMap = map
+        googleMap?.uiSettings?.isZoomControlsEnabled = true
+        
+        val initialPos = LatLng(currentLat, currentLng)
+        googleMap?.moveCamera(CameraUpdateFactory.newLatLngZoom(initialPos, 15f))
+        
+        googleMap?.setOnCameraIdleListener {
+            val target = googleMap?.cameraPosition?.target ?: return@setOnCameraIdleListener
+            currentLat = target.latitude
+            currentLng = target.longitude
+            tvLocation.text = String.format(Locale.US, "Coordinates: %.6f, %.6f", currentLat, currentLng)
+        }
     }
 
     private fun setupSelectionLogic(container: LinearLayout) {
@@ -183,9 +207,10 @@ class PropertyPricingFragment : Fragment() {
     }
 
     fun updateLocation(lat: Double, lng: Double) {
-        tvLocation.text = "Coordinates: $lat, $lng"
-        ivMiniMap.setImageResource(android.R.drawable.ic_dialog_map)
-        ivMiniMap.setBackgroundColor(0xFFBBDEFB.toInt())
+        currentLat = lat
+        currentLng = lng
+        tvLocation.text = String.format(Locale.US, "Coordinates: %.6f, %.6f", lat, lng)
+        googleMap?.moveCamera(CameraUpdateFactory.newLatLngZoom(LatLng(lat, lng), 15f))
     }
 
     fun getData(): Map<String, Any?> {
@@ -196,7 +221,8 @@ class PropertyPricingFragment : Fragment() {
         return mapOf(
             "price" to etPrice.text.toString().replace(",", ""),
             "negotiable" to if (cbNegotiable.isChecked) "Yes" else "No",
-            "location" to tvLocation.text.toString(),
+            "latitude" to currentLat,
+            "longitude" to currentLng,
             "rooms" to getSelectedValue(llRooms),
             "bathrooms" to bathrooms,
             "area" to area

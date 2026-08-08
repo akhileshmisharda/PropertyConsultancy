@@ -26,6 +26,14 @@ class SessionManager(context: Context) {
         prefs.edit().putBoolean(KEY_HINTS_ENABLED, enabled).apply()
     }
 
+    fun isStickyHintsMode(): Boolean {
+        return prefs.getBoolean("stickyHints", false)
+    }
+
+    fun setStickyHintsMode(sticky: Boolean) {
+        prefs.edit().putBoolean("stickyHints", sticky).apply()
+    }
+
     fun saveUser(user: UserDTO) {
         val json = gson.toJson(user)
         prefs.edit().apply {

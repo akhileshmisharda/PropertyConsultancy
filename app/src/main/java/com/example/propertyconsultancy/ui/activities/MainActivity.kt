@@ -60,15 +60,16 @@ class MainActivity : BaseActivity() {
             val enabled = !sessionManager.isHintsEnabled()
             sessionManager.setHintsEnabled(enabled)
             updateHintToggleIcon()
-        fetchCategories()
             
-            // Show HUD hint for toggle action (bypass check for this specific action so user knows it's working)
             showHudHint(if (enabled) "HUD Popups: STARTED" else "HUD Popups: STOPPED")
 
-            // Notify active fragment if it's SearchFragment
             val currentFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment)
-            if (currentFragment is SearchFragment) {
-                currentFragment.onHintStateChanged()
+            if (currentFragment is com.example.propertyconsultancy.ui.fragments.SearchFragment) {
+                if (enabled) currentFragment.showAllStickyHints() else currentFragment.hideAllStickyHints()
+            } else if (currentFragment is com.example.propertyconsultancy.ui.fragments.SettingsFragment) {
+                if (enabled) currentFragment.showAllStickyHints() else currentFragment.hideAllStickyHints()
+            } else if (currentFragment is com.example.propertyconsultancy.ui.fragments.PropertyExploreFragment) {
+                if (enabled) currentFragment.showAllStickyHints() else currentFragment.hideAllStickyHints()
             }
         }
         
@@ -319,7 +320,32 @@ class MainActivity : BaseActivity() {
         bundle.putSerializable("property", property)
         fragment.arguments = bundle
         supportFragmentManager.beginTransaction()
+            .setReorderingAllowed(true)
             .replace(R.id.nav_host_fragment, fragment, "chat")
+            .addToBackStack(null)
+            .commit()
+    }
+
+    fun openAiMap(property: PropertyDTO) {
+        val fragment = com.example.propertyconsultancy.ui.fragments.AiMapFragment()
+        val bundle = Bundle()
+        bundle.putSerializable("property", property)
+        fragment.arguments = bundle
+        supportFragmentManager.beginTransaction()
+            .setReorderingAllowed(true)
+            .replace(R.id.nav_host_fragment, fragment, "ai_map")
+            .addToBackStack(null)
+            .commit()
+    }
+
+    fun openAiFeedback(property: PropertyDTO) {
+        val fragment = com.example.propertyconsultancy.ui.fragments.AiFeedbackFragment()
+        val bundle = Bundle()
+        bundle.putSerializable("property", property)
+        fragment.arguments = bundle
+        supportFragmentManager.beginTransaction()
+            .setReorderingAllowed(true)
+            .replace(R.id.nav_host_fragment, fragment, "ai_feedback")
             .addToBackStack(null)
             .commit()
     }

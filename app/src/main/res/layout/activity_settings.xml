@@ -41,25 +41,32 @@
                 android:textColor="?attr/colorOnSurface" />
 
             <LinearLayout
+                android:id="@+id/layoutThemeSelection"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:orientation="horizontal"
-                android:baselineAligned="false">
-                <RadioButton android:id="@+id/rbTheme1" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Blue" android:layout_marginEnd="4dp" />
-                <RadioButton android:id="@+id/rbTheme2" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Green" android:layout_marginHorizontal="4dp" />
-                <RadioButton android:id="@+id/rbTheme3" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Orange" android:layout_marginStart="4dp" />
-            </LinearLayout>
+                android:orientation="vertical">
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:orientation="horizontal"
-                android:baselineAligned="false">
-                <RadioButton android:id="@+id/rbTheme4" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Purple" android:layout_marginEnd="4dp" />
-                <RadioButton android:id="@+id/rbTheme5" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Red" android:layout_marginHorizontal="4dp" />
-                <RadioButton android:id="@+id/rbTheme6" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Navy" android:layout_marginStart="4dp" />
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:orientation="horizontal"
+                    android:baselineAligned="false">
+                    <RadioButton android:id="@+id/rbTheme1" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Blue" android:layout_marginEnd="4dp" />
+                    <RadioButton android:id="@+id/rbTheme2" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Green" android:layout_marginHorizontal="4dp" />
+                    <RadioButton android:id="@+id/rbTheme3" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Orange" android:layout_marginStart="4dp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:orientation="horizontal"
+                    android:baselineAligned="false">
+                    <RadioButton android:id="@+id/rbTheme4" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Purple" android:layout_marginEnd="4dp" />
+                    <RadioButton android:id="@+id/rbTheme5" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Red" android:layout_marginHorizontal="4dp" />
+                    <RadioButton android:id="@+id/rbTheme6" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Navy" android:layout_marginStart="4dp" />
+                </LinearLayout>
             </LinearLayout>
 
             <Space android:layout_width="match_parent" android:layout_height="24dp" />

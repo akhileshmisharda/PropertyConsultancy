@@ -34,6 +34,10 @@ class PropertyExploreFragment : Fragment() {
     private lateinit var tvVisitCurrent: TextView
     private lateinit var etExploreRemarks: android.widget.EditText
     private lateinit var btnSaveRemarks: View
+    private lateinit var btnAiMap: View
+    private lateinit var btnAiFeedback: View
+    private lateinit var ivHintExploreAiMap: ImageView
+    private lateinit var ivHintExploreAiFeedback: ImageView
     private lateinit var exploreProgress: com.google.android.material.progressindicator.LinearProgressIndicator
 
     private lateinit var sessionManager: com.example.propertyconsultancy.data.local.SessionManager
@@ -84,6 +88,10 @@ class PropertyExploreFragment : Fragment() {
         initViews(view)
         bindPropertyData(property)
         fetchInitialInteraction(property.propertyId ?: 0)
+        
+        if (sessionManager.isHintsEnabled()) {
+            view.post { showAllStickyHints() }
+        }
     }
 
     private fun initViews(view: View) {
@@ -95,6 +103,18 @@ class PropertyExploreFragment : Fragment() {
         etExploreRemarks = view.findViewById(R.id.etExploreRemarks)
         btnSaveRemarks = view.findViewById(R.id.btnSaveRemarks)
         exploreProgress = view.findViewById(R.id.exploreProgress)
+        btnAiMap = view.findViewById(R.id.btnAiMap)
+        btnAiFeedback = view.findViewById(R.id.btnAiFeedback)
+        ivHintExploreAiMap = view.findViewById(R.id.ivHintExploreAiMap)
+        ivHintExploreAiFeedback = view.findViewById(R.id.ivHintExploreAiFeedback)
+        
+        btnAiMap.setOnClickListener {
+            property?.let { (activity as? MainActivity)?.openAiMap(it) }
+        }
+
+        btnAiFeedback.setOnClickListener {
+            property?.let { (activity as? MainActivity)?.openAiFeedback(it) }
+        }
 
         switchFavorite.setOnCheckedChangeListener { _, isChecked ->
             val user = sessionManager.getUser() ?: return@setOnCheckedChangeListener
@@ -405,5 +425,45 @@ class PropertyExploreFragment : Fragment() {
         )
         datePicker.datePicker.minDate = System.currentTimeMillis() - 1000
         datePicker.show()
+    }
+
+    fun showAllStickyHints() {
+        showStickyHint(btnAiMap, ivHintExploreAiMap, "AI Proximity Map", true)
+        showStickyHint(btnAiFeedback, ivHintExploreAiFeedback, "AI Area Insights", true)
+    }
+
+    fun hideAllStickyHints() {
+        ivHintExploreAiMap.visibility = View.GONE
+        ivHintExploreAiFeedback.visibility = View.GONE
+    }
+
+    private fun showStickyHint(target: View, hintView: ImageView, message: String, isAbove: Boolean) {
+        val width = 500
+        val height = 200
+        val bitmap = android.graphics.Bitmap.createBitmap(width, height, android.graphics.Bitmap.Config.ARGB_8888)
+        val canvas = android.graphics.Canvas(bitmap)
+        
+        val paint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG)
+        paint.color = android.graphics.Color.parseColor("#CC000000")
+        canvas.drawRoundRect(0f, 40f, width.toFloat(), 140f, 20f, 20f, paint)
+        
+        paint.color = android.graphics.Color.WHITE
+        paint.textSize = 28f
+        paint.typeface = android.graphics.Typeface.create("sans-serif-condensed", android.graphics.Typeface.BOLD)
+        canvas.drawText(message, 30f, 100f, paint)
+
+        hintView.setImageBitmap(bitmap)
+        hintView.visibility = View.VISIBLE
+        
+        target.post {
+            if (!isAdded) return@post
+            val loc = IntArray(2)
+            target.getLocationInWindow(loc)
+            val rootLoc = IntArray(2)
+            view?.getLocationInWindow(rootLoc)
+            
+            hintView.translationX = (loc[0] - rootLoc[0] + (target.width / 2) - (width / 2)).toFloat()
+            hintView.translationY = if (isAbove) (loc[1] - rootLoc[1] - 120).toFloat() else (loc[1] - rootLoc[1] + target.height + 20).toFloat()
+        }
     }
 }

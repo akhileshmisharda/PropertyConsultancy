@@ -1120,9 +1120,11 @@ class SearchFragment : Fragment(), OnMapReadyCallback {
         return bitmap
     }
 
-    fun onHintStateChanged() {
+    fun showAllStickyHints() {
         refreshStickyHints()
     }
+
+
 
     private fun refreshStickyHints() {
         val enabled = sessionManager.isHintsEnabled()
@@ -1193,7 +1195,7 @@ class SearchFragment : Fragment(), OnMapReadyCallback {
         }
     }
 
-    private fun hideAllStickyHints() {
+    fun hideAllStickyHints() {
         ivHintStickyAi.visibility = View.GONE
         ivHintStickyFilter.visibility = View.GONE
         ivHintStickyViewMode.visibility = View.GONE

@@ -18,24 +18,31 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import com.example.propertyconsultancy.R
 import com.example.propertyconsultancy.data.cache.CategoryCache
-import com.example.propertyconsultancy.ui.dialogs.SelectionDialogFragment
+import com.example.propertyconsultancy.data.dto.CategoryGroupDTO
 import com.google.android.material.chip.Chip
-import com.google.android.material.textfield.MaterialAutoCompleteTextView
+import com.google.android.material.chip.ChipGroup
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
 import android.widget.EditText
 import android.graphics.Typeface
+import android.widget.TextView
 import com.google.android.material.color.MaterialColors
 
 class PropertyDetailsFragment : Fragment() {
 
     private lateinit var etTitle: TextInputEditText
     private lateinit var etDescription: TextInputEditText
-    private lateinit var etPropertyType: MaterialAutoCompleteTextView
-    private lateinit var etFacing: MaterialAutoCompleteTextView
-    private lateinit var etRoadSize: MaterialAutoCompleteTextView
-    private lateinit var etFloor: MaterialAutoCompleteTextView
-    private lateinit var etStatus: MaterialAutoCompleteTextView
+    
+    private lateinit var cgOptions: ChipGroup
+    private lateinit var tvOptionCaption: TextView
+    private lateinit var tilExtraValue: TextInputLayout
+    private lateinit var etExtraValue: TextInputEditText
+    
+    private lateinit var tabType: TextView
+    private lateinit var tabFacing: TextView
+    private lateinit var tabRoad: TextView
+    private lateinit var tabFloor: TextView
+    private lateinit var tabStatus: TextView
 
     private var selectedProTypeId: Int? = null
     private var selectedFacingId: Int? = null
@@ -43,6 +50,9 @@ class PropertyDetailsFragment : Fragment() {
     private var selectedFloorId: Int? = null
     private var selectedStatusId: Int? = null
     private var statusDate: String? = null
+
+    private var currentTab = "PropertyType"
+    private var categories: List<CategoryGroupDTO>? = null
 
     private var speechRecognizer: SpeechRecognizer? = null
     private var isListening = false
@@ -55,16 +65,136 @@ class PropertyDetailsFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         etTitle = view.findViewById(R.id.etTitle)
         etDescription = view.findViewById(R.id.etDescription)
-        etPropertyType = view.findViewById(R.id.etPropertyType)
-        etFacing = view.findViewById(R.id.etFacing)
-        etRoadSize = view.findViewById(R.id.etRoadSize)
-        etFloor = view.findViewById(R.id.etFloor)
-        etStatus = view.findViewById(R.id.etStatus)
+        
+        cgOptions = view.findViewById(R.id.cgOptions)
+        tvOptionCaption = view.findViewById(R.id.tvOptionCaption)
+        tilExtraValue = view.findViewById(R.id.tilExtraValue)
+        etExtraValue = view.findViewById(R.id.etExtraValue)
+        
+        etExtraValue.addTextChangedListener(object : android.text.TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+            override fun afterTextChanged(s: android.text.Editable?) {
+                if (tilExtraValue.visibility == View.VISIBLE) {
+                    statusDate = s.toString()
+                }
+            }
+        })
+        
+        tabType = view.findViewById(R.id.tabType)
+        tabFacing = view.findViewById(R.id.tabFacing)
+        tabRoad = view.findViewById(R.id.tabRoad)
+        tabFloor = view.findViewById(R.id.tabFloor)
+        tabStatus = view.findViewById(R.id.tabStatus)
 
-        setupSelectionDialogs()
+        categories = CategoryCache.getCategories(requireContext())
+        
+        setupTabs()
         initSpeechRecognizer()
         setupVoiceHoldAndSpeak(view.findViewById(R.id.tilTitle), etTitle)
         setupVoiceHoldAndSpeak(view.findViewById(R.id.tilDescription), etDescription)
+        
+        // Initial Tab
+        switchTab("PropertyType", tabType)
+    }
+
+    private fun setupTabs() {
+        tabType.setOnClickListener { switchTab("PropertyType", it as TextView) }
+        tabFacing.setOnClickListener { switchTab("Facing", it as TextView) }
+        tabRoad.setOnClickListener { switchTab("Road Size", it as TextView) }
+        tabFloor.setOnClickListener { switchTab("Floor", it as TextView) }
+        tabStatus.setOnClickListener { switchTab("Status", it as TextView) }
+    }
+
+    private fun switchTab(categoryName: String, tabView: TextView) {
+        currentTab = categoryName
+        
+        // Update UI for all tabs
+        val tabs = listOf(tabType, tabFacing, tabRoad, tabFloor, tabStatus)
+        val density = resources.displayMetrics.density
+        val overlap = (1 * density).toInt()
+
+        tabs.forEach { 
+            it.setBackgroundColor(android.graphics.Color.TRANSPARENT)
+            it.setTypeface(null, Typeface.NORMAL)
+            it.setTextColor(MaterialColors.getColor(it, com.google.android.material.R.attr.colorOnSurfaceVariant))
+            it.gravity = android.view.Gravity.START or android.view.Gravity.CENTER_VERTICAL
+            it.textSize = 16f
+            it.translationX = 0f
+        }
+        
+        tabView.setBackgroundColor(android.graphics.Color.WHITE)
+        tabView.setTypeface(null, Typeface.BOLD)
+        tabView.setTextColor(MaterialColors.getColor(tabView, com.google.android.material.R.attr.colorPrimary))
+        tabView.gravity = android.view.Gravity.END or android.view.Gravity.CENTER_VERTICAL
+        tabView.textSize = 18f
+        tabView.translationX = overlap.toFloat() // Overlap the 1dp divider
+        
+        tvOptionCaption.text = "SELECT ${categoryName.uppercase()}"
+        
+        loadOptions(categoryName)
+    }
+
+    private fun loadOptions(categoryName: String) {
+        cgOptions.removeAllViews()
+        val category = categories?.find { it.name.contains(categoryName, true) }
+        val options = category?.options ?: emptyList()
+        
+        val currentSelectedId = when (categoryName) {
+            "PropertyType" -> selectedProTypeId
+            "Facing" -> selectedFacingId
+            "Road Size" -> selectedRoadSizeId
+            "Floor" -> selectedFloorId
+            "Status" -> selectedStatusId
+            else -> null
+        }
+
+        options.forEach { option ->
+            val chip = LayoutInflater.from(requireContext()).inflate(R.layout.layout_selection_chip, cgOptions, false) as Chip
+            // Show hasValue for debugging
+            chip.text = "${option.option} (${option.hasValue})"
+            chip.id = option.categoryId
+            chip.isChecked = option.categoryId == currentSelectedId
+            
+            // Critical check for initial state
+            if (chip.isChecked && option.hasValue == 1) {
+                tilExtraValue.visibility = View.VISIBLE
+                tilExtraValue.hint = option.hasCaption ?: "Enter Value"
+                etExtraValue.setText(statusDate ?: "")
+            }
+
+            chip.setOnCheckedChangeListener { _, isChecked ->
+                if (isChecked) {
+                    if (option.hasValue == 1) {
+                        tilExtraValue.visibility = View.VISIBLE
+                        tilExtraValue.hint = option.hasCaption ?: "Enter Value"
+                        // Pre-fill if we have existing date
+                        etExtraValue.setText(statusDate ?: "")
+                    } else {
+                        tilExtraValue.visibility = View.GONE
+                        statusDate = null
+                        etExtraValue.setText("")
+                    }
+
+                    when (currentTab) {
+                        "PropertyType" -> selectedProTypeId = option.categoryId
+                        "Facing" -> selectedFacingId = option.categoryId
+                        "Road Size" -> selectedRoadSizeId = option.categoryId
+                        "Floor" -> selectedFloorId = option.categoryId
+                        "Status" -> selectedStatusId = option.categoryId
+                    }
+                }
+            }
+            cgOptions.addView(chip)
+        }
+        
+        // Final visibility sync
+        val selectedOption = options.find { it.categoryId == currentSelectedId }
+        if (selectedOption != null && selectedOption.hasValue == 1) {
+            tilExtraValue.visibility = View.VISIBLE
+        } else {
+            tilExtraValue.visibility = View.GONE
+        }
     }
 
     private fun initSpeechRecognizer() {
@@ -136,53 +266,6 @@ class PropertyDetailsFragment : Fragment() {
         speechRecognizer?.destroy()
     }
 
-    private fun setupSelectionDialogs() {
-        etPropertyType.setOnClickListener { showDialog("Property Type", "PropertyType", etPropertyType, selectedProTypeId) }
-        etFacing.setOnClickListener { showDialog("Facing", "Facing", etFacing, selectedFacingId) }
-        etRoadSize.setOnClickListener { showDialog("Road Size", "Road Size", etRoadSize, selectedRoadSizeId) }
-        etFloor.setOnClickListener { showDialog("Floor", "Floor", etFloor, selectedFloorId) }
-        etStatus.setOnClickListener { showDialog("Status", "Status", etStatus, selectedStatusId) }
-    }
-
-    private fun showDialog(title: String, groupName: String, target: EditText, currentId: Int?) {
-        val categories = CategoryCache.getCategories(requireContext())
-        val options = categories?.find { it.name.equals(groupName, true) }?.options ?: emptyList()
-        SelectionDialogFragment(
-            title = title,
-            options = options,
-            initialSelectedId = currentId,
-            onSelected = { selectedValue ->
-                // Update the target EditText with the selected value (possibly with extra data)
-                target.setText(selectedValue)
-                target.setTypeface(null, Typeface.BOLD)
-                
-                // Store the ID based on the groupName
-                val selectedOption = options.find { option -> 
-                    selectedValue.startsWith(option.option) 
-                }
-                
-                when (groupName) {
-                    "PropertyType" -> selectedProTypeId = selectedOption?.categoryId
-                    "Facing" -> selectedFacingId = selectedOption?.categoryId
-                    "Road Size" -> selectedRoadSizeId = selectedOption?.categoryId
-                    "Floor" -> selectedFloorId = selectedOption?.categoryId
-                    "Status" -> {
-                        selectedStatusId = selectedOption?.categoryId
-                        if (selectedValue.contains(" - ")) {
-                            statusDate = selectedValue.substringAfter(" - ")
-                        }
-                    }
-                }
-                
-                // Find parent TextInputLayout and update its background color from theme
-                (target.parent.parent as? TextInputLayout)?.let { til ->
-                    val color = MaterialColors.getColor(requireActivity(), com.google.android.material.R.attr.colorPrimaryContainer, 0)
-                    til.boxBackgroundColor = color
-                }
-            }
-        ).show(parentFragmentManager, "SelectionDialog")
-    }
-
     fun setData(property: com.example.propertyconsultancy.data.dto.PropertyDTO) {
         etTitle.setText(property.title)
         etDescription.setText(property.description)
@@ -194,29 +277,12 @@ class PropertyDetailsFragment : Fragment() {
         selectedStatusId = property.statusId
         statusDate = property.statusDate
 
-        // Pre-fill selection dialogs if labels are available (Simulation)
-        val categories = CategoryCache.getCategories(requireContext())
-        
-        fun setLabel(target: EditText, group: String, id: Int?) {
-            if (id == null) return
-            val option = categories?.find { it.name.equals(group, true) }?.options?.find { it.categoryId == id }
-            option?.let { 
-                target.setText(it.option)
-                target.setTypeface(null, Typeface.BOLD)
-                (target.parent.parent as? TextInputLayout)?.let { til ->
-                    til.boxBackgroundColor = MaterialColors.getColor(requireActivity(), com.google.android.material.R.attr.colorPrimaryContainer, 0)
-                }
-            }
-        }
-
-        setLabel(etPropertyType, "PropertyType", selectedProTypeId)
-        setLabel(etFacing, "Facing", selectedFacingId)
-        setLabel(etRoadSize, "Road Size", selectedRoadSizeId)
-        setLabel(etFloor, "Floor", selectedFloorId)
-        setLabel(etStatus, "Status", selectedStatusId)
+        // Refresh current options to show selection
+        loadOptions(currentTab)
     }
 
     fun getData(): Map<String, Any?> {
+        val extraVal = if (tilExtraValue.visibility == View.VISIBLE) etExtraValue.text.toString() else statusDate
         return mapOf(
             "title" to etTitle.text.toString(),
             "description" to etDescription.text.toString(),
@@ -225,7 +291,7 @@ class PropertyDetailsFragment : Fragment() {
             "roadsize_id" to selectedRoadSizeId,
             "floor_id" to selectedFloorId,
             "status_id" to selectedStatusId,
-            "status_date" to statusDate
+            "status_date" to extraVal
         )
     }
 }
