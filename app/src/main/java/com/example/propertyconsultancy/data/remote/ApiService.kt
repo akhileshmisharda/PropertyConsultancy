@@ -57,6 +57,18 @@ interface ApiService {
     @POST("submit_user.php")
     suspend fun updateProfile(@Body user: UserDTO): AuthResponseDTO
 
+    @GET("get_media_tags.php")
+    suspend fun getMediaTags(): MediaTagResponseDTO
+
+    @Multipart
+    @POST("upload_property_media.php")
+    suspend fun uploadPropertyMedia(
+        @Part("property_id") propertyId: okhttp3.RequestBody,
+        @Part("image_tag_id") tagId: okhttp3.RequestBody,
+        @Part("media_type") mediaType: okhttp3.RequestBody,
+        @Part file: okhttp3.MultipartBody.Part
+    ): GenericResponseDTO
+
     @GET("get_slider_image.php")
     suspend fun getSliderImages(): List<SliderImageDTO>
 

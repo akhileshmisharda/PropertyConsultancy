@@ -92,13 +92,13 @@ class SearchPropertyAdapter(
         stopImageCycle(position)
 
         val views = if (isLeft) {
-            listOf(holder.ivImageLeft, holder.tvTitleLeft, holder.tvPriceLeft, holder.tvLocationLeft, holder.tvBhkLeft, holder.tvAreaLeft, holder.tvFacingLeft, holder.tvRoadSizeLeft, holder.tvFurnishedLeft, holder.tvBathLeft, holder.tvPropertyTypeLeft, holder.tvInterestedLeft, holder.tvAmenitiesLeft)
+            listOf(holder.ivImageLeft, holder.tvTitleLeft, holder.tvPriceLeft, holder.tvLocationLeft, holder.tvBhkLeft, holder.tvAreaLeft, holder.tvFacingLeft, holder.tvRoadSizeLeft, holder.tvFurnishedLeft, holder.tvBathLeft, holder.tvPropertyTypeLeft, holder.tvInterestedLeft, holder.tvAmenitiesLeft, holder.ivFavoriteLeft)
         } else {
-            listOf(holder.ivImageRight, holder.tvTitleRight, holder.tvPriceRight, holder.tvLocationRight, holder.tvBhkRight, holder.tvAreaRight, holder.tvFacingRight, holder.tvRoadSizeRight, holder.tvFurnishedRight, holder.tvBathRight, holder.tvPropertyTypeRight, holder.tvInterestedRight, holder.tvAmenitiesRight)
+            listOf(holder.ivImageRight, holder.tvTitleRight, holder.tvPriceRight, holder.tvLocationRight, holder.tvBhkRight, holder.tvAreaRight, holder.tvFacingRight, holder.tvRoadSizeRight, holder.tvFurnishedRight, holder.tvBathRight, holder.tvPropertyTypeRight, holder.tvInterestedRight, holder.tvAmenitiesRight, holder.ivFavoriteRight)
         }
 
         val sharedElements = mutableMapOf<String, View>()
-        val prefixes = listOf("property_image", "property_title", "property_price", "property_location", "property_bhk", "property_area", "property_facing", "property_roadsize", "property_furnished", "property_bath", "property_type", "property_interested", "property_amenities")
+        val prefixes = listOf("property_image", "property_title", "property_price", "property_location", "property_bhk", "property_area", "property_facing", "property_roadsize", "property_furnished", "property_bath", "property_type", "property_interested", "property_amenities", "property_favorite")
         
         views.forEachIndexed { index, view ->
             val name = "${prefixes[index]}_$position"

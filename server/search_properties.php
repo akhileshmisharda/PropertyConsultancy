@@ -4,41 +4,19 @@ header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: GET, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With");
 
-// --- DEBUG LOGGING START ---
-function writeDebugLog($message, $data = null) {
-    $logFile = __DIR__ . '/uploads/search_properties_debug.log';
-    $timestamp = date('Y-m-d H:i:s');
-    $logContent = "[$timestamp] $message";
-    if ($data !== null) {
-        $logContent .= " | Data: " . (is_array($data) ? json_encode($data) : print_r($data, true));
-    }
-    file_put_contents($logFile, $logContent . PHP_EOL, FILE_APPEND);
-}
-
-// Handle Preflight OPTIONS
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    http_response_code(200);
-    exit();
-}
-
-writeDebugLog("--- Incoming API Request ---");
-writeDebugLog("GET Params", $_GET);
-// --- DEBUG LOGGING END ---
-
 // Include database configuration
 $config_path = __DIR__ . '/../ERP/config/database.php';
 
 if (file_exists($config_path)) {
     require_once $config_path;
 } else {
-    writeDebugLog("Error: Database config file missing at " . $config_path);
     echo json_encode(["status" => "error", "message" => "Database configuration file not found."]);
     exit();
 }
 
 // Extract search parameters
 $city         = $_GET['city'] ?? null;
-$user_id      = $_GET['user_id'] ?? null; // Added User ID for Favorite check
+$user_id      = $_GET['user_id'] ?? null;
 $zip_code     = $_GET['zip_code'] ?? null;
 $min_price    = $_GET['min_price'] ?? null;
 $max_price    = $_GET['max_price'] ?? null;
@@ -87,7 +65,6 @@ if (isset($bathrooms) && $bathrooms !== '') {
     $params[':bathrooms'] = (float)$bathrooms;
 }
 
-// Multi-select filters
 function addInClause($field, $idsString, &$whereClauses, &$params) {
     if (!$idsString || trim($idsString) === '') return;
     $ids = explode(',', $idsString);
@@ -114,8 +91,6 @@ $whereSql = implode(" AND ", $whereClauses);
 
 try {
     $pdo = new PDO('mysql:host='.DB_HOST.';dbname='.DB_NAME.';charset=utf8mb4', DB_USER, DB_PASS, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
-
-    // Disable emulation to ensure LIMIT/OFFSET are handled correctly
     $pdo->setAttribute(PDO::ATTR_EMULATE_PREPARES, false);
 
     // 1. Get Total Count
@@ -126,10 +101,9 @@ try {
 
     // 2. Get Paginated Data
     $query = "SELECT p.*,
-              (SELECT GROUP_CONCAT(pm.file_url) FROM pro_property_media pm WHERE pm.property_id = p.property_id) as media_urls,
               (SELECT GROUP_CONCAT(pa.amenity_id) FROM pro_property_amenities pa WHERE pa.property_id = p.property_id) as amenity_ids,
               (SELECT COUNT(*) FROM pro_property_amenities pa WHERE pa.property_id = p.property_id) as amenity_count,
-              (SELECT is_favorite FROM pro_property_interactions pi WHERE pi.property_id = p.property_id AND pi.customer_id = :user_id LIMIT 1) as is_favorite,
+              (SELECT is_favorite FROM pro_interactions pi WHERE pi.property_id = p.property_id AND pi.customer_id = :user_id LIMIT 1) as is_favorite,
               pe.user_id as executive_id,
               CONCAT(pe.first_name, ' ', pe.last_name) as executive_name,
               pe.phone as executive_mobile,
@@ -143,14 +117,8 @@ try {
               LIMIT :limit OFFSET :offset";
 
     $stmt = $pdo->prepare($query);
-
-    foreach ($params as $key => $val) {
-        $stmt->bindValue($key, $val);
-    }
-
-    // Bind User ID for favorite subquery
-    $stmt->bindValue(':user_id', $user_id, PDO::PARAM_INT);
-
+    foreach ($params as $key => $val) { $stmt->bindValue($key, $val); }
+    $stmt->bindValue(':user_id', $user_id ?? 0, PDO::PARAM_INT);
     $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
     $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
 
@@ -158,7 +126,10 @@ try {
     $properties = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     foreach ($properties as &$p) {
-        $p['media_urls'] = !empty($p['media_urls']) ? explode(',', $p['media_urls']) : [];
+        $m_stmt = $pdo->prepare("SELECT media_id, property_id, image_tag_id, media_type, file_url, is_primary, display_order FROM pro_property_media WHERE property_id = ? ORDER BY display_order ASC");
+        $m_stmt->execute([$p['property_id']]);
+        $p['media'] = $m_stmt->fetchAll(PDO::FETCH_ASSOC);
+        $p['media_urls'] = array_column($p['media'], 'file_url');
         $p['amenity_ids'] = !empty($p['amenity_ids']) ? array_map('intval', explode(',', $p['amenity_ids'])) : [];
     }
 

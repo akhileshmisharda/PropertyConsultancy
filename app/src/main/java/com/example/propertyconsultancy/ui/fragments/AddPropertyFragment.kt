@@ -92,7 +92,7 @@ class AddPropertyFragment : Fragment() {
                     pagerAdapter.amenitiesFragment.setData(it)
                     pagerAdapter.pricingFragment.setData(it)
                     pagerAdapter.addressFragment.setData(it)
-                    pagerAdapter.mediaFragment.setData(it.mediaUrls, it.media)
+                    pagerAdapter.mediaFragment.setData(it.propertyId, it.media)
                 }
             }, 500)
         }
@@ -111,6 +111,17 @@ class AddPropertyFragment : Fragment() {
         pagerAdapter = PropertyPagerAdapter(this)
         viewPager.adapter = pagerAdapter
         viewPager.offscreenPageLimit = 5
+        
+        viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
+            override fun onPageSelected(position: Int) {
+                if (position == 4 && propertyToEdit?.propertyId == null) {
+                    // Try to save property first to get an ID for direct media upload
+                    Toast.makeText(requireContext(), "Initializing property for media upload...", Toast.LENGTH_SHORT).show()
+                    savePropertySilent()
+                }
+            }
+        })
+
         TabLayoutMediator(tabLayout, viewPager) { tab, pos ->
             tab.text = when (pos) { 
                 0 -> "Details"
@@ -120,6 +131,53 @@ class AddPropertyFragment : Fragment() {
                 else -> "Media"
             }
         }.attach()
+    }
+
+    private fun savePropertySilent() {
+        // Collect data from other fragments
+        val details = pagerAdapter.detailsFragment.getData()
+        val pricing = pagerAdapter.pricingFragment.getData()
+        val address = pagerAdapter.addressFragment.getData()
+        val amenities = pagerAdapter.amenitiesFragment.getData()
+        val user = sessionManager.getUser()
+
+        val payload = mutableMapOf<String, Any?>()
+        payload["landlord_id"] = user?.userId
+        payload["title"] = details["title"] ?: "Untitled Property"
+        payload["description"] = details["description"]
+        payload["bedrooms"] = (pricing["rooms"] as? String)?.filter { it.isDigit() }?.toIntOrNull() ?: 0
+        payload["bathrooms"] = pricing["bathrooms"]
+        payload["area_sqft"] = pricing["area"]
+        payload["furnishing"] = pricing["furnishing"]
+        payload["status"] = "draft"
+        payload["price_per_month"] = (pricing["price"] as? String)?.toDoubleOrNull() ?: 0.0
+        payload["latitude"] = address["latitude"]
+        payload["longitude"] = address["longitude"]
+        payload["address_line_1"] = address["address_line_1"]
+        payload["address_line_2"] = address["address_line_2"]
+        payload["city"] = address["city"]
+        payload["state"] = address["state"]
+        payload["zip_code"] = address["zip_code"]
+        payload["amenity_ids"] = amenities["amenity_ids"]
+        
+        details.forEach { (k, v) -> if (k !in listOf("title", "description")) payload[k] = v }
+
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val resp = RetrofitInstance.api.submitProperty(payload)
+                if (resp.status == "success" && resp.propertyId != null) {
+                    withContext(Dispatchers.Main) {
+                        propertyToEdit = PropertyDTO(propertyId = resp.propertyId)
+                        pagerAdapter.mediaFragment.setData(resp.propertyId, null)
+                        Log.d("AddProperty", "Property initialized with ID: ${resp.propertyId}")
+                    }
+                }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(requireContext(), "Error initializing property: ${e.message}", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
     }
 
     private fun fetchCategoriesBackground() {

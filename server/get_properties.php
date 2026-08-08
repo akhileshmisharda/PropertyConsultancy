@@ -31,10 +31,9 @@ try {
     }
 
     $query = "SELECT p.*,
-              (SELECT GROUP_CONCAT(pm.file_url) FROM pro_property_media pm WHERE pm.property_id = p.property_id) as media_urls,
               (SELECT GROUP_CONCAT(pa.amenity_id) FROM pro_property_amenities pa WHERE pa.property_id = p.property_id) as amenity_ids,
               (SELECT COUNT(*) FROM pro_property_amenities pa WHERE pa.property_id = p.property_id) as amenity_count,
-              (SELECT is_favorite FROM pro_property_interactions pi WHERE pi.property_id = p.property_id AND pi.customer_id = :user_id LIMIT 1) as is_favorite,
+              (SELECT is_favorite FROM pro_interactions pi WHERE pi.property_id = p.property_id AND pi.customer_id = :user_id LIMIT 1) as is_favorite,
               pe.user_id as executive_id,
               CONCAT(pe.first_name, ' ', pe.last_name) as executive_name,
               pe.phone as executive_mobile,
@@ -47,17 +46,19 @@ try {
               ORDER BY p.created_at DESC";
 
     $stmt = $pdo->prepare($query);
-    $params[':user_id'] = $user_id;
+    if ($user_id) $params[':user_id'] = $user_id; else $params[':user_id'] = 0;
+
     $stmt->execute($params);
     $properties = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     foreach ($properties as &$p) {
-        // Handle Media URLs
-        if (!empty($p['media_urls'])) {
-            $p['media_urls'] = explode(',', $p['media_urls']);
-        } else {
-            $p['media_urls'] = [];
-        }
+        // Fetch Media as Objects
+        $m_stmt = $pdo->prepare("SELECT media_id, property_id, image_tag_id, media_type, file_url, is_primary, display_order FROM pro_property_media WHERE property_id = ? ORDER BY display_order ASC");
+        $m_stmt->execute([$p['property_id']]);
+        $p['media'] = $m_stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        // Backward compatibility
+        $p['media_urls'] = array_column($p['media'], 'file_url');
 
         // Handle Amenity IDs
         if (!empty($p['amenity_ids'])) {

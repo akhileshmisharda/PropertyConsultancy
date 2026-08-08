@@ -86,11 +86,11 @@ class PropertyExploreFragment : Fragment(), OnMapReadyCallback {
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         val view = inflater.inflate(R.layout.fragment_property_explore, container, false)
         
-        val prefixes = listOf("IMAGE", "TITLE", "PRICE", "LOCATION", "BHK", "AREA", "FACING", "ROADSIZE", "FURNISHED", "BATH", "TYPE", "INTERESTED", "AMENITIES")
-        val viewIds = listOf(R.id.vpExploreMedia, R.id.tvExploreTitle, R.id.tvExplorePrice, R.id.tvExploreLocation, R.id.tvExploreBhk, R.id.tvExploreArea, R.id.tvExploreFacing, R.id.tvExploreRoadSize, R.id.tvExploreFurnished, R.id.tvExploreBath, R.id.tvExplorePropertyType, R.id.tvExploreInterested, R.id.tvExploreAmenities)
+        val prefixes = listOf("PROPERTY_IMAGE", "PROPERTY_TITLE", "PROPERTY_PRICE", "PROPERTY_LOCATION", "PROPERTY_BHK", "PROPERTY_AREA", "PROPERTY_FACING", "PROPERTY_ROADSIZE", "PROPERTY_FURNISHED", "PROPERTY_BATH", "PROPERTY_TYPE", "PROPERTY_INTERESTED", "PROPERTY_AMENITIES", "PROPERTY_FAVORITE")
+        val viewIds = listOf(R.id.vpExploreMedia, R.id.tvExploreTitle, R.id.tvExplorePrice, R.id.tvExploreLocation, R.id.tvExploreBhk, R.id.tvExploreArea, R.id.tvExploreFacing, R.id.tvExploreRoadSize, R.id.tvExploreFurnished, R.id.tvExploreBath, R.id.tvExplorePropertyType, R.id.tvExploreInterested, R.id.tvAmenitiesSectionTitle, R.id.ivFavoriteStatus)
         
         prefixes.forEachIndexed { index, prefix ->
-            val transitionName = arguments?.getString("TRANSITION_PROPERTY_${prefix}_NAME")
+            val transitionName = arguments?.getString("TRANSITION_${prefix}_NAME")
             if (transitionName != null) {
                 view.findViewById<View>(viewIds[index])?.transitionName = transitionName
             }
@@ -113,8 +113,8 @@ class PropertyExploreFragment : Fragment(), OnMapReadyCallback {
         val mapFragment = childFragmentManager.findFragmentById(R.id.mapExplore) as? SupportMapFragment
         mapFragment?.getMapAsync(this)
 
-        fetchAllAmenities() // Fetch names/icons mapping
-        refreshPropertyData() // Fetch latest from server immediately
+        fetchAllAmenities() 
+        refreshPropertyData() 
         fetchInitialInteraction(property.propertyId ?: 0)
         
         if (sessionManager.isHintsEnabled()) {
@@ -125,7 +125,6 @@ class PropertyExploreFragment : Fragment(), OnMapReadyCallback {
     override fun onResume() {
         super.onResume()
         if (viewModel.shouldRefresh) {
-            // If something was updated, we definitely need the latest data
             refreshPropertyData()
         }
     }
@@ -139,21 +138,9 @@ class PropertyExploreFragment : Fragment(), OnMapReadyCallback {
                 val response = com.example.propertyconsultancy.data.remote.RetrofitInstance.api.getPropertyDetail(pid, user?.userId)
                 if (response.status == "success" && !response.data.isNullOrEmpty()) {
                     val updated = response.data[0]
-                    
-                    // CLEANED DEBUG LOGGING
-                    Log.d("[php_debug]", "--- Property Details Refresh ---")
-                    Log.d("[php_debug]", "ID: ${updated.propertyId} | Title: ${updated.title}")
-                    Log.d("[php_debug]", "Media URLs Count: ${updated.mediaUrls?.size ?: 0}")
-                    Log.d("[php_debug]", "Media URLs List: ${updated.mediaUrls?.joinToString(", ") ?: "NONE"}")
-                    Log.d("[php_debug]", "Amenity Count: ${updated.amenityCount}")
-                    Log.d("[php_debug]", "Amenity IDs: ${updated.amenityIds?.joinToString(", ") ?: "NONE"}")
-                    Log.d("[php_debug]", "Furnishing: ${updated.furnishing}")
-                    Log.d("[php_debug]", "Executive Info: ID=${updated.executiveId}, Name=${updated.executiveName}")
-                    
                     property = updated
                     bindPropertyData(updated)
                     updateMapLocation()
-                    Log.d("[php_debug]", "Refreshed Data for ${updated.title}. Exec: ${updated.executiveName}")
                 }
             } catch (e: Exception) {
                 Log.e("[Explore]", "Refresh Error: ${e.message}")
@@ -164,7 +151,6 @@ class PropertyExploreFragment : Fragment(), OnMapReadyCallback {
     }
 
     private fun initViews(view: View) {
-        // Interaction Center
         switchFavorite = view.findViewById(R.id.switchFavorite)
         ivFavoriteStatus = view.findViewById(R.id.ivFavoriteStatus)
         btnEditVisit = view.findViewById(R.id.btnEditVisit)
@@ -233,17 +219,19 @@ class PropertyExploreFragment : Fragment(), OnMapReadyCallback {
     private fun loadAmenityChips(ids: List<Int>?) {
         llExploreAmenities.removeAllViews()
         llExploreAmenities.background = null 
+        llExploreAmenities.setPadding(0, 0, 0, 0)
+        
         if (ids.isNullOrEmpty()) return
 
         val context = requireContext()
         val grouped = allAmenities?.filter { ids.contains(it.amenityId) }?.groupBy { it.category ?: "General" } ?: emptyMap()
         val density = resources.displayMetrics.density
         
-        // Helper to format string to Proper Case
         fun String.toProperCase() = this.lowercase().split(" ").joinToString(" ") { it.replaceFirstChar { char -> char.uppercase() } }
 
-        val rootTrunk = LinearLayout(context).apply {
-            orientation = LinearLayout.VERTICAL
+        val rootTrunk = LinearLayout(context).apply { 
+            orientation = LinearLayout.VERTICAL 
+            setPadding(0, 0, 0, 0)
         }
 
         val entries = grouped.entries.toList()
@@ -252,113 +240,110 @@ class PropertyExploreFragment : Fragment(), OnMapReadyCallback {
             val amenities = entry.value
             val properCategory = category.toProperCase()
 
-            // Category Level Branch
-            val categoryBranch = FrameLayout(context).apply {
-                layoutParams = LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT,
-                    LinearLayout.LayoutParams.WRAP_CONTENT
-                )
+            // 1. Category Row - NO PADDING ON ROW
+            val categoryRow = FrameLayout(context).apply {
+                layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
             }
 
-            // 1. MAIN Vertical line part (RED)
-            val mainVLine = View(context).apply {
-                val width = (2 * density).toInt()
-                val height = if (groupIndex == entries.size - 1) (18 * density).toInt() else LinearLayout.LayoutParams.MATCH_PARENT
-                layoutParams = FrameLayout.LayoutParams(width, height).apply { gravity = Gravity.START; leftMargin = (8 * density).toInt() }
-                setBackgroundColor(Color.RED)
-            }
-            categoryBranch.addView(mainVLine)
-
-            // 2. MAIN Horizontal branch line (RED)
-            val mainHLine = View(context).apply {
-                layoutParams = FrameLayout.LayoutParams((15 * density).toInt(), (2 * density).toInt()).apply {
-                    gravity = Gravity.START
-                    leftMargin = (8 * density).toInt()
-                    topMargin = (18 * density).toInt()
+            // Main Trunk Segment - Covers 100% of height
+            val isAbsoluteLastEntry = groupIndex == entries.size - 1 && amenities.isEmpty()
+            val trunkHeight = if (isAbsoluteLastEntry) (24 * density).toInt() else ViewGroup.LayoutParams.MATCH_PARENT
+            
+            categoryRow.addView(View(context).apply {
+                layoutParams = FrameLayout.LayoutParams((2.5f * density).toInt(), trunkHeight).apply {
+                    leftMargin = (20 * density).toInt()
                 }
                 setBackgroundColor(Color.RED)
-            }
-            categoryBranch.addView(mainHLine)
+            })
 
-            // 3. Category Header Text (Proper Case) - RED
+            // Horizontal Branch for Category
+            categoryRow.addView(View(context).apply {
+                layoutParams = FrameLayout.LayoutParams((20 * density).toInt(), (2 * density).toInt()).apply {
+                    leftMargin = (20 * density).toInt()
+                    topMargin = (32 * density).toInt() // Exact center of (Pill 40dp + margins)
+                }
+                setBackgroundColor(Color.RED)
+            })
+
+            // Category Pill - Margin here instead of Row padding
             val tvCat = TextView(context).apply {
                 text = properCategory
-                textSize = 14f
+                textSize = 13f
                 setTypeface(null, android.graphics.Typeface.BOLD)
-                setTextColor(Color.RED)
-                setPadding((30 * density).toInt(), (10 * density).toInt(), 0, (10 * density).toInt())
+                setTextColor(Color.WHITE)
+                setPadding((16 * density).toInt(), (8 * density).toInt(), (16 * density).toInt(), (8 * density).toInt())
+                background = GradientDrawable().apply {
+                    setColor(Color.RED)
+                    cornerRadius = 25 * density
+                }
+                layoutParams = FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
+                    leftMargin = (40 * density).toInt()
+                    topMargin = (12 * density).toInt()
+                    bottomMargin = (12 * density).toInt()
+                }
             }
-            categoryBranch.addView(tvCat)
-            rootTrunk.addView(categoryBranch)
+            categoryRow.addView(tvCat)
+            rootTrunk.addView(categoryRow)
 
-            val subGroupContainer = LinearLayout(context).apply {
-                orientation = LinearLayout.VERTICAL
-            }
-
+            // 2. Amenities List
             amenities.forEachIndexed { index, amenity ->
-                val branchItem = FrameLayout(context).apply {
-                    layoutParams = LinearLayout.LayoutParams(
-                        LinearLayout.LayoutParams.MATCH_PARENT,
-                        LinearLayout.LayoutParams.WRAP_CONTENT
-                    )
+                val amenityRow = FrameLayout(context).apply {
+                    layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
                 }
 
-                // 1. Continue MAIN trunk (RED)
-                if (groupIndex < entries.size - 1) {
-                    val vMainCont = View(context).apply {
-                        layoutParams = FrameLayout.LayoutParams((2 * density).toInt(), LinearLayout.LayoutParams.MATCH_PARENT).apply { 
-                            gravity = Gravity.START; leftMargin = (8 * density).toInt() 
-                        }
-                        setBackgroundColor(Color.RED)
-                    }
-                    branchItem.addView(vMainCont)
-                }
-
-                // 2. SUB Vertical line part (RED)
-                val vLine = View(context).apply {
-                    val width = (1.5f * density).toInt()
-                    // End line at the branch for the last item
-                    val height = if (index == amenities.size - 1) (18 * density).toInt() else LinearLayout.LayoutParams.MATCH_PARENT
-                    layoutParams = FrameLayout.LayoutParams(width, height).apply {
-                        gravity = Gravity.START
-                        leftMargin = (35 * density).toInt()
+                // Main Trunk Continuation - Covers 100% height
+                val isFinalItem = groupIndex == entries.size - 1 && index == amenities.size - 1
+                val mainTrunkH = if (isFinalItem) (24 * density).toInt() else ViewGroup.LayoutParams.MATCH_PARENT
+                
+                amenityRow.addView(View(context).apply {
+                    layoutParams = FrameLayout.LayoutParams((2.5f * density).toInt(), mainTrunkH).apply {
+                        leftMargin = (20 * density).toInt()
                     }
                     setBackgroundColor(Color.RED)
-                    alpha = 0.7f
-                }
-                branchItem.addView(vLine)
+                })
 
-                // 3. SUB Horizontal branch line (RED)
-                val hLine = View(context).apply {
-                    layoutParams = FrameLayout.LayoutParams((15 * density).toInt(), (2 * density).toInt()).apply {
-                        gravity = Gravity.START
-                        leftMargin = (35 * density).toInt()
-                        topMargin = (17 * density).toInt()
+                // Sub-Trunk (Transparent) - Covers 100% height
+                val subTrunkH = if (index == amenities.size - 1) (24 * density).toInt() else ViewGroup.LayoutParams.MATCH_PARENT
+                amenityRow.addView(View(context).apply {
+                    layoutParams = FrameLayout.LayoutParams((1.5f * density).toInt(), subTrunkH).apply {
+                        leftMargin = (55 * density).toInt()
                     }
                     setBackgroundColor(Color.RED)
-                    alpha = 0.7f
-                }
-                branchItem.addView(hLine)
+                    alpha = 0.5f
+                })
 
-                // 4. Amenity Name only
+                // Sub-Horizontal Branch
+                amenityRow.addView(View(context).apply {
+                    layoutParams = FrameLayout.LayoutParams((20 * density).toInt(), (1.5f * density).toInt()).apply {
+                        leftMargin = (55 * density).toInt()
+                        topMargin = (24 * density).toInt() // Center of Amenity Box
+                    }
+                    setBackgroundColor(Color.RED)
+                    alpha = 0.5f
+                })
+
+                // Amenity Label Box - Margins here
                 val tvName = TextView(context).apply {
                     text = amenity.name
-                    textSize = 15f
+                    textSize = 14f
                     setTextColor(androidx.core.content.ContextCompat.getColor(context, R.color.theme1_text))
-                    setPadding((55 * density).toInt(), (10 * density).toInt(), 0, (10 * density).toInt())
+                    setPadding((16 * density).toInt(), (10 * density).toInt(), (16 * density).toInt(), (10 * density).toInt())
+                    background = GradientDrawable().apply {
+                        setColor(Color.WHITE)
+                        setStroke((1 * density).toInt(), Color.parseColor("#FFCDD2"))
+                        cornerRadius = 15 * density
+                    }
+                    layoutParams = FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
+                        leftMargin = (75 * density).toInt()
+                        topMargin = (6 * density).toInt()
+                        bottomMargin = (6 * density).toInt()
+                    }
                 }
-                branchItem.addView(tvName)
-
-                subGroupContainer.addView(branchItem)
+                amenityRow.addView(tvName)
+                rootTrunk.addView(amenityRow)
             }
-            rootTrunk.addView(subGroupContainer)
         }
         llExploreAmenities.addView(rootTrunk)
-    }
-
-    private fun createAmenityItem(name: String, category: String?): View {
-        // This function is no longer used by the new hierarchical branched layout
-        return View(requireContext())
     }
 
     private fun bindPropertyData(property: PropertyDTO) {
@@ -402,7 +387,6 @@ class PropertyExploreFragment : Fragment(), OnMapReadyCallback {
         }
 
         tvLocation.text = if (property.state.isNullOrEmpty()) "${property.city}" else "${property.city}, ${property.state}"
-        
         tvBhk.text = "${property.bedrooms} BHK"
         tvArea.text = "${property.areaSqft} Sqft"
         tvBath.text = "${property.bathrooms?.toInt() ?: 0} BathRoom"
@@ -423,34 +407,26 @@ class PropertyExploreFragment : Fragment(), OnMapReadyCallback {
         tvRoadSize.text = "Road: ${getOptionName(property.roadSizeId?.let { listOf(it) }, "Road Size")}"
         tvPropertyType.text = getOptionName(property.proTypeId?.let { listOf(it) }, "Property Type")
         tvFloor.text = "Floor: ${getOptionName(property.floorId?.let { listOf(it) }, "Floor")}"
-
         tvFurnished.text = property.furnishing ?: "Unfurnished"
         
         val count = property.amenityCount ?: 0
         tvAmenitiesSectionTitle.text = "Amenities [$count] :-"
         
-        // Populate Amenities Grid
         loadAmenityChips(property.amenityIds)
         
         tvInterested.text = "{ ${(5..25).random()} Interested }"
         tvDescription.text = property.description ?: "No description available."
 
-        // Executive Info Binding with Logging
-        Log.d("[php_debug]", "Executive Info Check: ID=${property.executiveId}, Name=${property.executiveName}, Mobile=${property.executiveMobile}")
-        
         if (property.executiveId != null && !property.executiveName.isNullOrEmpty()) {
             cardExecutive.visibility = View.VISIBLE
             tvExecutiveName.text = property.executiveName
             tvExecutiveMobile.text = property.executiveMobile ?: "N/A"
-            
-            // Load Executive Image
             val imageUrl = com.example.propertyconsultancy.utils.UrlUtils.getPropertyImageUrl(property.executiveImage)
             if (imageUrl != null) {
                 ivExecutiveImage.load(imageUrl)
             } else {
                 ivExecutiveImage.setImageResource(R.drawable.ic_profile_modern)
             }
-            
             btnCallExecutive.setOnClickListener {
                 property.executiveMobile?.let { mobile ->
                     try {
@@ -463,7 +439,6 @@ class PropertyExploreFragment : Fragment(), OnMapReadyCallback {
                 }
             }
         } else {
-            Log.d("[php_debug]", "Executive Card HIDDEN: property.executiveId is null or executiveName is empty")
             cardExecutive.visibility = View.GONE
         }
 
@@ -506,7 +481,6 @@ class PropertyExploreFragment : Fragment(), OnMapReadyCallback {
                     isFavoriteLocal = interaction.isFavorite == 1
                     preferredVisitDate = interaction.preferredVisitDate
                     existingNotes = interaction.notes
-                    
                     updateFavoriteUI()
                     if (!preferredVisitDate.isNullOrEmpty()) {
                         updateVisitUI(preferredVisitDate!!)
@@ -538,16 +512,13 @@ class PropertyExploreFragment : Fragment(), OnMapReadyCallback {
             val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.US)
             val visitDate = sdf.parse(dateOnly)
             val today = sdf.parse(sdf.format(Date()))
-            
             when {
                 visitDate == null -> "Requested"
                 visitDate.before(today) -> "Passed"
                 visitDate == today -> "Due Today"
                 else -> "Scheduled"
             }
-        } catch (e: Exception) {
-            "Requested"
-        }
+        } catch (e: Exception) { "Requested" }
     }
 
     private fun showVisitRequestDialog(onConfirm: (String, String) -> Unit) {
@@ -557,7 +528,6 @@ class PropertyExploreFragment : Fragment(), OnMapReadyCallback {
             val p = (20 * resources.displayMetrics.density).toInt()
             setPadding(p, p, p, p)
         }
-
         val tvTitle = TextView(requireContext()).apply {
             text = "Request a Property Visit"
             textSize = 18f
@@ -566,7 +536,6 @@ class PropertyExploreFragment : Fragment(), OnMapReadyCallback {
             setTextColor(androidx.core.content.ContextCompat.getColor(requireContext(), R.color.theme1_text))
         }
         container.addView(tvTitle)
-
         val layoutDate = com.google.android.material.textfield.TextInputLayout(requireContext(), null, com.google.android.material.R.style.Widget_Material3_TextInputLayout_OutlinedBox).apply {
             hint = "Select Visit Date"
             boxBackgroundMode = com.google.android.material.textfield.TextInputLayout.BOX_BACKGROUND_OUTLINE
@@ -579,7 +548,6 @@ class PropertyExploreFragment : Fragment(), OnMapReadyCallback {
         }
         layoutDate.addView(etDate)
         container.addView(layoutDate)
-
         val layoutTime = com.google.android.material.textfield.TextInputLayout(requireContext(), null, com.google.android.material.R.style.Widget_Material3_TextInputLayout_OutlinedBox).apply {
             hint = "Select Preferred Time"
             boxBackgroundMode = com.google.android.material.textfield.TextInputLayout.BOX_BACKGROUND_OUTLINE
@@ -592,25 +560,16 @@ class PropertyExploreFragment : Fragment(), OnMapReadyCallback {
         }
         layoutTime.addView(etTime)
         container.addView(layoutTime)
-
         builder.setView(container)
-        
         var selectedDate = ""
         var selectedTime = ""
-
         preferredVisitDate?.let {
             if (it.contains(" ")) {
                 selectedDate = it.substringBefore(" "); selectedTime = it.substringAfter(" ")
                 etDate.setText(selectedDate); etTime.setText(selectedTime)
-            } else {
-                selectedDate = it; etDate.setText(selectedDate)
-            }
+            } else { selectedDate = it; etDate.setText(selectedDate) }
         }
-
-        etDate.setOnClickListener {
-            showDatePicker { date -> selectedDate = date; etDate.setText(date) }
-        }
-
+        etDate.setOnClickListener { showDatePicker { date -> selectedDate = date; etDate.setText(date) } }
         etTime.setOnClickListener {
             val calendar = Calendar.getInstance()
             android.app.TimePickerDialog(requireContext(), { _, hour, minute ->
@@ -618,14 +577,11 @@ class PropertyExploreFragment : Fragment(), OnMapReadyCallback {
                 etTime.setText(selectedTime)
             }, calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE), false).show()
         }
-
         builder.setPositiveButton("Set Time") { _, _ ->
             if (selectedDate.isNotEmpty()) {
                 val fullDateTime = if (selectedTime.isNotEmpty()) "$selectedDate $selectedTime" else selectedDate
                 onConfirm(fullDateTime, etExploreRemarks.text.toString().trim())
-            } else {
-                Toast.makeText(requireContext(), "Please select a date", Toast.LENGTH_SHORT).show()
-            }
+            } else { Toast.makeText(requireContext(), "Please select a date", Toast.LENGTH_SHORT).show() }
         }
         builder.setNegativeButton("Cancel", null)
         builder.show()
@@ -635,17 +591,10 @@ class PropertyExploreFragment : Fragment(), OnMapReadyCallback {
         exploreProgress.visibility = View.VISIBLE
         lifecycleScope.launch {
             try {
-                val request = PropertyInteractionDTO(
-                    customerId = userId,
-                    propertyId = propertyId,
-                    isFavorite = if (isFavorite) 1 else 0
-                )
+                val request = PropertyInteractionDTO(customerId = userId, propertyId = propertyId, isFavorite = if (isFavorite) 1 else 0)
                 com.example.propertyconsultancy.data.remote.RetrofitInstance.api.submitFavorite(request)
-            } catch (e: Exception) {
-                Log.e("[Favorite]", "Error: ${e.message}")
-            } finally {
-                exploreProgress.visibility = View.GONE
-            }
+            } catch (e: Exception) { Log.e("[Favorite]", "Error: ${e.message}")
+            } finally { exploreProgress.visibility = View.GONE }
         }
     }
 
@@ -653,23 +602,14 @@ class PropertyExploreFragment : Fragment(), OnMapReadyCallback {
         exploreProgress.visibility = View.VISIBLE
         lifecycleScope.launch {
             try {
-                val request = PropertyInteractionDTO(
-                    customerId = userId,
-                    propertyId = propertyId,
-                    isInterestedInVisit = if (date.isNotEmpty()) 1 else 0,
-                    preferredVisitDate = date.ifEmpty { null },
-                    notes = remarks
-                )
+                val request = PropertyInteractionDTO(customerId = userId, propertyId = propertyId, isInterestedInVisit = if (date.isNotEmpty()) 1 else 0, preferredVisitDate = date.ifEmpty { null }, notes = remarks)
                 val response = com.example.propertyconsultancy.data.remote.RetrofitInstance.api.submitVisitRequest(request)
                 if (response.status == "success") {
                     existingNotes = remarks
                     Toast.makeText(requireContext(), "Interaction Saved", Toast.LENGTH_SHORT).show()
                 }
-            } catch (e: Exception) {
-                Log.e("[Visit]", "Error: ${e.message}")
-            } finally {
-                exploreProgress.visibility = View.GONE
-            }
+            } catch (e: Exception) { Log.e("[Visit]", "Error: ${e.message}")
+            } finally { exploreProgress.visibility = View.GONE }
         }
     }
 
@@ -695,7 +635,6 @@ class PropertyExploreFragment : Fragment(), OnMapReadyCallback {
         val prop = property ?: return
         val lat = prop.latitude ?: return
         val lng = prop.longitude ?: return
-
         val pos = LatLng(lat, lng)
         map.clear()
         map.addMarker(MarkerOptions().position(pos).title(prop.title))
@@ -704,16 +643,10 @@ class PropertyExploreFragment : Fragment(), OnMapReadyCallback {
 
     private fun showDatePicker(onDateSelected: (String) -> Unit) {
         val calendar = Calendar.getInstance()
-        val datePicker = android.app.DatePickerDialog(
-            requireContext(),
-            { _, year, month, day ->
-                val formattedDate = String.format(Locale.US, "%04d-%02d-%02d", year, month + 1, day)
-                onDateSelected(formattedDate)
-            },
-            calendar.get(Calendar.YEAR),
-            calendar.get(Calendar.MONTH),
-            calendar.get(Calendar.DAY_OF_MONTH)
-        )
+        val datePicker = android.app.DatePickerDialog(requireContext(), { _, year, month, day ->
+            val formattedDate = String.format(Locale.US, "%04d-%02d-%02d", year, month + 1, day)
+            onDateSelected(formattedDate)
+        }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH))
         datePicker.datePicker.minDate = System.currentTimeMillis() - 1000
         datePicker.show()
     }
@@ -733,26 +666,21 @@ class PropertyExploreFragment : Fragment(), OnMapReadyCallback {
         val height = 200
         val bitmap = android.graphics.Bitmap.createBitmap(width, height, android.graphics.Bitmap.Config.ARGB_8888)
         val canvas = android.graphics.Canvas(bitmap)
-        
         val paint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG)
         paint.color = android.graphics.Color.parseColor("#CC000000")
         canvas.drawRoundRect(0f, 40f, width.toFloat(), 140f, 20f, 20f, paint)
-        
         paint.color = android.graphics.Color.WHITE
         paint.textSize = 28f
         paint.typeface = android.graphics.Typeface.create("sans-serif-condensed", android.graphics.Typeface.BOLD)
         canvas.drawText(message, 30f, 100f, paint)
-
         hintView.setImageBitmap(bitmap)
         hintView.visibility = View.VISIBLE
-        
         target.post {
             if (!isAdded) return@post
             val loc = IntArray(2)
             target.getLocationInWindow(loc)
             val rootLoc = IntArray(2)
             view?.getLocationInWindow(rootLoc)
-            
             hintView.translationX = (loc[0] - rootLoc[0] + (target.width / 2) - (width / 2)).toFloat()
             hintView.translationY = if (isAbove) (loc[1] - rootLoc[1] - 120).toFloat() else (loc[1] - rootLoc[1] + target.height + 20).toFloat()
         }

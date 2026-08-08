@@ -143,9 +143,23 @@ data class AmenityResponseDTO(
     @SerializedName("debug_tag") val debugTag: String? = null
 )
 
+data class MediaTagDTO(
+    @SerializedName("tag_id") val tagId: Int,
+    @SerializedName("tag_name") val tagName: String,
+    @SerializedName("allowed_media_type") val allowedMediaType: String, // 'image', 'video', 'both'
+    @SerializedName("is_required") val isRequired: Int,
+    @SerializedName("display_order") val displayOrder: Int
+) : Serializable
+
+data class MediaTagResponseDTO(
+    @SerializedName("status") val status: String,
+    @SerializedName("data") val data: List<MediaTagDTO>
+)
+
 data class PropertyMediaDTO(
     @SerializedName("media_id") val mediaId: Long,
     @SerializedName("property_id") val propertyId: Long,
+    @SerializedName("image_tag_id") val imageTagId: Int? = null,
     @SerializedName("media_type") val mediaType: String,
     @SerializedName("file_url") val fileUrl: String,
     @SerializedName("is_primary") val isPrimary: Int,

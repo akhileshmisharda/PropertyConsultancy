@@ -1,46 +1,93 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="16dp">
+    android:orientation="vertical">
 
-    <TextView
-        android:id="@+id/tvMediaTitle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Upload Photos and Videos"
-        android:textSize="18sp"
-        android:textStyle="bold"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <TextView
-        android:id="@+id/tvMediaSubtitle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Add up to 5 images and 3 videos"
-        android:textSize="12sp"
-        android:textColor="#757575"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/tvMediaTitle" />
-
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/btnAddMedia"
-        style="@style/Widget.Material3.Button.TonalButton"
+    <com.google.android.material.progressindicator.LinearProgressIndicator
+        android:id="@+id/mediaUploadProgress"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:text="Add Media"
-        app:icon="@drawable/ic_location_pin"
-        app:layout_constraintTop_toBottomOf="@id/tvMediaSubtitle" />
+        android:indeterminate="true"
+        android:visibility="gone" />
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rvMedia"
+    <!-- Top Row: Selected Category Header -->
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_marginTop="16dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/btnAddMedia" />
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp"
+        android:background="@color/white"
+        android:elevation="2dp">
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+        <TextView
+            android:id="@+id/tvSelectedTagName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Select a Category"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:textColor="?attr/colorPrimary" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="horizontal"
+        android:baselineAligned="false">
+
+        <!-- Left Sidebar: Tags -->
+        <LinearLayout
+            android:layout_width="140dp"
+            android:layout_height="match_parent"
+            android:background="#F8F9FA"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="12dp"
+                android:text="AREAS"
+                android:textSize="10sp"
+                android:textStyle="bold"
+                android:textColor="#757575"
+                android:letterSpacing="0.1" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvMediaTags"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                tools:listitem="@layout/item_media_tag" />
+        </LinearLayout>
+
+        <!-- Right Content: Media Upload Overlay -->
+        <FrameLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1">
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvTagMedia"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:padding="12dp"
+                android:clipToPadding="false" />
+
+            <com.google.android.material.floatingactionbutton.FloatingActionButton
+                android:id="@+id/btnUploadForTag"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom|end"
+                android:layout_margin="16dp"
+                android:src="@android:drawable/ic_menu_add"
+                app:tint="@color/white"
+                app:backgroundTint="?attr/colorPrimary"
+                android:enabled="false"
+                android:contentDescription="Add Media" />
+
+        </FrameLayout>
+    </LinearLayout>
+
+</LinearLayout>

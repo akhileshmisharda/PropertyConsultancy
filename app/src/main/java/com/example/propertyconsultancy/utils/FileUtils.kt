@@ -8,6 +8,7 @@ import android.util.Base64
 import android.util.Log
 import java.io.ByteArrayOutputStream
 import java.io.InputStream
+import java.io.File
 
 object FileUtils {
 
@@ -111,6 +112,28 @@ object FileUtils {
             context.contentResolver.openAssetFileDescriptor(uri, "r")?.use { it.length } ?: 0L
         } catch (e: Exception) {
             0L
+        }
+    }
+
+    fun uriToFile(context: Context, uri: Uri): File? {
+        return try {
+            val contentResolver = context.contentResolver
+            val fileName = "upload_" + System.currentTimeMillis()
+            val extension = when (contentResolver.getType(uri)) {
+                "image/png" -> ".png"
+                "video/mp4" -> ".mp4"
+                else -> ".jpg"
+            }
+            val tempFile = File.createTempFile(fileName, extension, context.cacheDir)
+            tempFile.outputStream().use { output ->
+                contentResolver.openInputStream(uri)?.use { input ->
+                    input.copyTo(output)
+                }
+            }
+            tempFile
+        } catch (e: Exception) {
+            Log.e(TAG, "uriToFile error: ${e.message}")
+            null
         }
     }
 }
