@@ -156,3 +156,18 @@ data class ActivityLogDTO(
     val detail: String,
     val type: String = "info" // info, search, map, view, etc.
 ) : Serializable
+
+data class PropertyInteractionDTO(
+    @SerializedName("customer_id") val customerId: Long,
+    @SerializedName("property_id") val propertyId: Long,
+    @SerializedName("is_interested_in_visit") val isInterestedInVisit: Int? = null,
+    @SerializedName("preferred_visit_date") val preferredVisitDate: String? = null,
+    @SerializedName("is_favorite") val isFavorite: Int? = null,
+    @SerializedName("notes") val notes: String? = null
+) : Serializable
+
+data class InteractionResponseDTO(
+    @SerializedName("status") val status: String,
+    @SerializedName("data") val data: PropertyInteractionDTO? = null,
+    @SerializedName("message") val message: String? = null
+)

@@ -6,11 +6,19 @@
     android:layout_height="match_parent"
     android:background="@color/theme1_bg">
 
+    <com.google.android.material.progressindicator.LinearProgressIndicator
+        android:id="@+id/exploreProgress"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:indeterminate="true"
+        android:visibility="gone"
+        app:layout_constraintTop_toTopOf="parent" />
+
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        app:layout_constraintBottom_toTopOf="@id/bottomActions"
-        app:layout_constraintTop_toTopOf="parent">
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/exploreProgress">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -203,6 +211,180 @@
 
             </GridLayout>
 
+            <!-- Interaction Center -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:layout_marginBottom="16dp"
+                app:cardCornerRadius="20dp"
+                app:cardElevation="4dp"
+                app:cardBackgroundColor="@color/white">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="ACTION CENTER"
+                        android:textSize="12sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/pending_gray"
+                        android:letterSpacing="0.1" />
+
+                    <!-- Part 1: Favorite -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:paddingVertical="12dp">
+                        <ImageView
+                            android:id="@+id/ivFavoriteStatus"
+                            android:layout_width="28dp"
+                            android:layout_height="28dp"
+                            android:src="@drawable/ic_favorite_border"
+                            android:contentDescription="Favorite Status" />
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:layout_marginStart="12dp"
+                            android:text="Mark as Favorite"
+                            android:textColor="@color/theme1_text"
+                            android:textSize="15sp"
+                            android:textStyle="bold" />
+                        <com.google.android.material.materialswitch.MaterialSwitch
+                            android:id="@+id/switchFavorite"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content" />
+                    </LinearLayout>
+
+                    <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#EEEEEE" />
+
+                    <!-- Part 2: Visit -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:paddingVertical="12dp">
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical">
+                            <ImageView
+                                android:layout_width="28dp"
+                                android:layout_height="28dp"
+                                android:src="@android:drawable/ic_menu_my_calendar"
+                                app:tint="@color/theme1_primary"
+                                android:contentDescription="Visit Icon" />
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:layout_marginStart="12dp"
+                                android:text="Schedule a Visit"
+                                android:textColor="@color/theme1_text"
+                                android:textSize="15sp"
+                                android:textStyle="bold" />
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnEditVisit"
+                                style="@style/Widget.Material3.Button.TonalButton"
+                                android:layout_width="wrap_content"
+                                android:layout_height="36dp"
+                                android:text="Set Date"
+                                android:textSize="11sp"
+                                android:insetTop="0dp"
+                                android:insetBottom="0dp" />
+                        </LinearLayout>
+                        <TextView
+                            android:id="@+id/tvVisitCurrent"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="40dp"
+                            android:layout_marginTop="4dp"
+                            android:text="No visit requested yet"
+                            android:textSize="13sp"
+                            android:textColor="@color/pending_gray" />
+                    </LinearLayout>
+
+                    <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#EEEEEE" />
+
+                    <!-- Part 3: Remarks -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:paddingVertical="12dp">
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical">
+                            <ImageView
+                                android:layout_width="28dp"
+                                android:layout_height="28dp"
+                                android:src="@drawable/ic_mic"
+                                app:tint="@color/theme1_primary"
+                                android:contentDescription="Remarks Icon" />
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:layout_marginStart="12dp"
+                                android:text="My Notes"
+                                android:textColor="@color/theme1_text"
+                                android:textSize="15sp"
+                                android:textStyle="bold" />
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnSaveRemarks"
+                                style="@style/Widget.Material3.Button.TonalButton"
+                                android:layout_width="wrap_content"
+                                android:layout_height="36dp"
+                                android:text="Save Notes"
+                                app:icon="@drawable/ic_tick"
+                                app:iconSize="14dp"
+                                android:textSize="11sp"
+                                android:insetTop="0dp"
+                                android:insetBottom="0dp" />
+                        </LinearLayout>
+
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="12dp"
+                            android:layout_marginStart="40dp"
+                            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                            app:boxStrokeWidth="1dp"
+                            app:boxStrokeColor="@color/pending_gray"
+                            app:hintEnabled="false"
+                            app:boxCornerRadiusTopStart="12dp"
+                            app:boxCornerRadiusTopEnd="12dp"
+                            app:boxCornerRadiusBottomStart="12dp"
+                            app:boxCornerRadiusBottomEnd="12dp"
+                            app:boxBackgroundColor="#F9F9F9">
+                            <com.google.android.material.textfield.TextInputEditText
+                                android:id="@+id/etExploreRemarks"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:hint="Type your property notes here..."
+                                android:textSize="14sp"
+                                android:minLines="3"
+                                android:gravity="top"
+                                android:background="@android:color/transparent"
+                                android:textColor="@color/theme1_text"
+                                android:padding="12dp" />
+                        </com.google.android.material.textfield.TextInputLayout>
+                    </LinearLayout>
+
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -224,26 +406,5 @@
 
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
-
-    <LinearLayout
-        android:id="@+id/bottomActions"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@color/white"
-        android:elevation="16dp"
-        android:orientation="horizontal"
-        android:padding="16dp"
-        app:layout_constraintBottom_toBottomOf="parent">
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnInterested"
-            style="@style/Widget.Material3.Button"
-            android:layout_width="0dp"
-            android:layout_height="60dp"
-            android:layout_weight="1"
-            android:text="I'm Interested"
-            app:cornerRadius="16dp" />
-
-    </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

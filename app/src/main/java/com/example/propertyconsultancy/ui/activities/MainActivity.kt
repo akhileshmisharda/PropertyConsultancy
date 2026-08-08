@@ -21,6 +21,10 @@ import com.google.android.material.bottomnavigation.BottomNavigationView
 import android.widget.ImageButton
 import android.widget.Toast
 import android.view.View
+import androidx.lifecycle.lifecycleScope
+import com.example.propertyconsultancy.data.cache.CategoryCache
+import com.example.propertyconsultancy.data.remote.RetrofitInstance
+import kotlinx.coroutines.launch
 
 class MainActivity : BaseActivity() {
 
@@ -50,14 +54,22 @@ class MainActivity : BaseActivity() {
         ivHudHintHeader = findViewById(R.id.ivHudHintHeader)
         
         updateHintToggleIcon()
+        fetchCategories()
         
         btnHeaderToggleHints.setOnClickListener {
             val enabled = !sessionManager.isHintsEnabled()
             sessionManager.setHintsEnabled(enabled)
             updateHintToggleIcon()
+        fetchCategories()
             
             // Show HUD hint for toggle action (bypass check for this specific action so user knows it's working)
             showHudHint(if (enabled) "HUD Popups: STARTED" else "HUD Popups: STOPPED")
+
+            // Notify active fragment if it's SearchFragment
+            val currentFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment)
+            if (currentFragment is SearchFragment) {
+                currentFragment.onHintStateChanged()
+            }
         }
         
         setupNavigation()
@@ -134,6 +146,17 @@ class MainActivity : BaseActivity() {
 
     fun updateTitle(title: String) {
         tvHeaderTitle.text = title
+    }
+
+    private fun fetchCategories() {
+        lifecycleScope.launch {
+            try {
+                val response = RetrofitInstance.api.getCategories()
+                if (response.status == "success") {
+                    CategoryCache.saveCategories(this@MainActivity, response.data)
+                }
+            } catch (e: Exception) {}
+        }
     }
 
     private fun updateHintToggleIcon() {

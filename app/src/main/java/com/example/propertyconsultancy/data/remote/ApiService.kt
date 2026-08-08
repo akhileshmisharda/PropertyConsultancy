@@ -49,4 +49,16 @@ interface ApiService {
 
     @GET("get_slider_image.php")
     suspend fun getSliderImages(): List<SliderImageDTO>
+
+    @POST("submit_interest.php")
+    suspend fun submitFavorite(@Body interaction: PropertyInteractionDTO): GenericResponseDTO
+
+    @POST("submit_visitdate.php")
+    suspend fun submitVisitRequest(@Body interaction: PropertyInteractionDTO): GenericResponseDTO
+
+    @GET("get_interaction.php")
+    suspend fun getInteraction(
+        @Query("customer_id") customerId: Long,
+        @Query("property_id") propertyId: Long
+    ): InteractionResponseDTO
 }

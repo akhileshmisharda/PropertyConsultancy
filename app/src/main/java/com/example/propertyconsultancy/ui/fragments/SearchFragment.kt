@@ -112,6 +112,12 @@ class SearchFragment : Fragment(), OnMapReadyCallback {
     private lateinit var ivHudHintCenter: android.widget.ImageView
     private lateinit var ivHudHintBottom: android.widget.ImageView
     
+    private lateinit var ivHintStickyAi: ImageView
+    private lateinit var ivHintStickyFilter: ImageView
+    private lateinit var ivHintStickyViewMode: ImageView
+    private lateinit var ivHintStickySwipeLeft: ImageView
+    private lateinit var ivHintStickySwipeRight: ImageView
+    
     private enum class HintPointer { UP, DOWN, LEFT, RIGHT, NONE }
 
     private var isMapView = false
@@ -138,6 +144,9 @@ class SearchFragment : Fragment(), OnMapReadyCallback {
         
         initViews(view)
         initMap()
+        
+        // Setup Sticky Hints
+        refreshStickyHints()
         
         // Explicitly set initial visibility based on isMapView (Default: List)
         updateViewModeVisibility()
@@ -262,6 +271,12 @@ class SearchFragment : Fragment(), OnMapReadyCallback {
         ivSwipeHintRight = view.findViewById(R.id.ivSwipeHintRight)
         ivHudHintCenter = view.findViewById(R.id.ivHudHintCenter)
         ivHudHintBottom = view.findViewById(R.id.ivHudHintBottom)
+        
+        ivHintStickyAi = view.findViewById(R.id.ivHintStickyAi)
+        ivHintStickyFilter = view.findViewById(R.id.ivHintStickyFilter)
+        ivHintStickyViewMode = view.findViewById(R.id.ivHintStickyViewMode)
+        ivHintStickySwipeLeft = view.findViewById(R.id.ivHintStickySwipeLeft)
+        ivHintStickySwipeRight = view.findViewById(R.id.ivHintStickySwipeRight)
         
         val pageSize = sessionManager.getPageSize()
         val pageSizeText = "[ $pageSize Property Per Page ]"
@@ -885,7 +900,7 @@ class SearchFragment : Fragment(), OnMapReadyCallback {
                     
                     updatePaginationUI(pageSize)
                     updateFoldVisibility() 
-                    showSwipeHints()
+                    refreshStickyHints()
                 } else {
                     context?.let { Toast.makeText(it, response.message ?: "Search failed", Toast.LENGTH_SHORT).show() }
                 }
@@ -1023,8 +1038,8 @@ class SearchFragment : Fragment(), OnMapReadyCallback {
     }
 
     private fun createHudHintBitmap(message: String, pointer: HintPointer): Bitmap {
-        val width = 600
-        val height = 300
+        val width = 450 // Reduced from 600
+        val height = 220 // Reduced from 300
         val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
         
@@ -1033,19 +1048,19 @@ class SearchFragment : Fragment(), OnMapReadyCallback {
         val textColor = android.graphics.Color.parseColor("#424242")
         
         val paintText = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
-            textSize = 28f
+            textSize = 24f // Smaller text
             color = textColor
             typeface = android.graphics.Typeface.create("sans-serif-condensed", android.graphics.Typeface.BOLD)
         }
         
         val textWidth = paintText.measureText(message)
-        val padding = 20f
-        val boxWidth = textWidth + padding * 2
-        val boxHeight = 70f
+        val padding = 15f
+        val boxWidth = (textWidth + padding * 2).coerceAtMost(width - 40f)
+        val boxHeight = 55f // Smaller box
         
         val linePaint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
             color = hudLineColor
-            strokeWidth = 2.5f
+            strokeWidth = 2f
             style = android.graphics.Paint.Style.STROKE
         }
         
@@ -1062,7 +1077,7 @@ class SearchFragment : Fragment(), OnMapReadyCallback {
 
         // 1. Draw HUD Box
         val bgPaint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
-            color = android.graphics.Color.argb(45, 0, 0, 0)
+            color = android.graphics.Color.argb(35, 0, 0, 0)
             style = android.graphics.Paint.Style.FILL
         }
         canvas.drawRect(boxLeft, boxTop, boxLeft + boxWidth, boxTop + boxHeight, bgPaint)
@@ -1071,65 +1086,123 @@ class SearchFragment : Fragment(), OnMapReadyCallback {
             color = accentColor
             style = android.graphics.Paint.Style.FILL
         }
-        canvas.drawRect(boxLeft, boxTop, boxLeft + 6f, boxTop + boxHeight, accentBarPaint)
+        canvas.drawRect(boxLeft, boxTop, boxLeft + 5f, boxTop + boxHeight, accentBarPaint)
         canvas.drawRect(boxLeft, boxTop, boxLeft + boxWidth, boxTop + boxHeight, linePaint)
-        canvas.drawText(message, boxLeft + padding, boxTop + boxHeight / 2 + 10f, paintText)
+        
+        // Draw text with ellipsis if too long
+        val displayMsg = if (textWidth > boxWidth - padding * 2) message.take(20) + "..." else message
+        canvas.drawText(displayMsg, boxLeft + padding, boxTop + boxHeight / 2 + 8f, paintText)
 
         // 2. Draw Pointer (Tail)
         if (pointer != HintPointer.NONE) {
             val anchorX = boxCenterX
             val anchorY = if (pointer == HintPointer.UP) boxTop + boxHeight else boxTop
-            val targetY = if (pointer == HintPointer.UP) height.toFloat() else 0f
+            val targetY = if (pointer == HintPointer.UP) height.toFloat() - 10f else 10f
             
             val path = android.graphics.Path()
             path.moveTo(anchorX, anchorY)
-            path.lineTo(anchorX, if (pointer == HintPointer.UP) anchorY + 30 else anchorY - 30)
-            path.lineTo(anchorX - 40, if (pointer == HintPointer.UP) anchorY + 60 else anchorY - 60)
+            path.lineTo(anchorX, if (pointer == HintPointer.UP) anchorY + 20 else anchorY - 20)
+            path.lineTo(anchorX - 30, if (pointer == HintPointer.UP) anchorY + 40 else anchorY - 40)
             path.lineTo(anchorX, targetY)
             canvas.drawPath(path, linePaint)
             
-            canvas.drawCircle(anchorX, targetY, 6f, nodePaint)
-            canvas.drawCircle(anchorX, anchorY, 4f, nodePaint)
+            canvas.drawCircle(anchorX, targetY, 5f, nodePaint)
+            canvas.drawCircle(anchorX, anchorY, 3f, nodePaint)
         } else {
             // HUD Decorative Brackets
-            val cs = 15f
-            canvas.drawLine(boxLeft - 10, boxTop - 10, boxLeft + cs, boxTop - 10, linePaint)
-            canvas.drawLine(boxLeft - 10, boxTop - 10, boxLeft - 10, boxTop + cs, linePaint)
-            canvas.drawLine(boxLeft + boxWidth + 10, boxTop + boxHeight + 10, boxLeft + boxWidth - cs, boxTop + boxHeight + 10, linePaint)
-            canvas.drawLine(boxLeft + boxWidth + 10, boxTop + boxHeight + 10, boxLeft + boxWidth + 10, boxTop + boxHeight - cs, linePaint)
+            val cs = 12f
+            canvas.drawLine(boxLeft - 8, boxTop - 8, boxLeft + cs, boxTop - 8, linePaint)
+            canvas.drawLine(boxLeft - 8, boxTop - 8, boxLeft - 8, boxTop + cs, linePaint)
+            canvas.drawLine(boxLeft + boxWidth + 8, boxTop + boxHeight + 8, boxLeft + boxWidth - cs, boxTop + boxHeight + 8, linePaint)
+            canvas.drawLine(boxLeft + boxWidth + 8, boxTop + boxHeight + 8, boxLeft + boxWidth + 8, boxTop + boxHeight - cs, linePaint)
         }
         
         return bitmap
     }
 
-    private fun showSwipeHints() {
-        if (isMapView || !sessionManager.isHintsEnabled()) return
-        
-        val pageSize = sessionManager.getPageSize()
-        val totalPages = Math.ceil(viewModel.totalCount.toDouble() / pageSize).toInt()
-        if (totalPages <= 1) return
+    fun onHintStateChanged() {
+        refreshStickyHints()
+    }
 
-        layoutPageNumbers.post {
-            // Next Page Hint
-            if (viewModel.currentPage < totalPages - 1) {
-                val nextBtn = layoutPageNumbers.getChildAt(viewModel.currentPage + 1)
-                if (nextBtn != null) {
-                    showHintAtView(nextBtn, "Swipe Left for Page ${viewModel.currentPage + 2} ===>", HintPointer.UP)
-                }
+    private fun refreshStickyHints() {
+        val enabled = sessionManager.isHintsEnabled()
+        if (!enabled) {
+            hideAllStickyHints()
+            return
+        }
+
+        // 1. AI Filter Hint
+        showStickyHint(btnAiFilter, ivHintStickyAi, "AI Assistant: Voice your needs", HintPointer.DOWN)
+        
+        // 2. Main Filter Hint
+        showStickyHint(btnEditFilters, ivHintStickyFilter, "Fine-tune your search", HintPointer.DOWN)
+        
+        // 3. View Mode Hint
+        showStickyHint(btnToggleViewMode, ivHintStickyViewMode, if (isMapView) "Back to List" else "View on Map", HintPointer.DOWN)
+        
+        // 4. Swipe Hints (only in list view and if pagination exists)
+        if (!isMapView) {
+            val totalPages = Math.ceil(viewModel.totalCount.toDouble() / sessionManager.getPageSize()).toInt()
+            if (totalPages > 1) {
+                if (viewModel.currentPage < totalPages - 1) {
+                    val nextBtn = layoutPageNumbers.getChildAt(viewModel.currentPage + 1)
+                    if (nextBtn != null) showStickyHint(nextBtn, ivHintStickySwipeLeft, "Swipe Left for Next Page", HintPointer.UP)
+                    else ivHintStickySwipeLeft.visibility = View.GONE
+                } else ivHintStickySwipeLeft.visibility = View.GONE
+
+                if (viewModel.currentPage > 0) {
+                    val prevBtn = layoutPageNumbers.getChildAt(viewModel.currentPage - 1)
+                    if (prevBtn != null) showStickyHint(prevBtn, ivHintStickySwipeRight, "Swipe Right for Previous", HintPointer.UP)
+                    else ivHintStickySwipeRight.visibility = View.GONE
+                } else ivHintStickySwipeRight.visibility = View.GONE
+            } else {
+                ivHintStickySwipeLeft.visibility = View.GONE
+                ivHintStickySwipeRight.visibility = View.GONE
+            }
+        } else {
+            ivHintStickySwipeLeft.visibility = View.GONE
+            ivHintStickySwipeRight.visibility = View.GONE
+        }
+    }
+
+    private fun showStickyHint(target: View, hintView: ImageView, message: String, pointer: HintPointer) {
+        val bitmap = createHudHintBitmap(message, pointer)
+        hintView.setImageBitmap(bitmap)
+        hintView.visibility = View.VISIBLE
+        
+        target.post {
+            if (!isAdded) return@post
+            val targetLoc = IntArray(2)
+            target.getLocationInWindow(targetLoc)
+            val rootLoc = IntArray(2)
+            view?.getLocationInWindow(rootLoc)
+            
+            val relativeX = targetLoc[0] - rootLoc[0]
+            val relativeY = targetLoc[1] - rootLoc[1]
+            
+            // Fix positioning: ensure the pointer tip touches the target
+            val x = relativeX + (target.width / 2) - (bitmap.width / 2)
+            val y = if (pointer == HintPointer.UP) {
+                relativeY - bitmap.height + 15 // Tip is at bottom center of bitmap
+            } else {
+                relativeY + target.height - 15 // Tip is at top center of bitmap
             }
             
-            // Previous Page Hint
-            if (viewModel.currentPage > 0) {
-                val prevBtn = layoutPageNumbers.getChildAt(viewModel.currentPage - 1)
-                if (prevBtn != null) {
-                    // Delay slightly if next hint was also triggered
-                    val delay = if (viewModel.currentPage < totalPages - 1) 3000L else 0L
-                    layoutPageNumbers.postDelayed({
-                        showHintAtView(prevBtn, "<=== Swipe Right for Page ${viewModel.currentPage}", HintPointer.UP)
-                    }, delay)
-                }
-            }
+            hintView.translationX = x.toFloat()
+            hintView.translationY = y.toFloat()
         }
+    }
+
+    private fun hideAllStickyHints() {
+        ivHintStickyAi.visibility = View.GONE
+        ivHintStickyFilter.visibility = View.GONE
+        ivHintStickyViewMode.visibility = View.GONE
+        ivHintStickySwipeLeft.visibility = View.GONE
+        ivHintStickySwipeRight.visibility = View.GONE
+        
+        // Also clear animated ones if any
+        ivHudHintCenter.visibility = View.GONE
+        ivHudHintBottom.visibility = View.GONE
     }
 
     private fun animateHudHint(view: ImageView, isCenter: Boolean = false, isManualPos: Boolean = false) {
