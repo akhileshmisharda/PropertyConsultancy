@@ -31,6 +31,7 @@ try {
 
     $query = "SELECT p.*,
               (SELECT GROUP_CONCAT(pm.file_url) FROM pro_property_media pm WHERE pm.property_id = p.property_id) as media_urls,
+              (SELECT GROUP_CONCAT(pa.amenity_id) FROM pro_property_amenities pa WHERE pa.property_id = p.property_id) as amenity_ids,
               (SELECT COUNT(*) FROM pro_property_amenities pa WHERE pa.property_id = p.property_id) as amenity_count,
               pe.user_id as executive_id,
               CONCAT(pe.first_name, ' ', pe.last_name) as executive_name,
@@ -47,10 +48,18 @@ try {
     $properties = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     foreach ($properties as &$p) {
-        if ($p['media_urls']) {
+        // Handle Media URLs
+        if (!empty($p['media_urls'])) {
             $p['media_urls'] = explode(',', $p['media_urls']);
         } else {
             $p['media_urls'] = [];
+        }
+
+        // Handle Amenity IDs
+        if (!empty($p['amenity_ids'])) {
+            $p['amenity_ids'] = array_map('intval', explode(',', $p['amenity_ids']));
+        } else {
+            $p['amenity_ids'] = [];
         }
     }
 

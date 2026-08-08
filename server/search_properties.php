@@ -123,9 +123,10 @@ try {
     $countStmt->execute($params);
     $totalCount = (int)$countStmt->fetchColumn();
 
-    // 2. Get Paginated Data with Executive Info
+    // 2. Get Paginated Data
     $query = "SELECT p.*,
               (SELECT GROUP_CONCAT(pm.file_url) FROM pro_property_media pm WHERE pm.property_id = p.property_id) as media_urls,
+              (SELECT GROUP_CONCAT(pa.amenity_id) FROM pro_property_amenities pa WHERE pa.property_id = p.property_id) as amenity_ids,
               (SELECT COUNT(*) FROM pro_property_amenities pa WHERE pa.property_id = p.property_id) as amenity_count,
               pe.user_id as executive_id,
               CONCAT(pe.first_name, ' ', pe.last_name) as executive_name,
@@ -138,16 +139,11 @@ try {
               ORDER BY p.created_at DESC
               LIMIT :limit OFFSET :offset";
 
-    writeDebugLog("SQL Query", $query);
-    writeDebugLog("Bound Parameters", $params);
-
     $stmt = $pdo->prepare($query);
 
-    // Bind base parameters
     foreach ($params as $key => $val) {
         $stmt->bindValue($key, $val);
     }
-    // Bind pagination parameters explicitly as integers
     $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
     $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
 
@@ -155,21 +151,16 @@ try {
     $properties = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     foreach ($properties as &$p) {
-        if ($p['media_urls']) {
-            $p['media_urls'] = explode(',', $p['media_urls']);
-        } else {
-            $p['media_urls'] = [];
-        }
+        $p['media_urls'] = !empty($p['media_urls']) ? explode(',', $p['media_urls']) : [];
+        $p['amenity_ids'] = !empty($p['amenity_ids']) ? array_map('intval', explode(',', $p['amenity_ids'])) : [];
     }
 
-    writeDebugLog("Query Success. Total Records Found: " . $totalCount . ", Page Items: " . count($properties));
     echo json_encode([
         "status" => "success",
-        "count" => $totalCount,
-        "data" => $properties
+        "count"  => $totalCount,
+        "data"   => $properties
     ]);
 } catch (PDOException $e) {
-    writeDebugLog("Query Exception Error: " . $e->getMessage());
-    echo json_encode(["status" => "error", "message" => "Query failed: " . $e->getMessage()]);
+    echo json_encode(["status" => "error", "message" => $e->getMessage()]);
 }
 ?>

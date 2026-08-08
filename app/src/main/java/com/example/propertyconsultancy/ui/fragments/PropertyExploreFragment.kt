@@ -19,17 +19,25 @@ import com.google.android.material.button.MaterialButton
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.ViewModelProvider
 import com.example.propertyconsultancy.ui.viewmodels.SearchViewModel
+import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.android.gms.maps.GoogleMap
+import com.google.android.gms.maps.OnMapReadyCallback
+import com.google.android.gms.maps.SupportMapFragment
+import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.MarkerOptions
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
 
-class PropertyExploreFragment : Fragment() {
+class PropertyExploreFragment : Fragment(), OnMapReadyCallback {
 
     private var property: PropertyDTO? = null
     private var isFavoriteLocal = false
     private var preferredVisitDate: String? = null
     private var existingNotes: String? = null
     
+    private var googleMap: GoogleMap? = null
+
     private lateinit var btnEditVisit: com.google.android.material.button.MaterialButton
     private lateinit var switchFavorite: com.google.android.material.materialswitch.MaterialSwitch
     private lateinit var ivFavoriteStatus: ImageView
@@ -95,6 +103,10 @@ class PropertyExploreFragment : Fragment() {
         sessionManager.addActivityLog("Property Detail", "Viewed property: ${property.title}", "view")
         
         initViews(view)
+        
+        val mapFragment = childFragmentManager.findFragmentById(R.id.mapExplore) as? SupportMapFragment
+        mapFragment?.getMapAsync(this)
+
         refreshPropertyData() // Fetch latest from server immediately
         fetchInitialInteraction(property.propertyId ?: 0)
         
@@ -132,6 +144,8 @@ class PropertyExploreFragment : Fragment() {
                     
                     property = updated
                     bindPropertyData(updated)
+                    updateMapLocation()
+                    Log.d("[php_debug]", "Refreshed Data for ${updated.title}. Exec: ${updated.executiveName}")
                 }
             } catch (e: Exception) {
                 Log.e("[Explore]", "Refresh Error: ${e.message}")
@@ -482,6 +496,24 @@ class PropertyExploreFragment : Fragment() {
             ivFavoriteStatus.setImageResource(R.drawable.ic_favorite_border)
             ivFavoriteStatus.setColorFilter(android.graphics.Color.GRAY)
         }
+    }
+
+    override fun onMapReady(map: GoogleMap) {
+        googleMap = map
+        googleMap?.uiSettings?.isZoomControlsEnabled = true
+        updateMapLocation()
+    }
+
+    private fun updateMapLocation() {
+        val map = googleMap ?: return
+        val prop = property ?: return
+        val lat = prop.latitude ?: return
+        val lng = prop.longitude ?: return
+
+        val pos = LatLng(lat, lng)
+        map.clear()
+        map.addMarker(MarkerOptions().position(pos).title(prop.title))
+        map.moveCamera(CameraUpdateFactory.newLatLngZoom(pos, 15f))
     }
 
     private fun showDatePicker(onDateSelected: (String) -> Unit) {
