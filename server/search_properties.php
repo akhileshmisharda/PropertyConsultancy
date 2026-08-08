@@ -38,6 +38,7 @@ if (file_exists($config_path)) {
 
 // Extract search parameters
 $city         = $_GET['city'] ?? null;
+$user_id      = $_GET['user_id'] ?? null; // Added User ID for Favorite check
 $zip_code     = $_GET['zip_code'] ?? null;
 $min_price    = $_GET['min_price'] ?? null;
 $max_price    = $_GET['max_price'] ?? null;
@@ -128,9 +129,11 @@ try {
               (SELECT GROUP_CONCAT(pm.file_url) FROM pro_property_media pm WHERE pm.property_id = p.property_id) as media_urls,
               (SELECT GROUP_CONCAT(pa.amenity_id) FROM pro_property_amenities pa WHERE pa.property_id = p.property_id) as amenity_ids,
               (SELECT COUNT(*) FROM pro_property_amenities pa WHERE pa.property_id = p.property_id) as amenity_count,
+              (SELECT is_favorite FROM pro_property_interactions pi WHERE pi.property_id = p.property_id AND pi.customer_id = :user_id LIMIT 1) as is_favorite,
               pe.user_id as executive_id,
               CONCAT(pe.first_name, ' ', pe.last_name) as executive_name,
-              pe.phone as executive_mobile
+              pe.phone as executive_mobile,
+              pe.profile_image_url as executive_image
               FROM pro_properties p
               LEFT JOIN pro_landlord_executives ple ON p.landlord_id = ple.landlord_id AND ple.is_active = 1
               LEFT JOIN pro_users pe ON ple.executive_id = pe.user_id
@@ -144,6 +147,10 @@ try {
     foreach ($params as $key => $val) {
         $stmt->bindValue($key, $val);
     }
+
+    // Bind User ID for favorite subquery
+    $stmt->bindValue(':user_id', $user_id, PDO::PARAM_INT);
+
     $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
     $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
 

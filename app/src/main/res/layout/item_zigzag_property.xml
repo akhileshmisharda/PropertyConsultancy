@@ -31,23 +31,40 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
-        <TextView
-            android:id="@+id/tvPropertyTypeLeft"
-            style="@style/App.BhkTag"
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:id="@+id/llBadgeContainerLeft"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:paddingHorizontal="16dp"
-            android:paddingVertical="4dp"
-            android:textSize="12sp"
-            android:textColor="#E53935"
-            android:layout_marginBottom="6dp"
-            app:layout_constraintBottom_toTopOf="@id/cardImageLeft"
-            app:layout_constraintStart_toStartOf="@id/cardImageLeft"
-            app:layout_constraintEnd_toEndOf="@id/cardImageLeft"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintHorizontal_bias="0.0"
-            app:layout_constraintVertical_chainStyle="packed"
-            tools:text="APARTMENT" />
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:background="@drawable/bg_badge_left"
+            android:paddingHorizontal="6dp"
+            android:paddingVertical="6dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/bgCardLeft"
+            app:layout_constraintTop_toTopOf="@id/llContentLeft">
+
+            <ImageView
+                android:id="@+id/ivFavoriteLeft"
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:src="@drawable/ic_favorite_filled"
+                app:tint="#E53935"
+                android:visibility="gone"
+                tools:visibility="visible"
+                android:layout_marginEnd="4dp" />
+
+            <TextView
+                android:id="@+id/tvPropertyTypeLeft"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:textColor="#E53935"
+                android:gravity="center"
+                tools:text="APARTMENT" />
+        </LinearLayout>
 
         <ImageView
             android:id="@+id/ivFilterProTypeLeft"
@@ -55,8 +72,8 @@
             android:layout_height="10dp"
             android:src="@drawable/ic_filter_indicator"
             android:visibility="gone"
-            app:layout_constraintTop_toTopOf="@id/tvPropertyTypeLeft"
-            app:layout_constraintStart_toEndOf="@id/tvPropertyTypeLeft"
+            app:layout_constraintTop_toTopOf="@id/llBadgeContainerLeft"
+            app:layout_constraintStart_toEndOf="@id/llBadgeContainerLeft"
             android:layout_marginStart="2dp" />
 
         <com.google.android.material.card.MaterialCardView
@@ -64,6 +81,7 @@
             android:layout_width="130dp"
             android:layout_height="130dp"
             android:layout_marginStart="8dp"
+            android:layout_marginTop="32dp"
             app:cardCornerRadius="65dp"
             app:cardElevation="10dp"
             app:cardMaxElevation="12dp"
@@ -71,7 +89,7 @@
             app:strokeColor="?attr/colorPrimary"
             app:layout_constraintBottom_toTopOf="@id/llMediaLeft"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/tvPropertyTypeLeft">
+            app:layout_constraintTop_toTopOf="@id/bgCardLeft">
             <FrameLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent">
@@ -118,6 +136,7 @@
         </LinearLayout>
 
         <LinearLayout
+            android:id="@+id/llContentLeft"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="142dp"
@@ -130,6 +149,7 @@
             app:layout_constraintTop_toTopOf="parent">
 
             <LinearLayout
+                android:id="@+id/llPriceContainerLeft"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
@@ -345,23 +365,40 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
-        <TextView
-            android:id="@+id/tvPropertyTypeRight"
-            style="@style/App.BhkTag"
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:id="@+id/llBadgeContainerRight"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:paddingHorizontal="16dp"
-            android:paddingVertical="4dp"
-            android:textSize="12sp"
-            android:textColor="#E53935"
-            android:layout_marginBottom="6dp"
-            app:layout_constraintBottom_toTopOf="@id/cardImageRight"
-            app:layout_constraintEnd_toEndOf="@id/cardImageRight"
-            app:layout_constraintStart_toStartOf="@id/cardImageRight"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintHorizontal_bias="1.0"
-            app:layout_constraintVertical_chainStyle="packed"
-            tools:text="VILLA" />
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:background="@drawable/bg_badge_right"
+            android:paddingHorizontal="6dp"
+            android:paddingVertical="6dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/bgCardRight"
+            app:layout_constraintTop_toTopOf="@id/llContentRight">
+
+            <ImageView
+                android:id="@+id/ivFavoriteRight"
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:src="@drawable/ic_favorite_filled"
+                app:tint="#E53935"
+                android:visibility="gone"
+                tools:visibility="visible"
+                android:layout_marginEnd="4dp" />
+
+            <TextView
+                android:id="@+id/tvPropertyTypeRight"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:textColor="#E53935"
+                android:gravity="center"
+                tools:text="VILLA" />
+        </LinearLayout>
 
         <ImageView
             android:id="@+id/ivFilterProTypeRight"
@@ -369,8 +406,8 @@
             android:layout_height="10dp"
             android:src="@drawable/ic_filter_indicator"
             android:visibility="gone"
-            app:layout_constraintTop_toTopOf="@id/tvPropertyTypeRight"
-            app:layout_constraintEnd_toStartOf="@id/tvPropertyTypeRight"
+            app:layout_constraintTop_toTopOf="@id/llBadgeContainerRight"
+            app:layout_constraintEnd_toStartOf="@id/llBadgeContainerRight"
             android:layout_marginEnd="2dp" />
 
         <com.google.android.material.card.MaterialCardView
@@ -378,6 +415,7 @@
             android:layout_width="130dp"
             android:layout_height="130dp"
             android:layout_marginEnd="8dp"
+            android:layout_marginTop="32dp"
             app:cardCornerRadius="65dp"
             app:cardElevation="10dp"
             app:cardMaxElevation="12dp"
@@ -385,7 +423,7 @@
             app:strokeColor="?attr/colorPrimary"
             app:layout_constraintBottom_toTopOf="@id/llMediaRight"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/tvPropertyTypeRight">
+            app:layout_constraintTop_toTopOf="@id/bgCardRight">
             <FrameLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent">
@@ -432,6 +470,7 @@
         </LinearLayout>
 
         <LinearLayout
+            android:id="@+id/llContentRight"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="12dp"
@@ -444,6 +483,7 @@
             app:layout_constraintTop_toTopOf="parent">
 
             <LinearLayout
+                android:id="@+id/llPriceContainerRight"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"

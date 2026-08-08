@@ -48,6 +48,7 @@ class SearchPropertyAdapter(
         val ivFilterBhkLeft: View = view.findViewById(R.id.ivFilterBhkLeft)
         val ivFilterLocationLeft: View = view.findViewById(R.id.ivFilterLocationLeft)
         val ivFilterProTypeLeft: View = view.findViewById(R.id.ivFilterProTypeLeft)
+        val ivFavoriteLeft: ImageView = view.findViewById(R.id.ivFavoriteLeft)
 
         // Right Layout Views
         val layoutRight: View = view.findViewById(R.id.layoutRight)
@@ -72,6 +73,7 @@ class SearchPropertyAdapter(
         val ivFilterBhkRight: View = view.findViewById(R.id.ivFilterBhkRight)
         val ivFilterLocationRight: View = view.findViewById(R.id.ivFilterLocationRight)
         val ivFilterProTypeRight: View = view.findViewById(R.id.ivFilterProTypeRight)
+        val ivFavoriteRight: ImageView = view.findViewById(R.id.ivFavoriteRight)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -107,14 +109,14 @@ class SearchPropertyAdapter(
         if (isLeft) {
             holder.layoutLeft.visibility = View.VISIBLE
             holder.layoutRight.visibility = View.GONE
-            bindData(property, holder.tvTitleLeft, holder.tvPriceLeft, holder.tvLocationLeft, holder.tvBhkLeft, holder.tvBathLeft, holder.tvAreaLeft, holder.tvInterestedLeft, holder.tvAmenitiesLeft, holder.ivImageLeft, holder.tvImgCountLeft, holder.ivVideoIconLeft, holder.ivFilterPriceLeft, holder.ivFilterBhkLeft, holder.ivFilterLocationLeft, holder.ivFilterProTypeLeft, holder.tvFacingLeft, holder.tvRoadSizeLeft, holder.tvFurnishedLeft, holder.tvPropertyTypeLeft)
+            bindData(property, holder.tvTitleLeft, holder.tvPriceLeft, holder.tvLocationLeft, holder.tvBhkLeft, holder.tvBathLeft, holder.tvAreaLeft, holder.tvInterestedLeft, holder.tvAmenitiesLeft, holder.ivImageLeft, holder.tvImgCountLeft, holder.ivVideoIconLeft, holder.ivFilterPriceLeft, holder.ivFilterBhkLeft, holder.ivFilterLocationLeft, holder.ivFilterProTypeLeft, holder.tvFacingLeft, holder.tvRoadSizeLeft, holder.tvFurnishedLeft, holder.tvPropertyTypeLeft, holder.ivFavoriteLeft)
             
             setupImageCycle(property, holder.ivImageLeft, position)
             holder.itemView.setOnClickListener { onItemClick(property, sharedElements) }
         } else {
             holder.layoutLeft.visibility = View.GONE
             holder.layoutRight.visibility = View.VISIBLE
-            bindData(property, holder.tvTitleRight, holder.tvPriceRight, holder.tvLocationRight, holder.tvBhkRight, holder.tvBathRight, holder.tvAreaRight, holder.tvInterestedRight, holder.tvAmenitiesRight, holder.ivImageRight, holder.tvImgCountRight, holder.ivVideoIconRight, holder.ivFilterPriceRight, holder.ivFilterBhkRight, holder.ivFilterLocationRight, holder.ivFilterProTypeRight, holder.tvFacingRight, holder.tvRoadSizeRight, holder.tvFurnishedRight, holder.tvPropertyTypeRight)
+            bindData(property, holder.tvTitleRight, holder.tvPriceRight, holder.tvLocationRight, holder.tvBhkRight, holder.tvBathRight, holder.tvAreaRight, holder.tvInterestedRight, holder.tvAmenitiesRight, holder.ivImageRight, holder.tvImgCountRight, holder.ivVideoIconRight, holder.ivFilterPriceRight, holder.ivFilterBhkRight, holder.ivFilterLocationRight, holder.ivFilterProTypeRight, holder.tvFacingRight, holder.tvRoadSizeRight, holder.tvFurnishedRight, holder.tvPropertyTypeRight, holder.ivFavoriteRight)
             
             setupImageCycle(property, holder.ivImageRight, position)
             holder.itemView.setOnClickListener { onItemClick(property, sharedElements) }
@@ -171,12 +173,15 @@ class SearchPropertyAdapter(
         stopImageCycle(holder.bindingAdapterPosition)
     }
 
-    private fun bindData(property: PropertyDTO, tvTitle: TextView, tvPrice: TextView, tvLocation: TextView, tvBhk: TextView, tvBath: TextView, tvArea: TextView, tvInterested: TextView, tvAmenities: TextView, ivImage: ImageView, tvImgCount: TextView, ivVideoIcon: ImageView, ivFilterPrice: View, ivFilterBhk: View, ivFilterLocation: View, ivFilterProType: View, tvFacing: TextView, tvRoadSize: TextView, tvFurnished: TextView, tvPropertyType: TextView) {
+    private fun bindData(property: PropertyDTO, tvTitle: TextView, tvPrice: TextView, tvLocation: TextView, tvBhk: TextView, tvBath: TextView, tvArea: TextView, tvInterested: TextView, tvAmenities: TextView, ivImage: ImageView, tvImgCount: TextView, ivVideoIcon: ImageView, ivFilterPrice: View, ivFilterBhk: View, ivFilterLocation: View, ivFilterProType: View, tvFacing: TextView, tvRoadSize: TextView, tvFurnished: TextView, tvPropertyType: TextView, ivFavorite: ImageView) {
         tvTitle.text = property.title?.uppercase() ?: "PREMIUM PROPERTY"
         
         val price = property.pricePerMonth ?: 0.0
         val formatter = java.text.DecimalFormat("#,###")
         tvPrice.text = "₹ ${formatter.format(price)}"
+
+        // Favorite Indicator
+        ivFavorite.visibility = if (property.isFavorite == 1) View.VISIBLE else View.GONE
         
         val locationText = buildString {
             if (!property.addressLine2.isNullOrEmpty()) append("${property.addressLine2}, ")

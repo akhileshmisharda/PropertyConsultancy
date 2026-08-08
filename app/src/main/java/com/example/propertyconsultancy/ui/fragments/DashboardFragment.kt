@@ -99,7 +99,7 @@ class DashboardFragment : Fragment() {
         lifecycleScope.launch {
             try {
                 Log.d("[php_debug]", "Fetching properties for user: ${user.userId}")
-                val response = RetrofitInstance.api.getPropertiesByUser(user.userId)
+                val response = RetrofitInstance.api.getPropertiesByUser(user.userId, user.userId)
                 if (response.status == "success") {
                     val properties = response.data ?: emptyList()
                     

@@ -15,6 +15,7 @@ try {
 
     $landlord_id = $_GET['landlord_id'] ?? null;
     $property_id = $_GET['property_id'] ?? null;
+    $user_id     = $_GET['user_id'] ?? null;
 
     $where = "1=1";
     $params = [];
@@ -33,9 +34,11 @@ try {
               (SELECT GROUP_CONCAT(pm.file_url) FROM pro_property_media pm WHERE pm.property_id = p.property_id) as media_urls,
               (SELECT GROUP_CONCAT(pa.amenity_id) FROM pro_property_amenities pa WHERE pa.property_id = p.property_id) as amenity_ids,
               (SELECT COUNT(*) FROM pro_property_amenities pa WHERE pa.property_id = p.property_id) as amenity_count,
+              (SELECT is_favorite FROM pro_property_interactions pi WHERE pi.property_id = p.property_id AND pi.customer_id = :user_id LIMIT 1) as is_favorite,
               pe.user_id as executive_id,
               CONCAT(pe.first_name, ' ', pe.last_name) as executive_name,
-              pe.phone as executive_mobile
+              pe.phone as executive_mobile,
+              pe.profile_image_url as executive_image
               FROM pro_properties p
               LEFT JOIN pro_landlord_executives ple ON p.landlord_id = ple.landlord_id AND ple.is_active = 1
               LEFT JOIN pro_users pe ON ple.executive_id = pe.user_id
@@ -44,6 +47,7 @@ try {
               ORDER BY p.created_at DESC";
 
     $stmt = $pdo->prepare($query);
+    $params[':user_id'] = $user_id;
     $stmt->execute($params);
     $properties = $stmt->fetchAll(PDO::FETCH_ASSOC);
 

@@ -5,9 +5,11 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
-import android.widget.TextView
-import android.widget.Toast
+import android.view.Gravity
+import android.widget.*
+import android.graphics.Color
+import android.graphics.drawable.GradientDrawable
+import android.util.TypedValue
 import androidx.fragment.app.Fragment
 import androidx.viewpager2.widget.ViewPager2
 import coil3.load
@@ -49,14 +51,18 @@ class PropertyExploreFragment : Fragment(), OnMapReadyCallback {
     private lateinit var ivHintExploreAiMap: ImageView
     private lateinit var ivHintExploreAiFeedback: ImageView
     private lateinit var exploreProgress: com.google.android.material.progressindicator.LinearProgressIndicator
+    private lateinit var llExploreAmenities: android.widget.LinearLayout
+    private lateinit var tvAmenitiesSectionTitle: TextView
 
     private lateinit var viewModel: SearchViewModel
     private lateinit var cardExecutive: View
     private lateinit var tvExecutiveName: TextView
     private lateinit var tvExecutiveMobile: TextView
+    private lateinit var ivExecutiveImage: ImageView
     private lateinit var btnCallExecutive: com.google.android.material.button.MaterialButton
 
     private lateinit var sessionManager: com.example.propertyconsultancy.data.local.SessionManager
+    private var allAmenities: List<com.example.propertyconsultancy.data.dto.AmenityDTO>? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -107,6 +113,7 @@ class PropertyExploreFragment : Fragment(), OnMapReadyCallback {
         val mapFragment = childFragmentManager.findFragmentById(R.id.mapExplore) as? SupportMapFragment
         mapFragment?.getMapAsync(this)
 
+        fetchAllAmenities() // Fetch names/icons mapping
         refreshPropertyData() // Fetch latest from server immediately
         fetchInitialInteraction(property.propertyId ?: 0)
         
@@ -125,10 +132,11 @@ class PropertyExploreFragment : Fragment(), OnMapReadyCallback {
 
     private fun refreshPropertyData() {
         val pid = property?.propertyId ?: return
+        val user = sessionManager.getUser()
         exploreProgress.visibility = View.VISIBLE
         lifecycleScope.launch {
             try {
-                val response = com.example.propertyconsultancy.data.remote.RetrofitInstance.api.getPropertyDetail(pid)
+                val response = com.example.propertyconsultancy.data.remote.RetrofitInstance.api.getPropertyDetail(pid, user?.userId)
                 if (response.status == "success" && !response.data.isNullOrEmpty()) {
                     val updated = response.data[0]
                     
@@ -164,6 +172,8 @@ class PropertyExploreFragment : Fragment(), OnMapReadyCallback {
         etExploreRemarks = view.findViewById(R.id.etExploreRemarks)
         btnSaveRemarks = view.findViewById(R.id.btnSaveRemarks)
         exploreProgress = view.findViewById(R.id.exploreProgress)
+        llExploreAmenities = view.findViewById(R.id.llExploreAmenities)
+        tvAmenitiesSectionTitle = view.findViewById(R.id.tvAmenitiesSectionTitle)
         btnAiMap = view.findViewById(R.id.btnAiMap)
         btnAiFeedback = view.findViewById(R.id.btnAiFeedback)
         ivHintExploreAiMap = view.findViewById(R.id.ivHintExploreAiMap)
@@ -172,6 +182,7 @@ class PropertyExploreFragment : Fragment(), OnMapReadyCallback {
         cardExecutive = view.findViewById(R.id.cardExecutive)
         tvExecutiveName = view.findViewById(R.id.tvExecutiveName)
         tvExecutiveMobile = view.findViewById(R.id.tvExecutiveMobile)
+        ivExecutiveImage = view.findViewById(R.id.ivExecutiveImage)
         btnCallExecutive = view.findViewById(R.id.btnCallExecutive)
 
         btnAiMap.setOnClickListener {
@@ -207,13 +218,159 @@ class PropertyExploreFragment : Fragment(), OnMapReadyCallback {
         }
     }
 
+    private fun fetchAllAmenities() {
+        lifecycleScope.launch {
+            try {
+                val response = com.example.propertyconsultancy.data.remote.RetrofitInstance.api.getAmenities()
+                if (response.status == "success") {
+                    allAmenities = response.data
+                    property?.amenityIds?.let { loadAmenityChips(it) }
+                }
+            } catch (e: Exception) {}
+        }
+    }
+
+    private fun loadAmenityChips(ids: List<Int>?) {
+        llExploreAmenities.removeAllViews()
+        llExploreAmenities.background = null 
+        if (ids.isNullOrEmpty()) return
+
+        val context = requireContext()
+        val grouped = allAmenities?.filter { ids.contains(it.amenityId) }?.groupBy { it.category ?: "General" } ?: emptyMap()
+        val density = resources.displayMetrics.density
+        
+        // Helper to format string to Proper Case
+        fun String.toProperCase() = this.lowercase().split(" ").joinToString(" ") { it.replaceFirstChar { char -> char.uppercase() } }
+
+        val rootTrunk = LinearLayout(context).apply {
+            orientation = LinearLayout.VERTICAL
+        }
+
+        val entries = grouped.entries.toList()
+        entries.forEachIndexed { groupIndex, entry ->
+            val category = entry.key
+            val amenities = entry.value
+            val properCategory = category.toProperCase()
+
+            // Category Level Branch
+            val categoryBranch = FrameLayout(context).apply {
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                )
+            }
+
+            // 1. MAIN Vertical line part (RED)
+            val mainVLine = View(context).apply {
+                val width = (2 * density).toInt()
+                val height = if (groupIndex == entries.size - 1) (18 * density).toInt() else LinearLayout.LayoutParams.MATCH_PARENT
+                layoutParams = FrameLayout.LayoutParams(width, height).apply { gravity = Gravity.START; leftMargin = (8 * density).toInt() }
+                setBackgroundColor(Color.RED)
+            }
+            categoryBranch.addView(mainVLine)
+
+            // 2. MAIN Horizontal branch line (RED)
+            val mainHLine = View(context).apply {
+                layoutParams = FrameLayout.LayoutParams((15 * density).toInt(), (2 * density).toInt()).apply {
+                    gravity = Gravity.START
+                    leftMargin = (8 * density).toInt()
+                    topMargin = (18 * density).toInt()
+                }
+                setBackgroundColor(Color.RED)
+            }
+            categoryBranch.addView(mainHLine)
+
+            // 3. Category Header Text (Proper Case) - RED
+            val tvCat = TextView(context).apply {
+                text = properCategory
+                textSize = 14f
+                setTypeface(null, android.graphics.Typeface.BOLD)
+                setTextColor(Color.RED)
+                setPadding((30 * density).toInt(), (10 * density).toInt(), 0, (10 * density).toInt())
+            }
+            categoryBranch.addView(tvCat)
+            rootTrunk.addView(categoryBranch)
+
+            val subGroupContainer = LinearLayout(context).apply {
+                orientation = LinearLayout.VERTICAL
+            }
+
+            amenities.forEachIndexed { index, amenity ->
+                val branchItem = FrameLayout(context).apply {
+                    layoutParams = LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.MATCH_PARENT,
+                        LinearLayout.LayoutParams.WRAP_CONTENT
+                    )
+                }
+
+                // 1. Continue MAIN trunk (RED)
+                if (groupIndex < entries.size - 1) {
+                    val vMainCont = View(context).apply {
+                        layoutParams = FrameLayout.LayoutParams((2 * density).toInt(), LinearLayout.LayoutParams.MATCH_PARENT).apply { 
+                            gravity = Gravity.START; leftMargin = (8 * density).toInt() 
+                        }
+                        setBackgroundColor(Color.RED)
+                    }
+                    branchItem.addView(vMainCont)
+                }
+
+                // 2. SUB Vertical line part (RED)
+                val vLine = View(context).apply {
+                    val width = (1.5f * density).toInt()
+                    // End line at the branch for the last item
+                    val height = if (index == amenities.size - 1) (18 * density).toInt() else LinearLayout.LayoutParams.MATCH_PARENT
+                    layoutParams = FrameLayout.LayoutParams(width, height).apply {
+                        gravity = Gravity.START
+                        leftMargin = (35 * density).toInt()
+                    }
+                    setBackgroundColor(Color.RED)
+                    alpha = 0.7f
+                }
+                branchItem.addView(vLine)
+
+                // 3. SUB Horizontal branch line (RED)
+                val hLine = View(context).apply {
+                    layoutParams = FrameLayout.LayoutParams((15 * density).toInt(), (2 * density).toInt()).apply {
+                        gravity = Gravity.START
+                        leftMargin = (35 * density).toInt()
+                        topMargin = (17 * density).toInt()
+                    }
+                    setBackgroundColor(Color.RED)
+                    alpha = 0.7f
+                }
+                branchItem.addView(hLine)
+
+                // 4. Amenity Name only
+                val tvName = TextView(context).apply {
+                    text = amenity.name
+                    textSize = 15f
+                    setTextColor(androidx.core.content.ContextCompat.getColor(context, R.color.theme1_text))
+                    setPadding((55 * density).toInt(), (10 * density).toInt(), 0, (10 * density).toInt())
+                }
+                branchItem.addView(tvName)
+
+                subGroupContainer.addView(branchItem)
+            }
+            rootTrunk.addView(subGroupContainer)
+        }
+        llExploreAmenities.addView(rootTrunk)
+    }
+
+    private fun createAmenityItem(name: String, category: String?): View {
+        // This function is no longer used by the new hierarchical branched layout
+        return View(requireContext())
+    }
+
     private fun bindPropertyData(property: PropertyDTO) {
         val view = requireView()
-        val vpMedia = view.findViewById<androidx.viewpager2.widget.ViewPager2>(R.id.vpExploreMedia)
+        val vpMedia = view.findViewById<ViewPager2>(R.id.vpExploreMedia)
         val tabLayout = view.findViewById<com.google.android.material.tabs.TabLayout>(R.id.tabMediaDots)
         
         val tvTitle = view.findViewById<TextView>(R.id.tvExploreTitle)
         val tvPrice = view.findViewById<TextView>(R.id.tvExplorePrice)
+        val tvDeposit = view.findViewById<TextView>(R.id.tvExploreDeposit)
+        val tvMaintenance = view.findViewById<TextView>(R.id.tvExploreMaintenance)
+        
         val tvLocation = view.findViewById<TextView>(R.id.tvExploreLocation)
         val tvBhk = view.findViewById<TextView>(R.id.tvExploreBhk)
         val tvArea = view.findViewById<TextView>(R.id.tvExploreArea)
@@ -222,14 +379,28 @@ class PropertyExploreFragment : Fragment(), OnMapReadyCallback {
         val tvFurnished = view.findViewById<TextView>(R.id.tvExploreFurnished)
         val tvBath = view.findViewById<TextView>(R.id.tvExploreBath)
         val tvPropertyType = view.findViewById<TextView>(R.id.tvExplorePropertyType)
-        val tvAmenities = view.findViewById<TextView>(R.id.tvExploreAmenities)
         val tvInterested = view.findViewById<TextView>(R.id.tvExploreInterested)
         val tvFloor = view.findViewById<TextView>(R.id.tvExploreFloor)
         val tvDescription = view.findViewById<TextView>(R.id.tvExploreDescription)
 
         tvTitle.text = property.title?.uppercase()
         val formatter = java.text.DecimalFormat("#,###")
-        tvPrice.text = "₹ ${formatter.format(property.pricePerMonth ?: 0.0)}/mo"
+        tvPrice.text = "Rs. ${formatter.format(property.pricePerMonth ?: 0.0)} / Month"
+        
+        if (property.securityDeposit != null && property.securityDeposit > 0) {
+            tvDeposit.visibility = View.VISIBLE
+            tvDeposit.text = "Security Deposit: Rs. ${formatter.format(property.securityDeposit)}"
+        } else {
+            tvDeposit.visibility = View.GONE
+        }
+
+        if (property.cleaningFee != null && property.cleaningFee > 0) {
+            tvMaintenance.visibility = View.VISIBLE
+            tvMaintenance.text = "+ Rs. ${formatter.format(property.cleaningFee)} Maintenance/Mo"
+        } else {
+            tvMaintenance.visibility = View.GONE
+        }
+
         tvLocation.text = if (property.state.isNullOrEmpty()) "${property.city}" else "${property.city}, ${property.state}"
         
         tvBhk.text = "${property.bedrooms} BHK"
@@ -254,7 +425,13 @@ class PropertyExploreFragment : Fragment(), OnMapReadyCallback {
         tvFloor.text = "Floor: ${getOptionName(property.floorId?.let { listOf(it) }, "Floor")}"
 
         tvFurnished.text = property.furnishing ?: "Unfurnished"
-        tvAmenities.text = "{ ${property.amenityCount ?: 0} Amenities }"
+        
+        val count = property.amenityCount ?: 0
+        tvAmenitiesSectionTitle.text = "Amenities [$count] :-"
+        
+        // Populate Amenities Grid
+        loadAmenityChips(property.amenityIds)
+        
         tvInterested.text = "{ ${(5..25).random()} Interested }"
         tvDescription.text = property.description ?: "No description available."
 
@@ -265,6 +442,15 @@ class PropertyExploreFragment : Fragment(), OnMapReadyCallback {
             cardExecutive.visibility = View.VISIBLE
             tvExecutiveName.text = property.executiveName
             tvExecutiveMobile.text = property.executiveMobile ?: "N/A"
+            
+            // Load Executive Image
+            val imageUrl = com.example.propertyconsultancy.utils.UrlUtils.getPropertyImageUrl(property.executiveImage)
+            if (imageUrl != null) {
+                ivExecutiveImage.load(imageUrl)
+            } else {
+                ivExecutiveImage.setImageResource(R.drawable.ic_profile_modern)
+            }
+            
             btnCallExecutive.setOnClickListener {
                 property.executiveMobile?.let { mobile ->
                     try {

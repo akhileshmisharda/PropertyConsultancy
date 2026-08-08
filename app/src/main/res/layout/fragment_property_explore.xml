@@ -64,32 +64,53 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
+                android:orientation="vertical"
                 android:layout_marginTop="4dp">
                 <TextView
                     android:id="@+id/tvExplorePrice"
-                    android:layout_width="0dp"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
                     android:textColor="@color/theme2_primary"
                     android:textSize="22sp"
                     android:textStyle="bold"
                     android:transitionName="property_price"
-                    tools:text="₹28,000/mo" />
+                    tools:text="Rs. 28,000 / Month" />
+
                 <TextView
-                    android:id="@+id/tvExplorePropertyType"
-                    android:layout_width="wrap_content"
+                    android:id="@+id/tvExploreDeposit"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:paddingHorizontal="12dp"
-                    android:paddingVertical="4dp"
-                    android:background="@drawable/bg_zigzag_card"
-                    android:textColor="#E53935"
-                    android:textSize="14sp"
-                    android:textStyle="bold"
-                    android:transitionName="property_type"
-                    tools:text="APARTMENT" />
+                    android:textSize="13sp"
+                    android:textColor="@color/pending_gray"
+                    android:visibility="gone"
+                    tools:visibility="visible"
+                    tools:text="Security Deposit: Rs. 50,000" />
+
+                <TextView
+                    android:id="@+id/tvExploreMaintenance"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textSize="13sp"
+                    android:textColor="@color/pending_gray"
+                    android:visibility="gone"
+                    tools:visibility="visible"
+                    tools:text="+ Rs. 2,000 Maintenance/Mo" />
             </LinearLayout>
+
+            <TextView
+                android:id="@+id/tvExplorePropertyType"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:layout_gravity="end"
+                android:paddingHorizontal="12dp"
+                android:paddingVertical="4dp"
+                android:background="@drawable/bg_zigzag_card"
+                android:textColor="#E53935"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:transitionName="property_type"
+                tools:text="APARTMENT" />
 
             <View
                 android:layout_width="match_parent"
@@ -183,10 +204,11 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="8dp"
-                    android:textColor="#0D47A1"
+                    android:textColor="@android:color/holo_red_dark"
                     android:textSize="16sp"
                     android:textStyle="bold"
                     android:transitionName="property_amenities"
+                    android:visibility="gone"
                     tools:text="12 Amenities" />
 
                 <TextView
@@ -245,11 +267,15 @@
                         android:gravity="center_vertical"
                         android:layout_marginTop="12dp">
 
-                        <ImageView
-                            android:layout_width="48dp"
-                            android:layout_height="48dp"
+                        <com.google.android.material.imageview.ShapeableImageView
+                            android:id="@+id/ivExecutiveImage"
+                            android:layout_width="56dp"
+                            android:layout_height="56dp"
                             android:src="@drawable/ic_profile_modern"
-                            app:tint="@color/modern_primary" />
+                            android:scaleType="centerCrop"
+                            app:strokeWidth="2dp"
+                            app:strokeColor="@color/modern_primary"
+                            app:shapeAppearanceOverlay="@style/ShapeAppearance.App.Circle" />
 
                         <LinearLayout
                             android:layout_width="0dp"
@@ -560,6 +586,25 @@
                     </com.google.android.material.card.MaterialCardView>
                 </LinearLayout>
             </LinearLayout>
+
+            <TextView
+                android:id="@+id/tvAmenitiesSectionTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:text="Amenities :-"
+                android:textColor="@android:color/holo_red_dark"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <LinearLayout
+                android:id="@+id/llExploreAmenities"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:padding="8dp"
+                android:background="@drawable/list_box_border"
+                android:orientation="vertical" />
 
             <TextView
                 android:layout_width="match_parent"

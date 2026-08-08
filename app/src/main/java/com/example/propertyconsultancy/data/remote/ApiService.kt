@@ -7,6 +7,7 @@ interface ApiService {
     @GET("search_properties.php")
     suspend fun getProperties(
         @Query("city") city: String? = null,
+        @Query("user_id") userId: Long? = null,
         @Query("category_id") categoryId: Int? = null,
         @Query("min_price") minPrice: Double? = null,
         @Query("max_price") maxPrice: Double? = null,
@@ -30,10 +31,16 @@ interface ApiService {
     suspend fun updateProperty(@Body property: Map<String, @JvmSuppressWildcards Any?>): GenericResponseDTO
 
     @GET("get_properties.php")
-    suspend fun getPropertiesByUser(@Query("landlord_id") landlordId: Long): PropertyListResponseDTO
+    suspend fun getPropertiesByUser(
+        @Query("landlord_id") landlordId: Long,
+        @Query("user_id") userId: Long? = null
+    ): PropertyListResponseDTO
 
     @GET("get_properties.php")
-    suspend fun getPropertyDetail(@Query("property_id") propertyId: Long): PropertyListResponseDTO
+    suspend fun getPropertyDetail(
+        @Query("property_id") propertyId: Long,
+        @Query("user_id") userId: Long? = null
+    ): PropertyListResponseDTO
 
     @GET("get_categories.php")
     suspend fun getCategories(): CategoryResponseDTO

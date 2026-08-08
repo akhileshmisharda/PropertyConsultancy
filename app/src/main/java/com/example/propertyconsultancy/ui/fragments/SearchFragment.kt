@@ -865,11 +865,13 @@ class SearchFragment : Fragment(), OnMapReadyCallback {
 
         val pageSize = if (isMapView) 500 else sessionManager.getPageSize()
         val offset = if (isMapView) 0 else viewModel.currentPage * pageSize
+        val user = sessionManager.getUser()
         
         lifecycleScope.launch {
             try {
                 val response = RetrofitInstance.api.getProperties(
                     city = city,
+                    userId = user?.userId,
                     categoryId = if (viewModel.selectedProTypeIds.size == 1) viewModel.selectedProTypeIds.first() else null,
                     minPrice = viewModel.minPrice,
                     maxPrice = viewModel.maxPrice,
