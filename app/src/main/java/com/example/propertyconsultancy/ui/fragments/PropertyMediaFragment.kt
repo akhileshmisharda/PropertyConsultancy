@@ -1,6 +1,7 @@
 package com.example.propertyconsultancy.ui.fragments
 
 import android.graphics.Color
+import android.graphics.Typeface
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
@@ -33,7 +34,7 @@ class PropertyMediaFragment : Fragment() {
 
     private lateinit var rvMediaTags: RecyclerView
     private lateinit var rvTagMedia: RecyclerView
-    private lateinit var btnUploadForTag: com.google.android.material.floatingactionbutton.FloatingActionButton
+    private lateinit var btnUploadForTag: com.google.android.material.button.MaterialButton
     private lateinit var tvSelectedTagName: TextView
     private lateinit var uploadProgress: View
 
@@ -215,10 +216,16 @@ class PropertyMediaFragment : Fragment() {
                 holder.itemView.setBackgroundColor(Color.WHITE)
                 holder.tvName.setTextColor(Color.parseColor("#1A237E"))
                 holder.tvName.alpha = 1.0f
+                holder.tvName.textSize = 18f
+                holder.tvName.setTypeface(null, Typeface.BOLD)
+                holder.tvName.textAlignment = View.TEXT_ALIGNMENT_VIEW_END
             } else {
                 holder.itemView.setBackgroundColor(Color.TRANSPARENT)
                 holder.tvName.setTextColor(Color.parseColor("#757575"))
                 holder.tvName.alpha = 0.8f
+                holder.tvName.textSize = 14f
+                holder.tvName.setTypeface(null, Typeface.NORMAL)
+                holder.tvName.textAlignment = View.TEXT_ALIGNMENT_VIEW_START
             }
 
             holder.itemView.setOnClickListener { onClick(tag) }

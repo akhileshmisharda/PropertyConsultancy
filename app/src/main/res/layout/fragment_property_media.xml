@@ -1,93 +1,118 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:layout_height="match_parent">
 
     <com.google.android.material.progressindicator.LinearProgressIndicator
         android:id="@+id/mediaUploadProgress"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:indeterminate="true"
-        android:visibility="gone" />
+        android:visibility="gone"
+        app:layout_constraintTop_toTopOf="parent" />
 
-    <!-- Top Row: Selected Category Header -->
-    <LinearLayout
-        android:layout_width="match_parent"
+    <!-- Left Column (Sidebar) Background -->
+    <View
+        android:id="@+id/sidebarBg"
+        android:layout_width="120dp"
+        android:layout_height="0dp"
+        android:background="#F8F9FA"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/mediaUploadProgress" />
+
+    <!-- Sidebar Label -->
+    <TextView
+        android:id="@+id/tvAreasLabel"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
+        android:letterSpacing="0.1"
         android:padding="16dp"
-        android:background="@color/white"
-        android:elevation="2dp">
+        android:text="Area "
+        android:textColor="#757575"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="@id/sidebarBg"
+        app:layout_constraintStart_toStartOf="@id/sidebarBg"
+        app:layout_constraintTop_toBottomOf="@+id/tvMediaNote" />
 
-        <TextView
-            android:id="@+id/tvSelectedTagName"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Select a Category"
-            android:textSize="20sp"
-            android:textStyle="bold"
-            android:textColor="?attr/colorPrimary" />
-    </LinearLayout>
+    <!-- Sidebar Tags List -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvMediaTags"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="@id/sidebarBg"
+        app:layout_constraintStart_toStartOf="@id/sidebarBg"
+        app:layout_constraintTop_toBottomOf="@id/tvAreasLabel"
+        tools:listitem="@layout/item_media_tag" />
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="horizontal"
-        android:baselineAligned="false">
+    <!-- Right Header Section (Parallel to AREAS) -->
+    <TextView
+        android:id="@+id/tvSelectedTagName"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="Select a Category"
+        android:textColor="?attr/colorPrimary"
+        android:textSize="12sp"
+        android:paddingTop="8dp"
+        android:paddingStart="8dp"
+        android:paddingBottom="8dp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
 
-        <!-- Left Sidebar: Tags -->
-        <LinearLayout
-            android:layout_width="140dp"
-            android:layout_height="match_parent"
-            android:background="#F8F9FA"
-            android:orientation="vertical">
+    <TextView
+        android:id="@+id/tvMediaNote"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="* Add media of property, selecting tag name helps to create more impact ful result"
+        android:textSize="10sp"
+        android:textColor="#757575"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp"
+        android:paddingBottom="4dp"
+        app:layout_constraintTop_toBottomOf="@id/tvSelectedTagName"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:padding="12dp"
-                android:text="AREAS"
-                android:textSize="10sp"
-                android:textStyle="bold"
-                android:textColor="#757575"
-                android:letterSpacing="0.1" />
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnUploadForTag"
+        style="@style/Widget.Material3.Button.TonalButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:enabled="false"
+        android:minWidth="0dp"
+        android:paddingHorizontal="16dp"
+        android:text="+ Add Media to Area"
+        app:cornerRadius="8dp"
+        app:icon="@android:drawable/ic_menu_add"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/tvAreasLabel"
+        app:layout_constraintTop_toBottomOf="@+id/tvMediaNote" />
 
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/rvMediaTags"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                tools:listitem="@layout/item_media_tag" />
-        </LinearLayout>
+    <View
+        android:id="@+id/headerDivider"
+        android:layout_width="0dp"
+        android:layout_height="1dp"
+        android:background="#EEEEEE"
+        android:layout_marginTop="8dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/sidebarBg"
+        app:layout_constraintTop_toBottomOf="@id/tvAreasLabel" />
 
-        <!-- Right Content: Media Upload Overlay -->
-        <FrameLayout
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1">
+    <!-- Right Content: Media Grid -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvTagMedia"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:clipToPadding="false"
+        android:padding="8dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/sidebarBg"
+        app:layout_constraintTop_toBottomOf="@+id/tvAreasLabel" />
 
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/rvTagMedia"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:padding="12dp"
-                android:clipToPadding="false" />
-
-            <com.google.android.material.floatingactionbutton.FloatingActionButton
-                android:id="@+id/btnUploadForTag"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="bottom|end"
-                android:layout_margin="16dp"
-                android:src="@android:drawable/ic_menu_add"
-                app:tint="@color/white"
-                app:backgroundTint="?attr/colorPrimary"
-                android:enabled="false"
-                android:contentDescription="Add Media" />
-
-        </FrameLayout>
-    </LinearLayout>
-
-</LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

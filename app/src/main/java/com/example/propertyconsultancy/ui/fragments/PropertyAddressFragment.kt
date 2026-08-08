@@ -5,7 +5,9 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.MotionEvent
+import android.view.GestureDetector
 import android.widget.TextView
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import com.example.propertyconsultancy.R
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -32,6 +34,7 @@ class PropertyAddressFragment : Fragment(), OnMapReadyCallback {
     private lateinit var etState: TextInputEditText
     private lateinit var etZipCode: TextInputEditText
     private lateinit var tvCoordsDisplay: TextView
+    private lateinit var tvMapInstruction: TextView
     private lateinit var mapOverlay: View
     
     private var googleMap: GoogleMap? = null
@@ -53,6 +56,7 @@ class PropertyAddressFragment : Fragment(), OnMapReadyCallback {
         etState = view.findViewById(R.id.etState)
         etZipCode = view.findViewById(R.id.etZipCode)
         tvCoordsDisplay = view.findViewById(R.id.tvCoordsDisplay)
+        tvMapInstruction = view.findViewById(R.id.tvMapInstruction)
         mapOverlay = view.findViewById(R.id.mapOverlay)
 
         setupTouchInterception()
@@ -68,7 +72,18 @@ class PropertyAddressFragment : Fragment(), OnMapReadyCallback {
     }
 
     private fun setupTouchInterception() {
+        val gestureDetector = GestureDetector(requireContext(), object : GestureDetector.SimpleOnGestureListener() {
+            override fun onDoubleTap(e: MotionEvent): Boolean {
+                googleMap?.uiSettings?.setAllGesturesEnabled(true)
+                mapOverlay.visibility = View.GONE
+                tvMapInstruction.visibility = View.GONE
+                Toast.makeText(requireContext(), "Map editing enabled", Toast.LENGTH_SHORT).show()
+                return true
+            }
+        })
+
         mapOverlay.setOnTouchListener { v, event ->
+            gestureDetector.onTouchEvent(event)
             when (event.action) {
                 MotionEvent.ACTION_DOWN -> {
                     v.parent.requestDisallowInterceptTouchEvent(true)
@@ -78,7 +93,7 @@ class PropertyAddressFragment : Fragment(), OnMapReadyCallback {
                     v.performClick()
                 }
             }
-            false
+            true
         }
     }
 
@@ -123,6 +138,7 @@ class PropertyAddressFragment : Fragment(), OnMapReadyCallback {
     override fun onMapReady(map: GoogleMap) {
         googleMap = map
         googleMap?.uiSettings?.isZoomControlsEnabled = true
+        googleMap?.uiSettings?.setAllGesturesEnabled(false)
         
         val initialPos = LatLng(currentLat, currentLng)
         googleMap?.moveCamera(CameraUpdateFactory.newLatLngZoom(initialPos, 15f))

@@ -47,6 +47,7 @@ class AddPropertyFragment : Fragment() {
     private lateinit var layoutProgress: View
     private lateinit var progressBar: LinearProgressIndicator
     private lateinit var tvProgressPercent: TextView
+    private lateinit var btnSubmit: Button
     private lateinit var sessionManager: SessionManager
     private lateinit var searchViewModel: SearchViewModel
     private var propertyToEdit: PropertyDTO? = null
@@ -72,11 +73,15 @@ class AddPropertyFragment : Fragment() {
         layoutProgress = view.findViewById(R.id.layoutProgress)
         progressBar = view.findViewById(R.id.progressBar)
         tvProgressPercent = view.findViewById(R.id.tvProgressPercent)
+        btnSubmit = view.findViewById(R.id.btnSubmit)
 
         setupViewPager(view)
         fetchCategoriesBackground()
 
-        view.findViewById<View>(R.id.btnSubmit).setOnClickListener {
+        if (propertyToEdit != null) {
+            btnSubmit.text = "Update Property"
+        }
+        btnSubmit.setOnClickListener {
             if (pagerAdapter.pricingFragment.validate()) {
                 submitProperty()
             }
@@ -114,6 +119,7 @@ class AddPropertyFragment : Fragment() {
         
         viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
             override fun onPageSelected(position: Int) {
+                btnSubmit.visibility = if (position == 4) View.GONE else View.VISIBLE
                 if (position == 4 && propertyToEdit?.propertyId == null) {
                     // Try to save property first to get an ID for direct media upload
                     Toast.makeText(requireContext(), "Initializing property for media upload...", Toast.LENGTH_SHORT).show()

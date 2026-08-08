@@ -59,12 +59,14 @@
         <LinearLayout
             android:id="@+id/llSpecContainer"
             android:layout_width="match_parent"
-            android:layout_height="350dp"
+            android:layout_height="0dp"
             android:layout_marginTop="8dp"
+            android:layout_marginBottom="8dp"
             android:orientation="horizontal"
             android:background="@drawable/bg_spec_container"
             android:clipChildren="false"
-            app:layout_constraintTop_toBottomOf="@id/tvSpecLabel">
+            app:layout_constraintTop_toBottomOf="@id/tvSpecLabel"
+            app:layout_constraintBottom_toBottomOf="parent">
 
             <!-- Left: Vertical Tabs -->
             <LinearLayout
