@@ -84,6 +84,7 @@ class AddPropertyFragment : Fragment() {
                     pagerAdapter.detailsFragment.setData(it)
                     pagerAdapter.amenitiesFragment.setData(it)
                     pagerAdapter.pricingFragment.setData(it)
+                    pagerAdapter.addressFragment.setData(it)
                     pagerAdapter.mediaFragment.setData(it.mediaUrls, it.media)
                 }
             }, 500)
@@ -102,12 +103,13 @@ class AddPropertyFragment : Fragment() {
         tabLayout = view.findViewById(R.id.tabLayout)
         pagerAdapter = PropertyPagerAdapter(this)
         viewPager.adapter = pagerAdapter
-        viewPager.offscreenPageLimit = 4
+        viewPager.offscreenPageLimit = 5
         TabLayoutMediator(tabLayout, viewPager) { tab, pos ->
             tab.text = when (pos) { 
                 0 -> "Details"
-                1 -> "Pricing/Specs"
-                2 -> "Amenities"
+                1 -> "Pricing"
+                2 -> "Address"
+                3 -> "Amenities"
                 else -> "Media"
             }
         }.attach()
@@ -125,8 +127,9 @@ class AddPropertyFragment : Fragment() {
     private fun submitProperty() {
         layoutProgress.visibility = View.VISIBLE; tvProgressPercent.text = "0%"
         val details = pagerAdapter.detailsFragment.getData()
-        val amenities = pagerAdapter.amenitiesFragment.getData()
         val pricing = pagerAdapter.pricingFragment.getData()
+        val address = pagerAdapter.addressFragment.getData()
+        val amenities = pagerAdapter.amenitiesFragment.getData()
         val mediaImages = pagerAdapter.mediaFragment.getSelectedImages()
         val mediaVideos = pagerAdapter.mediaFragment.getSelectedVideos()
         val user = sessionManager.getUser()
@@ -143,33 +146,42 @@ class AddPropertyFragment : Fragment() {
                 }
             }
             
-            val property = PropertyDTO(
-                propertyId = propertyToEdit?.propertyId, 
-                landlordId = user?.userId, 
-                title = details["title"] as String, 
-                description = details["description"] as String, 
-                bedrooms = (pricing["rooms"] as? String)?.filter { it.isDigit() }?.toIntOrNull() ?: 0, 
-                bathrooms = pricing["bathrooms"] as? Double ?: 1.0, 
-                areaSqft = pricing["area"] as? Int ?: 0, 
-                status = "available", 
-                pricePerMonth = (pricing["price"] as? String)?.toDoubleOrNull() ?: 0.0, 
-                latitude = pricing["latitude"] as? Double,
-                longitude = pricing["longitude"] as? Double,
-                city = "Nagpur", 
-                state = "Maharashtra", 
-                country = "India", 
-                amenityIds = amenities["amenity_ids"] as? List<Int>, 
-                mediaUrls = processedMedia,
-                floorId = details["floor_id"] as? Int,
-                facingId = details["facing_id"] as? Int,
-                roadSizeId = details["roadsize_id"] as? Int,
-                proTypeId = details["protype_id"] as? Int,
-                statusId = details["status_id"] as? Int,
-                statusDate = details["status_date"] as? String
-            )
+            val payload = mutableMapOf<String, Any?>()
+            payload["property_id"] = propertyToEdit?.propertyId
+            payload["landlord_id"] = user?.userId
+            payload["title"] = details["title"]
+            payload["description"] = details["description"]
+            payload["bedrooms"] = (pricing["rooms"] as? String)?.filter { it.isDigit() }?.toIntOrNull() ?: 0
+            payload["bathrooms"] = pricing["bathrooms"]
+            payload["area_sqft"] = pricing["area"]
+            payload["furnishing"] = pricing["furnishing"]
+            payload["status"] = "available"
+            payload["price_per_month"] = (pricing["price"] as? String)?.toDoubleOrNull() ?: 0.0
+            payload["latitude"] = address["latitude"]
+            payload["longitude"] = address["longitude"]
+            payload["address_line_1"] = address["address_line_1"]
+            payload["address_line_2"] = address["address_line_2"]
+            payload["city"] = address["city"]
+            payload["state"] = address["state"]
+            payload["zip_code"] = address["zip_code"]
+            payload["country"] = "India"
+            payload["amenity_ids"] = amenities["amenity_ids"]
+            payload["media_urls"] = processedMedia
+            payload["floor_id"] = details["floor_id"]
+            payload["facing_id"] = details["facing_id"]
+            payload["roadsize_id"] = details["roadsize_id"]
+            payload["protype_id"] = details["protype_id"]
+            payload["status_id"] = details["status_id"]
+            
+            // Merge all dynamic fields from details fragment
+            details.forEach { (k, v) ->
+                if (k !in listOf("title", "description", "floor_id", "facing_id", "roadsize_id", "protype_id", "status_id")) {
+                    payload[k] = v
+                }
+            }
             
             try {
-                val resp = if (property.propertyId != null) RetrofitInstance.api.updateProperty(property) else RetrofitInstance.api.submitProperty(property)
+                val resp = if (payload["property_id"] != null) RetrofitInstance.api.updateProperty(payload) else RetrofitInstance.api.submitProperty(payload)
                 withContext(Dispatchers.Main) {
                     if (resp.status == "success") { 
                         Toast.makeText(requireContext(), "Property saved successfully!", Toast.LENGTH_SHORT).show()
@@ -189,14 +201,16 @@ class AddPropertyFragment : Fragment() {
     private class PropertyPagerAdapter(fragment: Fragment) : FragmentStateAdapter(fragment) {
         val detailsFragment = PropertyDetailsFragment()
         val pricingFragment = PropertyPricingFragment()
+        val addressFragment = PropertyAddressFragment()
         val amenitiesFragment = PropertyAmenitiesFragment()
         val mediaFragment = PropertyMediaFragment()
         
-        override fun getItemCount(): Int = 4
+        override fun getItemCount(): Int = 5
         override fun createFragment(pos: Int): Fragment = when (pos) { 
             0 -> detailsFragment
             1 -> pricingFragment
-            2 -> amenitiesFragment
+            2 -> addressFragment
+            3 -> amenitiesFragment
             else -> mediaFragment
         }
     }

@@ -9,35 +9,22 @@ import androidx.fragment.app.Fragment
 import com.example.propertyconsultancy.R
 import com.google.android.material.slider.Slider
 import com.google.android.material.textfield.TextInputEditText
-import androidx.core.widget.addTextChangedListener
 import com.google.android.material.chip.Chip
 import android.text.Editable
 import android.text.TextWatcher
-import com.google.android.gms.maps.CameraUpdateFactory
-import com.google.android.gms.maps.GoogleMap
-import com.google.android.gms.maps.OnMapReadyCallback
-import com.google.android.gms.maps.SupportMapFragment
-import com.google.android.gms.maps.model.LatLng
+import com.google.android.material.button.MaterialButtonToggleGroup
 import java.text.DecimalFormat
-import java.util.Locale
 
-class PropertyPricingFragment : Fragment(), OnMapReadyCallback {
+class PropertyPricingFragment : Fragment() {
 
     private lateinit var etPrice: TextInputEditText
     private lateinit var cbNegotiable: CheckBox
     private lateinit var sliderPrice: Slider
-    private lateinit var tvLocation: TextView
-    private lateinit var btnSelectLocation: Button
-
+    
     private lateinit var llRooms: LinearLayout
     private lateinit var llBaths: LinearLayout
     private lateinit var etArea: TextInputEditText
-    
-    private var googleMap: GoogleMap? = null
-    private var currentLat: Double = 21.1458 // Default Nagpur
-    private var currentLng: Double = 79.0882
-
-    var onMapClick: (() -> Unit)? = null
+    private lateinit var toggleFurnishing: MaterialButtonToggleGroup
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.fragment_property_pricing, container, false)
@@ -48,12 +35,11 @@ class PropertyPricingFragment : Fragment(), OnMapReadyCallback {
         etPrice = view.findViewById(R.id.etPrice)
         cbNegotiable = view.findViewById(R.id.cbNegotiable)
         sliderPrice = view.findViewById(R.id.sliderPrice)
-        tvLocation = view.findViewById(R.id.tvLocationCoords)
-        btnSelectLocation = view.findViewById(R.id.btnSelectLocation)
         
         llRooms = view.findViewById(R.id.llRooms)
         llBaths = view.findViewById(R.id.llBaths)
         etArea = view.findViewById(R.id.etArea)
+        toggleFurnishing = view.findViewById(R.id.toggleFurnishing)
 
         setupPricingLogic()
         setupSelectionLogic(llRooms)
@@ -61,26 +47,6 @@ class PropertyPricingFragment : Fragment(), OnMapReadyCallback {
         
         applyNumberFormatting(etPrice)
         applyNumberFormatting(etArea)
-        
-        btnSelectLocation.setOnClickListener { onMapClick?.invoke() }
-        
-        val mapFragment = childFragmentManager.findFragmentById(R.id.mapPricing) as? SupportMapFragment
-        mapFragment?.getMapAsync(this)
-    }
-
-    override fun onMapReady(map: GoogleMap) {
-        googleMap = map
-        googleMap?.uiSettings?.isZoomControlsEnabled = true
-        
-        val initialPos = LatLng(currentLat, currentLng)
-        googleMap?.moveCamera(CameraUpdateFactory.newLatLngZoom(initialPos, 15f))
-        
-        googleMap?.setOnCameraIdleListener {
-            val target = googleMap?.cameraPosition?.target ?: return@setOnCameraIdleListener
-            currentLat = target.latitude
-            currentLng = target.longitude
-            tvLocation.text = String.format(Locale.US, "Coordinates: %.6f, %.6f", currentLat, currentLng)
-        }
     }
 
     private fun setupSelectionLogic(container: LinearLayout) {
@@ -158,7 +124,7 @@ class PropertyPricingFragment : Fragment(), OnMapReadyCallback {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
             override fun afterTextChanged(s: Editable?) {
-                if (isUpdating) return
+                if (isUpdating || !editText.hasFocus()) return
                 val input = s.toString()
                 if (input.isEmpty()) return
 
@@ -166,19 +132,24 @@ class PropertyPricingFragment : Fragment(), OnMapReadyCallback {
                 
                 val cleanString = input.replace(",", "")
                 val formatted = try {
-                    val number = cleanString.toLong()
-                    formatNumber(number)
+                    if (editText.id == R.id.etPrice) {
+                        val number = cleanString.toDouble()
+                        formatDecimal(number)
+                    } else {
+                        val number = cleanString.toLong()
+                        formatNumber(number)
+                    }
                 } catch (e: Exception) {
                     cleanString
                 }
 
-                if (formatted != input) {
+                if (formatted != input && !formatted.endsWith(".")) {
                     val selectionStart = editText.selectionStart
-                    val commasBefore = input.substring(0, selectionStart).count { it == ',' }
+                    val commasBefore = input.substring(0, selectionStart.coerceIn(0, input.length)).count { it == ',' }
                     
                     editText.setText(formatted)
                     
-                    val commasAfter = formatted.substring(0, Math.min(selectionStart + (formatted.length - input.length), formatted.length)).count { it == ',' }
+                    val commasAfter = formatted.substring(0, Math.min(selectionStart + (formatted.length - input.length), formatted.length).coerceAtLeast(0)).count { it == ',' }
                     val newCursor = (selectionStart + (commasAfter - commasBefore)).coerceIn(0, formatted.length)
                     editText.setSelection(newCursor)
                 }
@@ -192,25 +163,27 @@ class PropertyPricingFragment : Fragment(), OnMapReadyCallback {
         return DecimalFormat("#,###").format(number)
     }
 
+    private fun formatDecimal(number: Double): String {
+        val df = DecimalFormat("#,###.##")
+        return df.format(number)
+    }
+
     fun setData(property: com.example.propertyconsultancy.data.dto.PropertyDTO) {
-        val price = property.pricePerMonth?.toLong() ?: 0L
-        etPrice.setText(formatNumber(price))
-        sliderPrice.value = price.toFloat()
+        val price = property.pricePerMonth ?: 0.0
+        etPrice.setText(formatDecimal(price))
+        sliderPrice.value = price.toFloat().coerceIn(sliderPrice.valueFrom, sliderPrice.valueTo)
         
         setSelectedValue(llRooms, property.bedrooms?.toString() ?: "")
         setSelectedValue(llBaths, property.bathrooms?.toInt()?.toString() ?: "")
         
         val area = property.areaSqft?.toLong() ?: 0L
         etArea.setText(formatNumber(area))
-        
-        updateLocation(property.latitude ?: 0.0, property.longitude ?: 0.0)
-    }
 
-    fun updateLocation(lat: Double, lng: Double) {
-        currentLat = lat
-        currentLng = lng
-        tvLocation.text = String.format(Locale.US, "Coordinates: %.6f, %.6f", lat, lng)
-        googleMap?.moveCamera(CameraUpdateFactory.newLatLngZoom(LatLng(lat, lng), 15f))
+        if (property.furnishing?.contains("Unfurnished", true) == true) {
+            toggleFurnishing.check(R.id.btnUnfurnished)
+        } else if (property.furnishing?.contains("Furnished", true) == true) {
+            toggleFurnishing.check(R.id.btnFurnished)
+        }
     }
 
     fun getData(): Map<String, Any?> {
@@ -218,14 +191,16 @@ class PropertyPricingFragment : Fragment(), OnMapReadyCallback {
         val bathrooms = bathroomsStr.toDoubleOrNull() ?: 1.0
         val area = etArea.text.toString().replace(",", "").toIntOrNull() ?: 0
         
+        val furnishId = toggleFurnishing.checkedButtonId
+        val furnishing = if (furnishId != -1) view?.findViewById<Button>(furnishId)?.text?.toString() ?: "" else ""
+
         return mapOf(
             "price" to etPrice.text.toString().replace(",", ""),
             "negotiable" to if (cbNegotiable.isChecked) "Yes" else "No",
-            "latitude" to currentLat,
-            "longitude" to currentLng,
             "rooms" to getSelectedValue(llRooms),
             "bathrooms" to bathrooms,
-            "area" to area
+            "area" to area,
+            "furnishing" to furnishing
         )
     }
     

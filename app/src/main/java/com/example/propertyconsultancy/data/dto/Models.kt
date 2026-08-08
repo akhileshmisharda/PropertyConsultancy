@@ -55,7 +55,9 @@ data class CategoryOptionDTO(
     @SerializedName("category_id") val categoryId: Int,
     @SerializedName("option") val option: String,
     @SerializedName("hasvalue") val hasValue: Int = 0,
-    @SerializedName("hascaption") val hasCaption: String? = null
+    @SerializedName("hascaption") val hasCaption: String? = null,
+    @SerializedName("hastype") val hasType: String? = null,
+    @SerializedName("hasfield") val hasField: String? = null
 )
 
 data class CategoryGroupDTO(
@@ -90,6 +92,7 @@ data class PropertyDTO(
     @SerializedName("security_deposit") val securityDeposit: Double? = null,
     @SerializedName("bedrooms") val bedrooms: Int? = null,
     @SerializedName("bathrooms") val bathrooms: Double? = null,
+    @SerializedName("furnishing") val furnishing: String? = null,
     @SerializedName("max_guests") val maxGuests: Int? = null,
     @SerializedName("area_sqft") val areaSqft: Int? = null,
     @SerializedName("status") val status: String? = null,

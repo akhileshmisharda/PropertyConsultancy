@@ -114,8 +114,8 @@
     </style>
 
     <style name="App.TextInputLayout.Style" parent="Widget.Material3.TextInputLayout.OutlinedBox">
-        <item name="boxStrokeWidth">0.25dp</item>
-        <item name="boxStrokeWidthFocused">0.25dp</item>
+        <item name="boxStrokeWidth">1dp</item>
+        <item name="boxStrokeWidthFocused">2dp</item>
         <item name="shapeAppearanceOverlay">@style/App.RoundedCorners</item>
     </style>
 

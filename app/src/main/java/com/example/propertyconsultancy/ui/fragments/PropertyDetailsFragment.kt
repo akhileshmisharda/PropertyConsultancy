@@ -27,6 +27,10 @@ import android.widget.EditText
 import android.graphics.Typeface
 import android.widget.TextView
 import com.google.android.material.color.MaterialColors
+import android.text.InputType
+import android.text.Editable
+import android.text.TextWatcher
+import com.example.propertyconsultancy.data.dto.CategoryOptionDTO
 
 class PropertyDetailsFragment : Fragment() {
 
@@ -49,7 +53,9 @@ class PropertyDetailsFragment : Fragment() {
     private var selectedRoadSizeId: Int? = null
     private var selectedFloorId: Int? = null
     private var selectedStatusId: Int? = null
-    private var statusDate: String? = null
+    
+    private val dynamicValues = mutableMapOf<String, String>()
+    private val tabToActiveField = mutableMapOf<String, String?>()
 
     private var currentTab = "PropertyType"
     private var categories: List<CategoryGroupDTO>? = null
@@ -71,12 +77,13 @@ class PropertyDetailsFragment : Fragment() {
         tilExtraValue = view.findViewById(R.id.tilExtraValue)
         etExtraValue = view.findViewById(R.id.etExtraValue)
         
-        etExtraValue.addTextChangedListener(object : android.text.TextWatcher {
+        etExtraValue.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-            override fun afterTextChanged(s: android.text.Editable?) {
-                if (tilExtraValue.visibility == View.VISIBLE) {
-                    statusDate = s.toString()
+            override fun afterTextChanged(s: Editable?) {
+                val activeField = tabToActiveField[currentTab]
+                if (activeField != null && tilExtraValue.visibility == View.VISIBLE) {
+                    dynamicValues[activeField] = s.toString()
                 }
             }
         })
@@ -151,30 +158,17 @@ class PropertyDetailsFragment : Fragment() {
 
         options.forEach { option ->
             val chip = LayoutInflater.from(requireContext()).inflate(R.layout.layout_selection_chip, cgOptions, false) as Chip
-            // Show hasValue for debugging
-            chip.text = "${option.option} (${option.hasValue})"
+            chip.text = option.option
             chip.id = option.categoryId
             chip.isChecked = option.categoryId == currentSelectedId
             
-            // Critical check for initial state
-            if (chip.isChecked && option.hasValue == 1) {
-                tilExtraValue.visibility = View.VISIBLE
-                tilExtraValue.hint = option.hasCaption ?: "Enter Value"
-                etExtraValue.setText(statusDate ?: "")
+            if (chip.isChecked) {
+                updateExtraFieldVisibility(option)
             }
 
             chip.setOnCheckedChangeListener { _, isChecked ->
                 if (isChecked) {
-                    if (option.hasValue == 1) {
-                        tilExtraValue.visibility = View.VISIBLE
-                        tilExtraValue.hint = option.hasCaption ?: "Enter Value"
-                        // Pre-fill if we have existing date
-                        etExtraValue.setText(statusDate ?: "")
-                    } else {
-                        tilExtraValue.visibility = View.GONE
-                        statusDate = null
-                        etExtraValue.setText("")
-                    }
+                    updateExtraFieldVisibility(option)
 
                     when (currentTab) {
                         "PropertyType" -> selectedProTypeId = option.categoryId
@@ -187,13 +181,29 @@ class PropertyDetailsFragment : Fragment() {
             }
             cgOptions.addView(chip)
         }
-        
-        // Final visibility sync
-        val selectedOption = options.find { it.categoryId == currentSelectedId }
-        if (selectedOption != null && selectedOption.hasValue == 1) {
+    }
+
+    private fun updateExtraFieldVisibility(option: CategoryOptionDTO) {
+        val hasField = option.hasField
+        if (option.hasValue == 1 && hasField != null) {
+            tabToActiveField[currentTab] = hasField
             tilExtraValue.visibility = View.VISIBLE
+            tilExtraValue.hint = option.hasCaption ?: "Enter Value"
+            setEtInputType(option.hasType)
+            etExtraValue.setText(dynamicValues[hasField] ?: "")
         } else {
+            tabToActiveField[currentTab] = null
             tilExtraValue.visibility = View.GONE
+        }
+    }
+
+    private fun setEtInputType(type: String?) {
+        etExtraValue.inputType = when (type?.lowercase()) {
+            "number" -> InputType.TYPE_CLASS_NUMBER
+            "decimal" -> InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_FLAG_DECIMAL
+            "date" -> InputType.TYPE_CLASS_DATETIME or InputType.TYPE_DATETIME_VARIATION_DATE
+            "phone" -> InputType.TYPE_CLASS_PHONE
+            else -> InputType.TYPE_CLASS_TEXT
         }
     }
 
@@ -275,23 +285,29 @@ class PropertyDetailsFragment : Fragment() {
         selectedRoadSizeId = property.roadSizeId
         selectedFloorId = property.floorId
         selectedStatusId = property.statusId
-        statusDate = property.statusDate
+        
+        property.statusDate?.let { dynamicValues["status_date"] = it }
 
         // Refresh current options to show selection
         loadOptions(currentTab)
     }
 
     fun getData(): Map<String, Any?> {
-        val extraVal = if (tilExtraValue.visibility == View.VISIBLE) etExtraValue.text.toString() else statusDate
-        return mapOf(
+        val result = mutableMapOf<String, Any?>(
             "title" to etTitle.text.toString(),
             "description" to etDescription.text.toString(),
             "protype_id" to selectedProTypeId,
             "facing_id" to selectedFacingId,
             "roadsize_id" to selectedRoadSizeId,
             "floor_id" to selectedFloorId,
-            "status_id" to selectedStatusId,
-            "status_date" to extraVal
+            "status_id" to selectedStatusId
         )
+        
+        // Add all dynamic values that belong to currently selected options
+        tabToActiveField.values.filterNotNull().distinct().forEach { fieldName ->
+            dynamicValues[fieldName]?.let { result[fieldName] = it }
+        }
+        
+        return result
     }
 }

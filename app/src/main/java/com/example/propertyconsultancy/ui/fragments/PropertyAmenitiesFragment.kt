@@ -20,7 +20,6 @@ import kotlinx.coroutines.withContext
 
 class PropertyAmenitiesFragment : Fragment() {
 
-    private lateinit var toggleFurnishing: MaterialButtonToggleGroup
     private lateinit var lvAvailableAmenities: ListView
     private lateinit var lvSelectedAmenities: ListView
     private lateinit var tvSelectedCount: TextView
@@ -40,7 +39,6 @@ class PropertyAmenitiesFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        toggleFurnishing = view.findViewById(R.id.toggleFurnishing)
         lvAvailableAmenities = view.findViewById(R.id.lvAvailableAmenities)
         lvSelectedAmenities = view.findViewById(R.id.lvSelectedAmenities)
         tvSelectedCount = view.findViewById(R.id.tvSelectedCount)
@@ -168,8 +166,6 @@ class PropertyAmenitiesFragment : Fragment() {
     }
 
     fun getData(): Map<String, Any> {
-        val furnishId = toggleFurnishing.checkedButtonId
-        val furnishing = if (furnishId != -1) view?.findViewById<Button>(furnishId)?.text?.toString() ?: "" else ""
-        return mapOf("furnishing" to furnishing, "amenity_ids" to selectedAmenityIds)
+        return mapOf("amenity_ids" to selectedAmenityIds)
     }
 }

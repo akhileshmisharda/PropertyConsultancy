@@ -12,45 +12,6 @@
         android:layout_height="wrap_content"
         android:padding="8dp">
 
-        <View
-            android:id="@+id/boxFurnishing"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_marginTop="12dp"
-            android:background="@drawable/edit_text_bg"
-            app:layout_constraintBottom_toBottomOf="@id/toggleFurnishing"
-            app:layout_constraintTop_toTopOf="parent"
-            android:layout_marginBottom="-8dp"/>
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:background="?attr/colorSurfaceVariant"
-            android:paddingHorizontal="8dp"
-            android:paddingVertical="2dp"
-            android:text="Furnishing Status"
-            android:textStyle="bold"
-            android:textSize="12sp"
-            android:textColor="?attr/colorOnSurface"
-            app:layout_constraintBottom_toTopOf="@id/boxFurnishing"
-            app:layout_constraintStart_toStartOf="@id/boxFurnishing"
-            app:layout_constraintTop_toTopOf="@id/boxFurnishing"
-            android:layout_marginStart="12dp" />
-
-        <com.google.android.material.button.MaterialButtonToggleGroup
-            android:id="@+id/toggleFurnishing"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:padding="8dp"
-            app:layout_constraintTop_toTopOf="parent"
-            app:singleSelection="true"
-            app:selectionRequired="true"
-            app:checkedButton="@id/btnUnfurnished">
-            <com.google.android.material.button.MaterialButton android:id="@+id/btnFurnished" style="@style/Widget.Material3.Button.OutlinedButton" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Furnished" app:strokeWidth="0.5dp" android:checkable="true"/>
-            <com.google.android.material.button.MaterialButton android:id="@+id/btnUnfurnished" style="@style/Widget.Material3.Button.OutlinedButton" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Unfurnished" app:strokeWidth="0.5dp" android:checkable="true"/>
-        </com.google.android.material.button.MaterialButtonToggleGroup>
-
         <LinearLayout
             android:id="@+id/llAmenitiesLabel"
             android:layout_width="wrap_content"
@@ -84,11 +45,11 @@
         <LinearLayout
             android:id="@+id/llAmenitiesList"
             android:layout_width="match_parent"
-            android:layout_height="500dp"
-            android:layout_marginTop="16dp"
+            android:layout_height="600dp"
+            android:layout_marginTop="24dp"
             android:orientation="horizontal"
             android:padding="8dp"
-            app:layout_constraintTop_toBottomOf="@id/toggleFurnishing"
+            app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent">
 
             <FrameLayout

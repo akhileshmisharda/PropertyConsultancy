@@ -24,10 +24,10 @@ interface ApiService {
     suspend fun getActiveCities(): List<String>
 
     @POST("submit_property.php")
-    suspend fun submitProperty(@Body property: PropertyDTO): GenericResponseDTO
+    suspend fun submitProperty(@Body property: Map<String, @JvmSuppressWildcards Any?>): GenericResponseDTO
 
     @POST("update_property.php")
-    suspend fun updateProperty(@Body property: PropertyDTO): GenericResponseDTO
+    suspend fun updateProperty(@Body property: Map<String, @JvmSuppressWildcards Any?>): GenericResponseDTO
 
     @GET("get_properties.php")
     suspend fun getPropertiesByUser(@Query("landlord_id") landlordId: Long): PropertyListResponseDTO

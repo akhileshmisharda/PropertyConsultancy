@@ -14,6 +14,7 @@ import com.example.propertyconsultancy.data.dto.CategoryOptionDTO
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
 import android.util.Log
+import android.text.InputType
 
 class SelectionDialogFragment(
     private val title: String,
@@ -65,6 +66,7 @@ class SelectionDialogFragment(
                     rv.visibility = View.GONE
                     tilExtraData.visibility = View.VISIBLE
                     tilExtraData.hint = option.hasCaption ?: "Enter details"
+                    setEtInputType(etExtraData, option.hasType)
                     btnConfirm.visibility = View.VISIBLE
                     etExtraData.requestFocus()
                 } else {
@@ -102,6 +104,16 @@ class SelectionDialogFragment(
         val width = (resources.displayMetrics.widthPixels * 0.90).toInt()
         dialog?.window?.setLayout(width, ViewGroup.LayoutParams.WRAP_CONTENT)
         dialog?.window?.setBackgroundDrawableResource(android.R.color.transparent)
+    }
+
+    private fun setEtInputType(et: TextInputEditText, type: String?) {
+        et.inputType = when (type?.lowercase()) {
+            "number" -> InputType.TYPE_CLASS_NUMBER
+            "decimal" -> InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_FLAG_DECIMAL
+            "date" -> InputType.TYPE_CLASS_DATETIME or InputType.TYPE_DATETIME_VARIATION_DATE
+            "phone" -> InputType.TYPE_CLASS_PHONE
+            else -> InputType.TYPE_CLASS_TEXT
+        }
     }
 
     private class OptionsAdapter(
