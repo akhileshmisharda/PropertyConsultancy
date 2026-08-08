@@ -98,9 +98,11 @@ class DashboardFragment : Fragment() {
         dashboardProgress.visibility = View.VISIBLE
         lifecycleScope.launch {
             try {
+                Log.d("[Dashboard]", "Fetching properties for user: ${user.userId}")
                 val response = RetrofitInstance.api.getPropertiesByUser(user.userId)
                 if (response.status == "success") {
                     val properties = response.data ?: emptyList()
+                    Log.d("[Dashboard]", "Received ${properties.size} properties. First exec: ${properties.firstOrNull()?.executiveName}")
                     sessionManager.saveDashboardData(Gson().toJson(properties))
                     updateUI(properties)
                 }

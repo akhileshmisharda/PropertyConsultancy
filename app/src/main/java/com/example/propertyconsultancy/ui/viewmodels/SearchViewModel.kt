@@ -28,4 +28,6 @@ class SearchViewModel : ViewModel() {
     
     var lastClickedPosition: Int = -1
     var selectedPropertyOnMap: com.example.propertyconsultancy.data.dto.PropertyDTO? = null
+    
+    var shouldRefresh: Boolean = false
 }

@@ -29,6 +29,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import android.transition.TransitionInflater
+import androidx.lifecycle.ViewModelProvider
+import com.example.propertyconsultancy.ui.viewmodels.SearchViewModel
 
 class AddPropertyFragment : Fragment() {
 
@@ -46,6 +48,7 @@ class AddPropertyFragment : Fragment() {
     private lateinit var progressBar: LinearProgressIndicator
     private lateinit var tvProgressPercent: TextView
     private lateinit var sessionManager: SessionManager
+    private lateinit var searchViewModel: SearchViewModel
     private var propertyToEdit: PropertyDTO? = null
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -55,6 +58,7 @@ class AddPropertyFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         sessionManager = SessionManager(requireContext())
+        searchViewModel = ViewModelProvider(requireActivity())[SearchViewModel::class.java]
         propertyToEdit = arguments?.getSerializable("property") as? PropertyDTO
 
         val logAction = if (propertyToEdit != null) "Editing property: ${propertyToEdit?.title}" else "Adding new property"
@@ -184,6 +188,7 @@ class AddPropertyFragment : Fragment() {
                 val resp = if (payload["property_id"] != null) RetrofitInstance.api.updateProperty(payload) else RetrofitInstance.api.submitProperty(payload)
                 withContext(Dispatchers.Main) {
                     if (resp.status == "success") { 
+                        searchViewModel.shouldRefresh = true
                         Toast.makeText(requireContext(), "Property saved successfully!", Toast.LENGTH_SHORT).show()
                         requireActivity().onBackPressed() 
                     }

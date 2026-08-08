@@ -32,6 +32,9 @@ interface ApiService {
     @GET("get_properties.php")
     suspend fun getPropertiesByUser(@Query("landlord_id") landlordId: Long): PropertyListResponseDTO
 
+    @GET("get_properties.php")
+    suspend fun getPropertyDetail(@Query("property_id") propertyId: Long): PropertyListResponseDTO
+
     @GET("get_categories.php")
     suspend fun getCategories(): CategoryResponseDTO
 

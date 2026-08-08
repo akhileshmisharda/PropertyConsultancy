@@ -199,6 +199,16 @@ class SearchFragment : Fragment(), OnMapReadyCallback {
         }
     }
 
+    override fun onResume() {
+        super.onResume()
+        if (viewModel.shouldRefresh) {
+            viewModel.shouldRefresh = false
+            if (viewModel.lastSearchCity.isNotEmpty()) {
+                performSearch(viewModel.lastSearchCity)
+            }
+        }
+    }
+
     private fun initViews(view: View) {
         layoutSearchSummary = view.findViewById(R.id.layoutSearchSummary)
         tvSearchSummary = view.findViewById(R.id.tvSearchSummary)

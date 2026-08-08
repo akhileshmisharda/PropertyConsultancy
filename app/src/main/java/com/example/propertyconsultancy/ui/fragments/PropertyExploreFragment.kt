@@ -17,6 +17,8 @@ import com.example.propertyconsultancy.data.dto.PropertyInteractionDTO
 import com.example.propertyconsultancy.ui.activities.MainActivity
 import com.google.android.material.button.MaterialButton
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.ViewModelProvider
+import com.example.propertyconsultancy.ui.viewmodels.SearchViewModel
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
@@ -39,6 +41,12 @@ class PropertyExploreFragment : Fragment() {
     private lateinit var ivHintExploreAiMap: ImageView
     private lateinit var ivHintExploreAiFeedback: ImageView
     private lateinit var exploreProgress: com.google.android.material.progressindicator.LinearProgressIndicator
+
+    private lateinit var viewModel: SearchViewModel
+    private lateinit var cardExecutive: View
+    private lateinit var tvExecutiveName: TextView
+    private lateinit var tvExecutiveMobile: TextView
+    private lateinit var btnCallExecutive: com.google.android.material.button.MaterialButton
 
     private lateinit var sessionManager: com.example.propertyconsultancy.data.local.SessionManager
 
@@ -80,17 +88,46 @@ class PropertyExploreFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         sessionManager = com.example.propertyconsultancy.data.local.SessionManager(requireContext())
+        viewModel = ViewModelProvider(requireActivity())[SearchViewModel::class.java]
         (activity as? MainActivity)?.updateTitle("Property Explore")
         
         val property = property ?: return
         sessionManager.addActivityLog("Property Detail", "Viewed property: ${property.title}", "view")
         
         initViews(view)
-        bindPropertyData(property)
+        refreshPropertyData() // Fetch latest from server immediately
         fetchInitialInteraction(property.propertyId ?: 0)
         
         if (sessionManager.isHintsEnabled()) {
             view.post { showAllStickyHints() }
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (viewModel.shouldRefresh) {
+            // If something was updated, we definitely need the latest data
+            refreshPropertyData()
+        }
+    }
+
+    private fun refreshPropertyData() {
+        val pid = property?.propertyId ?: return
+        exploreProgress.visibility = View.VISIBLE
+        lifecycleScope.launch {
+            try {
+                val response = com.example.propertyconsultancy.data.remote.RetrofitInstance.api.getPropertyDetail(pid)
+                if (response.status == "success" && !response.data.isNullOrEmpty()) {
+                    val updated = response.data[0]
+                    property = updated
+                    bindPropertyData(updated)
+                    Log.d("[Explore]", "Refreshed Data for ${updated.title}. Exec: ${updated.executiveName}")
+                }
+            } catch (e: Exception) {
+                Log.e("[Explore]", "Refresh Error: ${e.message}")
+            } finally {
+                exploreProgress.visibility = View.GONE
+            }
         }
     }
 
@@ -108,6 +145,11 @@ class PropertyExploreFragment : Fragment() {
         ivHintExploreAiMap = view.findViewById(R.id.ivHintExploreAiMap)
         ivHintExploreAiFeedback = view.findViewById(R.id.ivHintExploreAiFeedback)
         
+        cardExecutive = view.findViewById(R.id.cardExecutive)
+        tvExecutiveName = view.findViewById(R.id.tvExecutiveName)
+        tvExecutiveMobile = view.findViewById(R.id.tvExecutiveMobile)
+        btnCallExecutive = view.findViewById(R.id.btnCallExecutive)
+
         btnAiMap.setOnClickListener {
             property?.let { (activity as? MainActivity)?.openAiMap(it) }
         }
@@ -187,12 +229,33 @@ class PropertyExploreFragment : Fragment() {
         tvPropertyType.text = getOptionName(property.proTypeId?.let { listOf(it) }, "Property Type")
         tvFloor.text = "Floor: ${getOptionName(property.floorId?.let { listOf(it) }, "Floor")}"
 
-        val isFurnished = property.description?.contains("furnished", true) == true || 
-                          property.amenities?.any { it.name.contains("furnished", true) } == true
-        tvFurnished.text = if (isFurnished) "Furnished" else "Unfurnished"
+        tvFurnished.text = property.furnishing ?: "Unfurnished"
         tvAmenities.text = "{ ${property.amenityCount ?: 0} Amenities }"
         tvInterested.text = "{ ${(5..25).random()} Interested }"
         tvDescription.text = property.description ?: "No description available."
+
+        // Executive Info Binding with Logging
+        Log.d("[Explore]", "Executive Data: id=${property.executiveId}, name=${property.executiveName}, mobile=${property.executiveMobile}")
+        
+        if (property.executiveId != null && !property.executiveName.isNullOrEmpty()) {
+            cardExecutive.visibility = View.VISIBLE
+            tvExecutiveName.text = property.executiveName
+            tvExecutiveMobile.text = property.executiveMobile ?: "N/A"
+            btnCallExecutive.setOnClickListener {
+                property.executiveMobile?.let { mobile ->
+                    try {
+                        val intent = android.content.Intent(android.content.Intent.ACTION_DIAL)
+                        intent.data = android.net.Uri.parse("tel:$mobile")
+                        startActivity(intent)
+                    } catch (e: Exception) {
+                        Toast.makeText(requireContext(), "Unable to make call", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+        } else {
+            Log.d("[Explore]", "Hiding Executive Card (Data missing or ID is null)")
+            cardExecutive.visibility = View.GONE
+        }
 
         val mediaUrls = (property.media?.map { it.fileUrl } ?: emptyList()) + (property.mediaUrls ?: emptyList()).distinct()
         vpMedia.adapter = com.example.propertyconsultancy.ui.adapters.MediaSliderAdapter(mediaUrls) { position ->

@@ -1,6 +1,8 @@
 <?php
 header("Content-Type: application/json");
 header("Access-Control-Allow-Origin: *");
+header("Access-Control-Allow-Methods: GET, OPTIONS");
+header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With");
 
 // --- DEBUG LOGGING START ---
 function writeDebugLog($message, $data = null) {
@@ -13,7 +15,12 @@ function writeDebugLog($message, $data = null) {
     file_put_contents($logFile, $logContent . PHP_EOL, FILE_APPEND);
 }
 
-// Log incoming request data
+// Handle Preflight OPTIONS
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
+    exit();
+}
+
 writeDebugLog("--- Incoming API Request ---");
 writeDebugLog("GET Params", $_GET);
 // --- DEBUG LOGGING END ---
@@ -30,19 +37,20 @@ if (file_exists($config_path)) {
 }
 
 // Extract search parameters
-$city = $_GET['city'] ?? null;
-$min_price = $_GET['min_price'] ?? null;
-$max_price = $_GET['max_price'] ?? null;
-$bedrooms = $_GET['bedrooms'] ?? null;
-$bathrooms = $_GET['bathrooms'] ?? null;
-$floor_ids = $_GET['floor_ids'] ?? null;
+$city         = $_GET['city'] ?? null;
+$zip_code     = $_GET['zip_code'] ?? null;
+$min_price    = $_GET['min_price'] ?? null;
+$max_price    = $_GET['max_price'] ?? null;
+$bedrooms     = $_GET['bedrooms'] ?? null;
+$bathrooms    = $_GET['bathrooms'] ?? null;
+$floor_ids    = $_GET['floor_ids'] ?? null;
 $roadsize_ids = $_GET['roadsize_ids'] ?? null;
-$facing_ids = $_GET['facing_ids'] ?? null;
-$status_ids = $_GET['status_ids'] ?? null;
-$protype_ids = $_GET['protype_ids'] ?? null;
+$facing_ids   = $_GET['facing_ids'] ?? null;
+$status_ids   = $_GET['status_ids'] ?? null;
+$protype_ids  = $_GET['protype_ids'] ?? null;
 
 // Pagination parameters
-$limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 5;
+$limit  = isset($_GET['limit']) ? (int)$_GET['limit'] : 5;
 $offset = isset($_GET['offset']) ? (int)$_GET['offset'] : 0;
 
 $whereClauses = ["1=1"];
@@ -51,6 +59,11 @@ $params = [];
 if (isset($city) && $city !== '') {
     $whereClauses[] = "p.city LIKE :city";
     $params[':city'] = "%$city%";
+}
+
+if (isset($zip_code) && $zip_code !== '') {
+    $whereClauses[] = "p.zip_code = :zip_code";
+    $params[':zip_code'] = $zip_code;
 }
 
 if (isset($min_price) && $min_price !== '') {
@@ -99,6 +112,8 @@ addInClause('status_id', $status_ids, $whereClauses, $params);
 $whereSql = implode(" AND ", $whereClauses);
 
 try {
+    $pdo = new PDO('mysql:host='.DB_HOST.';dbname='.DB_NAME.';charset=utf8mb4', DB_USER, DB_PASS, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
+
     // Disable emulation to ensure LIMIT/OFFSET are handled correctly
     $pdo->setAttribute(PDO::ATTR_EMULATE_PREPARES, false);
 
@@ -108,11 +123,16 @@ try {
     $countStmt->execute($params);
     $totalCount = (int)$countStmt->fetchColumn();
 
-    // 2. Get Paginated Data
+    // 2. Get Paginated Data with Executive Info
     $query = "SELECT p.*,
               (SELECT GROUP_CONCAT(pm.file_url) FROM pro_property_media pm WHERE pm.property_id = p.property_id) as media_urls,
-              (SELECT COUNT(*) FROM pro_property_amenities pa WHERE pa.property_id = p.property_id) as amenity_count
+              (SELECT COUNT(*) FROM pro_property_amenities pa WHERE pa.property_id = p.property_id) as amenity_count,
+              pe.user_id as executive_id,
+              CONCAT(pe.first_name, ' ', pe.last_name) as executive_name,
+              pe.phone as executive_mobile
               FROM pro_properties p
+              LEFT JOIN pro_landlord_executives ple ON p.landlord_id = ple.landlord_id AND ple.is_active = 1
+              LEFT JOIN pro_users pe ON ple.executive_id = pe.user_id
               WHERE $whereSql
               GROUP BY p.property_id
               ORDER BY p.created_at DESC

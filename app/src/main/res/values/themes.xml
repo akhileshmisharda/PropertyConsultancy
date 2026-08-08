@@ -119,6 +119,17 @@
         <item name="shapeAppearanceOverlay">@style/App.RoundedCorners</item>
     </style>
 
+    <style name="App.TextInputLayout.Style.Compact" parent="App.TextInputLayout.Style">
+        <item name="android:paddingTop">0dp</item>
+        <item name="android:paddingBottom">0dp</item>
+    </style>
+
+    <style name="App.EditText.Style.Compact" parent="App.EditText.Style">
+        <item name="android:paddingTop">8dp</item>
+        <item name="android:paddingBottom">8dp</item>
+        <item name="android:textSize">14sp</item>
+    </style>
+
     <!-- Modern Sans Typography for Navigation -->
     <style name="App.BottomNav.TextAppearance" parent="TextAppearance.Material3.LabelSmall">
         <item name="android:textStyle">normal</item>

@@ -211,6 +211,84 @@
 
             </GridLayout>
 
+            <!-- Executive Contact Center -->
+            <androidx.cardview.widget.CardView
+                android:id="@+id/cardExecutive"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                app:cardCornerRadius="20dp"
+                app:cardElevation="4dp"
+                app:cardBackgroundColor="@color/white"
+                android:visibility="gone"
+                tools:visibility="visible">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="ASSIGNED EXECUTIVE"
+                        android:textSize="12sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/modern_primary"
+                        android:letterSpacing="0.1" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginTop="12dp">
+
+                        <ImageView
+                            android:layout_width="48dp"
+                            android:layout_height="48dp"
+                            android:src="@drawable/ic_profile_modern"
+                            app:tint="@color/modern_primary" />
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical"
+                            android:layout_marginStart="16dp">
+
+                            <TextView
+                                android:id="@+id/tvExecutiveName"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textColor="@color/theme1_text"
+                                android:textSize="16sp"
+                                android:textStyle="bold"
+                                tools:text="John Doe" />
+
+                            <TextView
+                                android:id="@+id/tvExecutiveMobile"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textColor="@color/pending_gray"
+                                android:textSize="14sp"
+                                tools:text="+91 9876543210" />
+
+                        </LinearLayout>
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnCallExecutive"
+                            style="@style/Widget.Material3.Button.TonalButton"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Call"
+                            android:textSize="12sp" />
+
+                    </LinearLayout>
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
             <!-- Interaction Center -->
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"

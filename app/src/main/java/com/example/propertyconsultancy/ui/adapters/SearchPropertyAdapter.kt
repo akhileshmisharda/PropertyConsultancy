@@ -211,10 +211,7 @@ class SearchPropertyAdapter(
         tvFacing.text = "Facing : ${getOptionName(property.facingId?.let { listOf(it) }, "Facing")}"
         tvRoadSize.text = "Road : ${getOptionName(property.roadSizeId?.let { listOf(it) }, "Road Size")}"
         
-        // Furnished logic: check if any amenity name contains "Furnished" or check common keywords in description
-        val isFurnished = property.description?.contains("furnished", true) == true || 
-                          property.amenities?.any { it.name.contains("furnished", true) } == true
-        tvFurnished.text = if (isFurnished) "Furnished" else "Unfurnished"
+        tvFurnished.text = property.furnishing ?: "Unfurnished"
         
         tvPropertyType.text = getOptionName(property.proTypeId?.let { listOf(it) }, "Property Type")
 

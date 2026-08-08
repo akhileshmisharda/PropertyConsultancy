@@ -108,7 +108,10 @@ data class PropertyDTO(
     @SerializedName("landlord_name") val landlordName: String? = null,
     @SerializedName("amenity_ids") val amenityIds: List<Int>? = null,
     @SerializedName("media_urls") val mediaUrls: List<String>? = null,
-    @SerializedName("amenity_count") val amenityCount: Int? = null
+    @SerializedName("amenity_count") val amenityCount: Int? = null,
+    @SerializedName("executive_id") val executiveId: Long? = null,
+    @SerializedName("executive_name") val executiveName: String? = null,
+    @SerializedName("executive_mobile") val executiveMobile: String? = null
 ) : Serializable
 
 data class PropertyListResponseDTO(
