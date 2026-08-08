@@ -677,7 +677,7 @@ class PropertyExploreFragment : Fragment(), OnMapReadyCallback {
         switchFavorite.isChecked = isFavoriteLocal
         if (isFavoriteLocal) {
             ivFavoriteStatus.setImageResource(R.drawable.ic_favorite_filled)
-            ivFavoriteStatus.setColorFilter(android.graphics.Color.parseColor("#E53935"))
+            ivFavoriteStatus.setColorFilter(android.graphics.Color.parseColor("#2196F3"))
         } else {
             ivFavoriteStatus.setImageResource(R.drawable.ic_favorite_border)
             ivFavoriteStatus.setColorFilter(android.graphics.Color.GRAY)

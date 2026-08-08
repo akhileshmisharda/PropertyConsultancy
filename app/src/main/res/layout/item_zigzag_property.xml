@@ -24,7 +24,7 @@
             android:id="@+id/bgCardLeft"
             android:layout_width="0dp"
             android:layout_height="0dp"
-            android:layout_marginStart="60dp"
+            android:layout_marginStart="80dp"
             android:background="@drawable/bg_zigzag_card"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
@@ -33,15 +33,15 @@
 
         <LinearLayout
             android:id="@+id/llBadgeContainerLeft"
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center_vertical"
             android:background="@drawable/bg_badge_left"
-            android:paddingHorizontal="6dp"
-            android:paddingVertical="6dp"
+            android:paddingStart="12dp"
+            android:paddingEnd="16dp"
+            android:paddingVertical="8dp"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toStartOf="@id/bgCardLeft"
             app:layout_constraintTop_toTopOf="@id/llContentLeft">
 
             <ImageView
@@ -49,16 +49,15 @@
                 android:layout_width="18dp"
                 android:layout_height="18dp"
                 android:src="@drawable/ic_favorite_filled"
-                app:tint="#E53935"
+                app:tint="#2196F3"
                 android:visibility="gone"
                 tools:visibility="visible"
-                android:layout_marginEnd="4dp" />
+                android:layout_marginEnd="6dp" />
 
             <TextView
                 android:id="@+id/tvPropertyTypeLeft"
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
                 android:textSize="12sp"
                 android:textStyle="bold"
                 android:textColor="#E53935"
@@ -358,7 +357,7 @@
             android:id="@+id/bgCardRight"
             android:layout_width="0dp"
             android:layout_height="0dp"
-            android:layout_marginEnd="60dp"
+            android:layout_marginEnd="80dp"
             android:background="@drawable/bg_zigzag_card_right"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
@@ -367,15 +366,15 @@
 
         <LinearLayout
             android:id="@+id/llBadgeContainerRight"
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center_vertical"
             android:background="@drawable/bg_badge_right"
-            android:paddingHorizontal="6dp"
-            android:paddingVertical="6dp"
+            android:paddingStart="16dp"
+            android:paddingEnd="12dp"
+            android:paddingVertical="8dp"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@id/bgCardRight"
             app:layout_constraintTop_toTopOf="@id/llContentRight">
 
             <ImageView
@@ -383,16 +382,15 @@
                 android:layout_width="18dp"
                 android:layout_height="18dp"
                 android:src="@drawable/ic_favorite_filled"
-                app:tint="#E53935"
+                app:tint="#2196F3"
                 android:visibility="gone"
                 tools:visibility="visible"
-                android:layout_marginEnd="4dp" />
+                android:layout_marginEnd="6dp" />
 
             <TextView
                 android:id="@+id/tvPropertyTypeRight"
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
                 android:textSize="12sp"
                 android:textStyle="bold"
                 android:textColor="#E53935"
