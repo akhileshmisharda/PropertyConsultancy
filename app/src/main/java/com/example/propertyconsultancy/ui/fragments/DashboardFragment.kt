@@ -98,16 +98,27 @@ class DashboardFragment : Fragment() {
         dashboardProgress.visibility = View.VISIBLE
         lifecycleScope.launch {
             try {
-                Log.d("[Dashboard]", "Fetching properties for user: ${user.userId}")
+                Log.d("[php_debug]", "Fetching properties for user: ${user.userId}")
                 val response = RetrofitInstance.api.getPropertiesByUser(user.userId)
                 if (response.status == "success") {
                     val properties = response.data ?: emptyList()
-                    Log.d("[Dashboard]", "Received ${properties.size} properties. First exec: ${properties.firstOrNull()?.executiveName}")
+                    
+                    Log.d("[php_debug]", "--- Dashboard Properties ---")
+                    properties.forEachIndexed { index, prop ->
+                        Log.d("[php_debug]", "Property[$index]: ID=${prop.propertyId}, Title=${prop.title}")
+                        Log.d("[php_debug]", "    Media URLs Count: ${prop.mediaUrls?.size ?: 0}")
+                        Log.d("[php_debug]", "    Media URLs List: ${prop.mediaUrls?.joinToString(", ") ?: "NONE"}")
+                        Log.d("[php_debug]", "    Amenity Count: ${prop.amenityCount}")
+                        Log.d("[php_debug]", "    Amenity IDs: ${prop.amenityIds?.joinToString(", ") ?: "NONE"}")
+                    }
+
                     sessionManager.saveDashboardData(Gson().toJson(properties))
                     updateUI(properties)
+                } else {
+                    Log.e("[php_debug]", "API Status Error: ${response.status}")
                 }
             } catch (e: Exception) {
-                Log.e("[php_debug]", "Error: ${e.message}")
+                Log.e("[php_debug]", "Network Exception: ${e.message}")
             } finally {
                 dashboardProgress.visibility = View.GONE
             }

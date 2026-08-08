@@ -8,18 +8,17 @@ object UrlUtils {
     fun getPropertyImageUrl(url: String?): String? {
         if (url == null) return null
         
-        val fullUrl = if (!url.startsWith("http")) {
-            "http://fabkraft.in/property/$url"
+        // Clean existing version parameters to avoid accumulation
+        val cleanUrl = url.substringBefore("?")
+        
+        val fullUrl = if (!cleanUrl.startsWith("http")) {
+            "http://fabkraft.in/property/$cleanUrl"
         } else {
-            url
+            cleanUrl
         }
         
-        // Add a timestamp that changes every 5 minutes to bypass cache but still allow some reuse
+        // Add a fresh timestamp
         val cacheBuster = System.currentTimeMillis() / (1000 * 60 * 5)
-        return if (fullUrl.contains("?")) {
-            "$fullUrl&v=$cacheBuster"
-        } else {
-            "$fullUrl?v=$cacheBuster"
-        }
+        return "$fullUrl?v=$cacheBuster"
     }
 }

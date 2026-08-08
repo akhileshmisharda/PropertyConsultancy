@@ -1,6 +1,7 @@
 package com.example.propertyconsultancy.ui.fragments
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -170,6 +171,7 @@ class PropertyPricingFragment : Fragment() {
 
     fun setData(property: com.example.propertyconsultancy.data.dto.PropertyDTO) {
         val price = property.pricePerMonth ?: 0.0
+        Log.d("[php_debug]", "PropertyPricingFragment: Setting data. Price=$price, Area=${property.areaSqft}, Furnished=${property.furnishing}")
         etPrice.setText(formatDecimal(price))
         sliderPrice.value = price.toFloat().coerceIn(sliderPrice.valueFrom, sliderPrice.valueTo)
         

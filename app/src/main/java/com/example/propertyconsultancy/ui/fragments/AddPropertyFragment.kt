@@ -85,6 +85,9 @@ class AddPropertyFragment : Fragment() {
         if (propertyToEdit != null) {
             Handler(Looper.getMainLooper()).postDelayed({
                 propertyToEdit?.let { 
+                    Log.d("[php_debug]", "AddPropertyFragment initializing fragments with property ID: ${it.propertyId}")
+                    Log.d("[php_debug]", "Full Address Data from Server: Addr1=${it.addressLine1}, Addr2=${it.addressLine2}, City=${it.city}, State=${it.state}, Zip=${it.zipCode}, Lat=${it.latitude}, Lng=${it.longitude}")
+                    
                     pagerAdapter.detailsFragment.setData(it)
                     pagerAdapter.amenitiesFragment.setData(it)
                     pagerAdapter.pricingFragment.setData(it)
@@ -141,7 +144,9 @@ class AddPropertyFragment : Fragment() {
         CoroutineScope(Dispatchers.IO).launch {
             val processedMedia = (mediaImages + mediaVideos).mapNotNull { uri ->
                 if (uri.scheme?.startsWith("http") == true) {
-                    uri.toString().substringAfter("property/")
+                    val url = uri.toString()
+                    // Strip the domain and everything after '?' (cache busters)
+                    url.substringAfter("property/").substringBefore("?")
                 } else {
                     val b64 = FileUtils.encodeUriToBase64(requireContext(), uri)
                     if (b64 != null) {

@@ -15,6 +15,7 @@ import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.material.textfield.TextInputEditText
 import java.util.Locale
+import android.util.Log
 import android.location.Geocoder
 import android.text.Editable
 import android.text.TextWatcher
@@ -36,8 +37,9 @@ class PropertyAddressFragment : Fragment(), OnMapReadyCallback {
     private var googleMap: GoogleMap? = null
     private var currentLat: Double = 21.1458 // Default Nagpur
     private var currentLng: Double = 79.0882
-    private var isAutoFilling = false
-    private var skipNextGeocode = false
+    
+    private var isUserDraggingMap = false
+    private var isProgrammaticChange = false
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.fragment_property_address, container, false)
@@ -58,6 +60,11 @@ class PropertyAddressFragment : Fragment(), OnMapReadyCallback {
 
         val mapFragment = childFragmentManager.findFragmentById(R.id.mapAddress) as? SupportMapFragment
         mapFragment?.getMapAsync(this)
+        
+        // Initial load check
+        (arguments?.getSerializable("property") as? com.example.propertyconsultancy.data.dto.PropertyDTO)?.let {
+            setData(it)
+        }
     }
 
     private fun setupTouchInterception() {
@@ -80,7 +87,7 @@ class PropertyAddressFragment : Fragment(), OnMapReadyCallback {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
             override fun afterTextChanged(s: Editable?) {
-                if (isAutoFilling) return
+                if (isProgrammaticChange) return
                 val zip = s.toString()
                 if (zip.length >= 6) {
                     lookupZipCode(zip)
@@ -97,18 +104,18 @@ class PropertyAddressFragment : Fragment(), OnMapReadyCallback {
                 if (!addresses.isNullOrEmpty()) {
                     val addr = addresses[0]
                     withContext(Dispatchers.Main) {
-                        isAutoFilling = true
+                        isProgrammaticChange = true
                         etCity.setText(addr.locality ?: addr.subAdminArea ?: "")
                         etState.setText(addr.adminArea ?: "")
                         
-                        // Also move map to this zip location
+                        // Move map to this zip location
                         val latLng = LatLng(addr.latitude, addr.longitude)
                         googleMap?.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 14f))
-                        isAutoFilling = false
+                        isProgrammaticChange = false
                     }
                 }
             } catch (ignore: Exception) {
-                isAutoFilling = false
+                withContext(Dispatchers.Main) { isProgrammaticChange = false }
             }
         }
     }
@@ -120,18 +127,21 @@ class PropertyAddressFragment : Fragment(), OnMapReadyCallback {
         val initialPos = LatLng(currentLat, currentLng)
         googleMap?.moveCamera(CameraUpdateFactory.newLatLngZoom(initialPos, 15f))
         
+        googleMap?.setOnCameraMoveStartedListener { reason ->
+            if (reason == GoogleMap.OnCameraMoveStartedListener.REASON_GESTURE) {
+                isUserDraggingMap = true
+            }
+        }
+
         googleMap?.setOnCameraIdleListener {
             val target = googleMap?.cameraPosition?.target ?: return@setOnCameraIdleListener
             currentLat = target.latitude
             currentLng = target.longitude
             tvCoordsDisplay.text = String.format(Locale.US, "Coordinates: %.6f, %.6f", currentLat, currentLng)
             
-            if (!isAutoFilling) {
-                if (skipNextGeocode) {
-                    skipNextGeocode = false
-                } else {
-                    reverseGeocode(currentLat, currentLng)
-                }
+            if (isUserDraggingMap) {
+                isUserDraggingMap = false
+                reverseGeocode(currentLat, currentLng)
             }
         }
     }
@@ -144,9 +154,8 @@ class PropertyAddressFragment : Fragment(), OnMapReadyCallback {
                 if (!addresses.isNullOrEmpty()) {
                     val addr = addresses[0]
                     withContext(Dispatchers.Main) {
-                        isAutoFilling = true
+                        isProgrammaticChange = true
                         
-                        // Extract details safely
                         val street = addr.featureName ?: addr.thoroughfare ?: ""
                         val subLocality = addr.subLocality ?: ""
                         
@@ -155,18 +164,21 @@ class PropertyAddressFragment : Fragment(), OnMapReadyCallback {
                         etCity.setText(addr.locality ?: addr.subAdminArea ?: "")
                         etState.setText(addr.adminArea ?: "")
                         etZipCode.setText(addr.postalCode ?: "")
-                        isAutoFilling = false
+                        
+                        isProgrammaticChange = false
                     }
                 }
             } catch (ignored: Exception) {
-                isAutoFilling = false
+                withContext(Dispatchers.Main) { isProgrammaticChange = false }
             }
         }
     }
 
     fun setData(property: com.example.propertyconsultancy.data.dto.PropertyDTO) {
-        skipNextGeocode = true // Don't let map move overwrite database values on load
+        isProgrammaticChange = true
+        isUserDraggingMap = false
         
+        Log.d("[php_debug]", "PropertyAddressFragment: Setting data from PropertyDTO")
         etAddress1.setText(property.addressLine1 ?: "")
         etAddress2.setText(property.addressLine2 ?: "")
         etCity.setText(property.city ?: "")
@@ -178,6 +190,8 @@ class PropertyAddressFragment : Fragment(), OnMapReadyCallback {
         
         tvCoordsDisplay.text = String.format(Locale.US, "Coordinates: %.6f, %.6f", currentLat, currentLng)
         googleMap?.moveCamera(CameraUpdateFactory.newLatLngZoom(LatLng(currentLat, currentLng), 15f))
+        
+        isProgrammaticChange = false
     }
 
     fun getData(): Map<String, Any?> {

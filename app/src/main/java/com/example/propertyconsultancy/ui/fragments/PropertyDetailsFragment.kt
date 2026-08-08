@@ -3,6 +3,7 @@ package com.example.propertyconsultancy.ui.fragments
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.util.Log
 import android.os.Bundle
 import android.speech.RecognitionListener
 import android.speech.RecognizerIntent
@@ -277,6 +278,7 @@ class PropertyDetailsFragment : Fragment() {
     }
 
     fun setData(property: com.example.propertyconsultancy.data.dto.PropertyDTO) {
+        Log.d("[php_debug]", "PropertyDetailsFragment: Setting data. Title=${property.title}, Type=${property.proTypeId}, Status=${property.statusId}")
         etTitle.setText(property.title)
         etDescription.setText(property.description)
         

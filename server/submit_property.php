@@ -176,6 +176,10 @@ try {
                 if (file_put_contents($targetFilePath, base64_decode($base64_str))) {
                     $file_reference = $relativeReference;
                 }
+            } else if (strpos($media_data, 'uploads/') === 0) {
+                // Existing relative path - strip any query params
+                $file_reference = strtok($media_data, '?');
+                if (preg_match('/\.(mp4|mkv|avi)$/i', $file_reference)) $mtype = 'video';
             }
 
             $stmt_media->execute([$property_id, $mtype, $file_reference, ($index === 0 ? 1 : 0), $index]);

@@ -119,9 +119,19 @@ class PropertyExploreFragment : Fragment() {
                 val response = com.example.propertyconsultancy.data.remote.RetrofitInstance.api.getPropertyDetail(pid)
                 if (response.status == "success" && !response.data.isNullOrEmpty()) {
                     val updated = response.data[0]
+                    
+                    // CLEANED DEBUG LOGGING
+                    Log.d("[php_debug]", "--- Property Details Refresh ---")
+                    Log.d("[php_debug]", "ID: ${updated.propertyId} | Title: ${updated.title}")
+                    Log.d("[php_debug]", "Media URLs Count: ${updated.mediaUrls?.size ?: 0}")
+                    Log.d("[php_debug]", "Media URLs List: ${updated.mediaUrls?.joinToString(", ") ?: "NONE"}")
+                    Log.d("[php_debug]", "Amenity Count: ${updated.amenityCount}")
+                    Log.d("[php_debug]", "Amenity IDs: ${updated.amenityIds?.joinToString(", ") ?: "NONE"}")
+                    Log.d("[php_debug]", "Furnishing: ${updated.furnishing}")
+                    Log.d("[php_debug]", "Executive Info: ID=${updated.executiveId}, Name=${updated.executiveName}")
+                    
                     property = updated
                     bindPropertyData(updated)
-                    Log.d("[Explore]", "Refreshed Data for ${updated.title}. Exec: ${updated.executiveName}")
                 }
             } catch (e: Exception) {
                 Log.e("[Explore]", "Refresh Error: ${e.message}")
@@ -235,7 +245,7 @@ class PropertyExploreFragment : Fragment() {
         tvDescription.text = property.description ?: "No description available."
 
         // Executive Info Binding with Logging
-        Log.d("[Explore]", "Executive Data: id=${property.executiveId}, name=${property.executiveName}, mobile=${property.executiveMobile}")
+        Log.d("[php_debug]", "Executive Info Check: ID=${property.executiveId}, Name=${property.executiveName}, Mobile=${property.executiveMobile}")
         
         if (property.executiveId != null && !property.executiveName.isNullOrEmpty()) {
             cardExecutive.visibility = View.VISIBLE
@@ -253,7 +263,7 @@ class PropertyExploreFragment : Fragment() {
                 }
             }
         } else {
-            Log.d("[Explore]", "Hiding Executive Card (Data missing or ID is null)")
+            Log.d("[php_debug]", "Executive Card HIDDEN: property.executiveId is null or executiveName is empty")
             cardExecutive.visibility = View.GONE
         }
 

@@ -174,8 +174,8 @@ try {
                     $file_url = $relative_dir . $filename;
                 }
             } else if (strpos($media_data, 'uploads/') === 0) {
-                // Existing relative path, keep it
-                $file_url = $media_data;
+                // Existing relative path - strip any query params like ?v=...
+                $file_url = strtok($media_data, '?');
                 if (preg_match('/\.(mp4|mkv|avi)$/i', $file_url)) $mtype = 'video';
             }
 
@@ -186,8 +186,9 @@ try {
         }
     }
 
-    // c. Physically delete orphaned files (those not in the new list)
-    foreach ($old_media_files as $old_file) {
+    // c. Physically delete orphaned files
+    foreach ($old_media_files as $old_file_raw) {
+        $old_file = strtok($old_file_raw, '?'); // Clean path for comparison and deletion
         if (strpos($old_file, 'uploads/') === 0 && !in_array($old_file, $new_active_files)) {
             $full_path = __DIR__ . '/' . $old_file;
             if (file_exists($full_path)) {
