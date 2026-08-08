@@ -13,6 +13,9 @@ import androidx.fragment.app.Fragment
 import com.example.propertyconsultancy.R
 import com.example.propertyconsultancy.data.local.SessionManager
 import com.example.propertyconsultancy.ui.activities.MainActivity
+//updating.... 2026-08-09 00:07 Akhil
+
+
 
 class SettingsFragment : Fragment() {
 
