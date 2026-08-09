@@ -4,133 +4,271 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/theme1_bg">
+    android:background="?android:attr/windowBackground">
 
+    <!-- Background Map -->
     <fragment
         android:id="@+id/aiMap"
         android:name="com.google.android.gms.maps.SupportMapFragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
+    <!-- Top Overlay: Search & Filters -->
     <androidx.cardview.widget.CardView
+        android:id="@+id/cardTopControls"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="16dp"
-        app:cardCornerRadius="20dp"
-        app:cardElevation="10dp"
+        app:cardCornerRadius="24dp"
+        app:cardElevation="12dp"
         app:layout_constraintTop_toTopOf="parent">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="12dp">
+            android:padding="8dp">
 
-            <TextView
-                android:id="@+id/tvAiMapTitle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="AI Proximity Analysis"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                android:textColor="@color/theme1_primary" />
+            <!-- Custom Address Input -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:paddingStart="12dp"
+                android:paddingEnd="4dp">
 
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_search_modern"
+                    app:tint="?attr/colorPrimary" />
+
+                <AutoCompleteTextView
+                    android:id="@+id/etCustomAddress"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:background="@null"
+                    android:hint="Search or add custom place..."
+                    android:imeOptions="actionDone"
+                    android:inputType="text"
+                    android:paddingHorizontal="12dp"
+                    android:textSize="14sp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnAddCustomPlace"
+                    style="@style/Widget.Material3.Button.TonalButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="36dp"
+                    android:insetTop="0dp"
+                    android:insetBottom="0dp"
+                    android:text="Add"
+                    android:textSize="12sp"
+                    app:cornerRadius="18dp" />
+            </LinearLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginVertical="4dp"
+                android:background="#F0F0F0" />
+
+            <!-- Filter Chips -->
             <HorizontalScrollView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
                 android:scrollbars="none">
                 <com.google.android.material.chip.ChipGroup
-                    android:id="@+id/chipGroupFacilities"
+                    android:id="@+id/chipGroupCategories"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    app:singleLine="true">
+                    android:paddingHorizontal="4dp"
+                    app:singleLine="true"
+                    app:selectionRequired="true"
+                    app:singleSelection="true">
+
                     <com.google.android.material.chip.Chip
-                        android:id="@+id/chipSchool"
+                        android:id="@+id/chipAll"
                         style="@style/Widget.Material3.Chip.Filter"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Schools"
-                        app:chipIcon="@android:drawable/ic_menu_my_calendar" />
+                        android:text="All"
+                        android:checked="true" />
+
                     <com.google.android.material.chip.Chip
-                        android:id="@+id/chipHospital"
+                        android:id="@+id/chipEducation"
+                        style="@style/Widget.Material3.Chip.Filter"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Education"
+                        app:chipIcon="@android:drawable/ic_menu_my_calendar" />
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chipMedical"
                         style="@style/Widget.Material3.Chip.Filter"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Hospitals"
                         app:chipIcon="@android:drawable/ic_menu_info_details" />
+
                     <com.google.android.material.chip.Chip
-                        android:id="@+id/chipTransit"
+                        android:id="@+id/chipTransport"
                         style="@style/Widget.Material3.Chip.Filter"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Transit"
                         app:chipIcon="@android:drawable/ic_dialog_map" />
+
                     <com.google.android.material.chip.Chip
-                        android:id="@+id/chipUserLoc"
+                        android:id="@+id/chipCustom"
                         style="@style/Widget.Material3.Chip.Filter"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="My Places"
-                        app:chipIcon="@android:drawable/ic_menu_view" />
+                        android:text="My Saved"
+                        app:chipIcon="@android:drawable/btn_star_big_on" />
                 </com.google.android.material.chip.ChipGroup>
             </HorizontalScrollView>
         </LinearLayout>
     </androidx.cardview.widget.CardView>
 
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/fabAddUserPlace"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_margin="16dp"
-        android:src="@android:drawable/ic_input_add"
-        app:layout_constraintBottom_toTopOf="@id/cardDistanceDetail"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:tint="@color/white" />
-
+    <!-- Floating Detail Card (Bottom) -->
     <androidx.cardview.widget.CardView
-        android:id="@+id/cardDistanceDetail"
+        android:id="@+id/cardLocationDetails"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="16dp"
+        android:layout_margin="20dp"
         android:visibility="gone"
-        app:cardCornerRadius="16dp"
-        app:cardElevation="8dp"
+        app:cardCornerRadius="24dp"
+        app:cardElevation="16dp"
         app:layout_constraintBottom_toBottomOf="parent"
         tools:visibility="visible">
 
-        <LinearLayout
+        <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="16dp">
+            android:padding="20dp"
+            android:background="@drawable/bg_zigzag_card">
 
             <TextView
-                android:id="@+id/tvFacilityName"
-                android:layout_width="wrap_content"
+                android:id="@+id/tvDetailName"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:textSize="18sp"
+                android:textSize="20sp"
                 android:textStyle="bold"
-                android:textColor="@color/theme1_text"
+                android:textColor="?attr/colorOnSurface"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toStartOf="@id/btnCloseDetails"
+                app:layout_constraintTop_toTopOf="parent"
                 tools:text="City Public School" />
 
-            <TextView
-                android:id="@+id/tvDistanceText"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:textColor="@color/theme1_primary"
-                android:textStyle="bold"
-                tools:text="1.2 km away via Main Rd" />
+            <ImageButton
+                android:id="@+id/btnCloseDetails"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@android:drawable/ic_menu_close_clear_cancel"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:tint="?attr/colorOnSurfaceVariant" />
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnShowPath"
-                style="@style/Widget.Material3.Button.TonalButton"
+            <LinearLayout
+                android:id="@+id/llStats"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
-                android:text="Analyze Route" />
-        </LinearLayout>
+                android:orientation="horizontal"
+                app:layout_constraintTop_toBottomOf="@id/tvDetailName">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="DISTANCE"
+                        android:textSize="10sp"
+                        android:textStyle="bold"
+                        android:textColor="?attr/colorPrimary"
+                        android:alpha="0.7" />
+                    <TextView
+                        android:id="@+id/tvDetailDistance"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        tools:text="1.2 km" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="EST. TIME"
+                        android:textSize="10sp"
+                        android:textStyle="bold"
+                        android:textColor="?attr/colorPrimary"
+                        android:alpha="0.7" />
+                    <TextView
+                        android:id="@+id/tvDetailDuration"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        tools:text="8 mins" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="MODE"
+                        android:textSize="10sp"
+                        android:textStyle="bold"
+                        android:textColor="?attr/colorPrimary"
+                        android:alpha="0.7" />
+                    <TextView
+                        android:id="@+id/tvDetailMode"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:text="Driving" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnNavigate"
+                style="@style/Widget.Material3.Button.TonalButton"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:layout_marginTop="20dp"
+                android:text="START NAVIGATION"
+                android:textStyle="bold"
+                app:cornerRadius="16dp"
+                app:icon="@drawable/ic_location_pin"
+                app:layout_constraintTop_toBottomOf="@id/llStats" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
     </androidx.cardview.widget.CardView>
+
+    <!-- Progress Overlay for Route Analysis -->
+    <com.google.android.material.progressindicator.LinearProgressIndicator
+        android:id="@+id/routeProgress"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:indeterminate="true"
+        android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@id/cardTopControls" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

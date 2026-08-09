@@ -1,14 +1,18 @@
 package com.example.propertyconsultancy.ui.fragments
 
-import android.graphics.Color
+import android.content.Intent
+import android.graphics.*
 import android.location.Geocoder
+import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.AutoCompleteTextView
 import android.widget.TextView
 import android.widget.Toast
+import androidx.core.content.res.ResourcesCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.example.propertyconsultancy.R
@@ -19,7 +23,7 @@ import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.*
 import com.google.android.material.chip.ChipGroup
-import com.google.android.material.floatingactionbutton.FloatingActionButton
+import com.google.android.material.progressindicator.LinearProgressIndicator
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -31,14 +35,24 @@ class AiMapFragment : Fragment(), OnMapReadyCallback {
 
     private lateinit var googleMap: GoogleMap
     private var property: PropertyDTO? = null
-    private val facilityMarkers = mutableListOf<Marker>()
+    
+    private val allMarkers = mutableListOf<Marker>()
+    private val facilityMarkers = mutableMapOf<String, MutableList<Marker>>()
+    private val customMarkers = mutableListOf<Marker>()
+    
     private var currentPolyline: Polyline? = null
-
-    private lateinit var tvFacilityName: TextView
-    private lateinit var tvDistanceText: TextView
-    private lateinit var cardDistanceDetail: View
-    private lateinit var btnShowPath: View
     private var selectedMarker: Marker? = null
+
+    private lateinit var etCustomAddress: AutoCompleteTextView
+    private lateinit var btnAddCustomPlace: View
+    private lateinit var chipGroupCategories: ChipGroup
+    private lateinit var routeProgress: LinearProgressIndicator
+    
+    private lateinit var cardLocationDetails: View
+    private lateinit var tvDetailName: TextView
+    private lateinit var tvDetailDistance: TextView
+    private lateinit var tvDetailDuration: TextView
+    private lateinit var btnNavigate: View
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -51,148 +65,210 @@ class AiMapFragment : Fragment(), OnMapReadyCallback {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        
-        tvFacilityName = view.findViewById(R.id.tvFacilityName)
-        tvDistanceText = view.findViewById(R.id.tvDistanceText)
-        cardDistanceDetail = view.findViewById(R.id.cardDistanceDetail)
-        btnShowPath = view.findViewById(R.id.btnShowPath)
+        initViews(view)
         
         val mapFragment = childFragmentManager.findFragmentById(R.id.aiMap) as SupportMapFragment
         mapFragment.getMapAsync(this)
 
-        btnShowPath.setOnClickListener {
-            val propertyPos = property?.let { LatLng(it.latitude ?: 0.0, it.longitude ?: 0.0) } ?: LatLng(25.3412, 74.6341)
+        setupListeners()
+    }
+
+    private fun initViews(view: View) {
+        etCustomAddress = view.findViewById(R.id.etCustomAddress)
+        btnAddCustomPlace = view.findViewById(R.id.btnAddCustomPlace)
+        chipGroupCategories = view.findViewById(R.id.chipGroupCategories)
+        routeProgress = view.findViewById(R.id.routeProgress)
+        
+        cardLocationDetails = view.findViewById(R.id.cardLocationDetails)
+        tvDetailName = view.findViewById(R.id.tvDetailName)
+        tvDetailDistance = view.findViewById(R.id.tvDetailDistance)
+        tvDetailDuration = view.findViewById(R.id.tvDetailDuration)
+        btnNavigate = view.findViewById(R.id.btnNavigate)
+        
+        view.findViewById<View>(R.id.btnCloseDetails).setOnClickListener {
+            cardLocationDetails.visibility = View.GONE
+            currentPolyline?.remove()
+        }
+    }
+
+    private fun setupListeners() {
+        chipGroupCategories.setOnCheckedStateChangeListener { _, checkedIds ->
+            val id = checkedIds.firstOrNull() ?: return@setOnCheckedStateChangeListener
+            filterMarkers(id)
+        }
+
+        btnAddCustomPlace.setOnClickListener {
+            val query = etCustomAddress.text.toString().trim()
+            if (query.isNotEmpty()) {
+                searchAndAddCustomPlace(query)
+            } else {
+                Toast.makeText(requireContext(), "Enter a name or address", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        btnNavigate.setOnClickListener {
             selectedMarker?.let { marker ->
-                drawRealPath(propertyPos, marker.position)
+                val gmmIntentUri = Uri.parse("google.navigation:q=${marker.position.latitude},${marker.position.longitude}")
+                val mapIntent = Intent(Intent.ACTION_VIEW, gmmIntentUri)
+                mapIntent.setPackage("com.google.android.apps.maps")
+                startActivity(mapIntent)
             }
-        }
-
-        view.findViewById<ChipGroup>(R.id.chipGroupFacilities).setOnCheckedStateChangeListener { _, checkedIds ->
-            val checkedId = checkedIds.firstOrNull() ?: return@setOnCheckedStateChangeListener
-            when (checkedId) {
-                R.id.chipSchool -> showFacilities("School")
-                R.id.chipHospital -> showFacilities("Hospital")
-                R.id.chipTransit -> showFacilities("Transit")
-                R.id.chipUserLoc -> showFacilities("Personal")
-            }
-        }
-
-        view.findViewById<FloatingActionButton>(R.id.fabAddUserPlace).setOnClickListener {
-            showAddPlaceDialog()
         }
     }
 
     override fun onMapReady(map: GoogleMap) {
         googleMap = map
-        googleMap.uiSettings.isZoomControlsEnabled = true
         
-        val lat = property?.latitude ?: 25.3412
-        val lng = property?.longitude ?: 74.6341
-        val propertyPos = LatLng(lat, lng)
+        // 1. Apply Dull Style
+        try {
+            googleMap.setMapStyle(MapStyleOptions.loadRawResourceStyle(requireContext(), R.raw.map_style_dull))
+        } catch (e: Exception) { Log.e("AiMap", "Style error", e) }
 
-        // Mark Property
+        googleMap.uiSettings.isMapToolbarEnabled = false
+        
+        val prop = property ?: return
+        val propertyPos = LatLng(prop.latitude ?: 25.3412, prop.longitude ?: 74.6341)
+
+        // 2. Add Main Property Marker
+        val propIcon = createBrandedMarker(prop.title ?: "Property", true)
         googleMap.addMarker(
             MarkerOptions()
                 .position(propertyPos)
-                .title(property?.title ?: "Property Location")
-                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED))
+                .icon(propIcon)
+                .anchor(0.5f, 0.5f)
+                .zIndex(10f)
         )
 
         googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(propertyPos, 14f))
 
         googleMap.setOnMarkerClickListener { marker ->
-            if (marker.title != property?.title) {
+            if (marker.zIndex < 10f) { // Not the main property
                 selectedMarker = marker
-                showDistanceInfo(propertyPos, marker)
+                updateBottomCard(marker)
+                calculateAndDrawRoute(propertyPos, marker.position)
             }
-            false
+            true
         }
+
+        // Load Initial Facilities
+        loadNearbyFacilities("School", "Education")
+        loadNearbyFacilities("Hospital", "Medical")
+        loadNearbyFacilities("Bus Station", "Transport")
     }
 
-    private fun showFacilities(type: String) {
-        facilityMarkers.forEach { it.remove() }
-        facilityMarkers.clear()
-        currentPolyline?.remove()
-        cardDistanceDetail.visibility = View.GONE
-
-        val prop = property ?: return
-        if (type == "Personal") {
-            // Keep existing personal markers if any, or just clear non-personal
-            // For now, just a Toast as 'My Places' are added manually via FAB
-            Toast.makeText(requireContext(), "Use '+' button to add your custom places", Toast.LENGTH_SHORT).show()
-            return
+    private fun filterMarkers(checkedId: Int) {
+        val category = when (checkedId) {
+            R.id.chipEducation -> "Education"
+            R.id.chipMedical -> "Medical"
+            R.id.chipTransport -> "Transport"
+            R.id.chipCustom -> "Custom"
+            else -> "All"
         }
-        val cityName = prop.city ?: "City"
-        val query = "$type near $cityName"
+
+        facilityMarkers.forEach { (cat, list) ->
+            val visible = category == "All" || cat == category
+            list.forEach { it.isVisible = visible }
+        }
+        
+        customMarkers.forEach { it.isVisible = (category == "All" || category == "Custom") }
+    }
+
+    private fun loadNearbyFacilities(type: String, category: String) {
+        val prop = property ?: return
+        val propertyPos = LatLng(prop.latitude ?: 25.3412, prop.longitude ?: 74.6341)
+        val cityName = prop.city ?: ""
+        
+        // Comprehensive queries for detailed results
+        val queries = when(category) {
+            "Education" -> listOf("School near $cityName", "College near $cityName", "University near $cityName", "Coaching Center near $cityName")
+            "Medical" -> listOf("Hospital near $cityName", "Clinic near $cityName", "Pharmacy near $cityName", "Diagnostic Center near $cityName")
+            "Transport" -> listOf("Bus Station near $cityName", "Railway Station near $cityName", "Metro Station near $cityName", "Taxi Stand near $cityName")
+            else -> listOf("$type near $cityName")
+        }
 
         lifecycleScope.launch(Dispatchers.IO) {
-            try {
-                val geocoder = Geocoder(requireContext(), Locale.getDefault())
-                val results = geocoder.getFromLocationName(query, 10)
-                
-                withContext(Dispatchers.Main) {
-                    if (results.isNullOrEmpty()) {
-                        // Fallback to mock if geocoder fails or returns nothing
-                        addMockFacilities(type)
-                    } else {
-                        results.forEach { addr ->
+            val geocoder = Geocoder(requireContext(), Locale.getDefault())
+            val foundLocations = mutableSetOf<String>() // To avoid duplicates
+
+            queries.forEach { query ->
+                try {
+                    // Search in a wider range
+                    val results = geocoder.getFromLocationName(query, 15)
+                    
+                    withContext(Dispatchers.Main) {
+                        results?.forEach { addr ->
                             val pos = LatLng(addr.latitude, addr.longitude)
                             val name = addr.featureName ?: addr.thoroughfare ?: type
-                            addFacilityMarker(name, pos, type)
+                            val distance = calculateDistance(propertyPos, pos)
+                            
+                            // Only show within 15km for "Nearby" relevance
+                            if (distance < 15000 && !foundLocations.contains(name)) {
+                                foundLocations.add(name)
+                                addMarkerToCategory(name, pos, category, distance)
+                            }
                         }
                     }
-                }
-            } catch (e: Exception) {
-                withContext(Dispatchers.Main) { addMockFacilities(type) }
+                } catch (e: Exception) { Log.e("AiMap", "Query failed: $query", e) }
             }
         }
     }
 
-    private fun addMockFacilities(type: String) {
-        val lat = property?.latitude ?: 25.3412
-        val lng = property?.longitude ?: 74.6341
-        val mockData = when (type) {
-            "School" -> listOf(
-                Pair("City International School", LatLng(lat + 0.005, lng + 0.003)),
-                Pair("Greenwood High", LatLng(lat - 0.008, lng + 0.006))
-            )
-            "Hospital" -> listOf(
-                Pair("LifeCare Hospital", LatLng(lat + 0.012, lng - 0.004)),
-                Pair("Metro Clinic", LatLng(lat - 0.003, lng - 0.007))
-            )
-            "Transit" -> listOf(
-                Pair("Main Bus Station", LatLng(lat + 0.015, lng + 0.010)),
-                Pair("Railway Junction", LatLng(lat - 0.020, lng - 0.015))
-            )
-            else -> emptyList()
-        }
-        mockData.forEach { (name, pos) -> addFacilityMarker(name, pos, type) }
-    }
-
-    private fun addFacilityMarker(name: String, pos: LatLng, type: String) {
-        val propertyPos = property?.let { LatLng(it.latitude ?: 0.0, it.longitude ?: 0.0) } ?: LatLng(25.3412, 74.6341)
-        val distance = calculateDistance(propertyPos, pos)
-        val distanceStr = String.format("%.2f km", distance / 1000)
-
+    private fun addMarkerToCategory(name: String, pos: LatLng, category: String, distance: Float) {
+        val distanceStr = if (distance >= 1000) String.format("%.1f km", distance/1000) else "${distance.toInt()} m"
+        val icon = createCategoryMarker(category, distanceStr)
         val marker = googleMap.addMarker(
             MarkerOptions()
                 .position(pos)
-                .title("$name ($distanceStr)")
-                .snippet("Click for Real Path")
-                .icon(BitmapDescriptorFactory.defaultMarker(when(type) {
-                    "School" -> BitmapDescriptorFactory.HUE_AZURE
-                    "Hospital" -> BitmapDescriptorFactory.HUE_ORANGE
-                    "Transit" -> BitmapDescriptorFactory.HUE_VIOLET
-                    else -> BitmapDescriptorFactory.HUE_YELLOW
-                }))
+                .title(name)
+                .snippet("Distance: $distanceStr")
+                .icon(icon)
+                .anchor(0.5f, 1f) // Anchor bottom center for the pin style
         )
         if (marker != null) {
-            marker.tag = type
-            facilityMarkers.add(marker)
+            marker.tag = category
+            facilityMarkers.getOrPut(category) { mutableListOf() }.add(marker)
+            allMarkers.add(marker)
         }
     }
 
-    private fun drawRealPath(origin: LatLng, destination: LatLng) {
+    private fun searchAndAddCustomPlace(query: String) {
+        lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                val geocoder = Geocoder(requireContext(), Locale.getDefault())
+                val results = geocoder.getFromLocationName(query, 1)
+                
+                withContext(Dispatchers.Main) {
+                    if (!results.isNullOrEmpty()) {
+                        val addr = results[0]
+                        val pos = LatLng(addr.latitude, addr.longitude)
+                        val name = query.uppercase()
+                        
+                        val icon = createCustomMarker(name)
+                        val marker = googleMap.addMarker(
+                            MarkerOptions()
+                                .position(pos)
+                                .icon(icon)
+                                .anchor(0.5f, 0.5f)
+                                .zIndex(5f)
+                        )
+                        if (marker != null) {
+                            marker.title = name
+                            customMarkers.add(marker)
+                            googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(pos, 15f))
+                            Toast.makeText(requireContext(), "Saved: $name", Toast.LENGTH_SHORT).show()
+                        }
+                    } else {
+                        Toast.makeText(requireContext(), "Location not found", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) { Toast.makeText(requireContext(), "Search failed", Toast.LENGTH_SHORT).show() }
+            }
+        }
+    }
+
+    private fun calculateAndDrawRoute(origin: LatLng, destination: LatLng) {
+        routeProgress.visibility = View.VISIBLE
         val apiKey = getString(R.string.google_maps_key)
         val url = "https://maps.googleapis.com/maps/api/directions/json?origin=${origin.latitude},${origin.longitude}&destination=${destination.latitude},${destination.longitude}&mode=driving&key=$apiKey"
 
@@ -201,37 +277,42 @@ class AiMapFragment : Fragment(), OnMapReadyCallback {
                 val result = URL(url).readText()
                 val json = JSONObject(result)
                 val routes = json.getJSONArray("routes")
-                if (routes.length() > 0) {
-                    val route = routes.getJSONObject(0)
-                    val points = route.getJSONObject("overview_polyline").getString("points")
-                    val path = decodePolyline(points)
-                    
-                    val legs = route.getJSONArray("legs")
-                    val distanceText = if (legs.length() > 0) legs.getJSONObject(0).getJSONObject("distance").getString("text") else ""
-                    
-                    withContext(Dispatchers.Main) {
+                
+                withContext(Dispatchers.Main) {
+                    routeProgress.visibility = View.GONE
+                    if (routes.length() > 0) {
+                        val route = routes.getJSONObject(0)
+                        val points = route.getJSONObject("overview_polyline").getString("points")
+                        val path = decodePolyline(points)
+                        
+                        val leg = route.getJSONArray("legs").getJSONObject(0)
+                        tvDetailDistance.text = leg.getJSONObject("distance").getString("text")
+                        tvDetailDuration.text = leg.getJSONObject("duration").getString("text")
+
                         currentPolyline?.remove()
                         currentPolyline = googleMap.addPolyline(
                             PolylineOptions()
                                 .addAll(path)
-                                .width(12f)
+                                .width(14f)
                                 .color(Color.parseColor("#007AFF"))
                                 .jointType(JointType.ROUND)
                                 .startCap(RoundCap())
                                 .endCap(RoundCap())
                         )
-                        if (distanceText.isNotEmpty()) {
-                            tvDistanceText.text = "Real Distance: $distanceText (Driving)"
-                        }
-                    }
-                } else {
-                    withContext(Dispatchers.Main) {
-                        Toast.makeText(requireContext(), "No real path found, showing direct line", Toast.LENGTH_SHORT).show()
+                        
+                        // Zoom to show entire route
+                        val bounds = LatLngBounds.builder().include(origin).include(destination).build()
+                        googleMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 250))
+                        
+                    } else {
                         drawDirectPath(origin, destination)
                     }
                 }
             } catch (e: Exception) {
-                withContext(Dispatchers.Main) { drawDirectPath(origin, destination) }
+                withContext(Dispatchers.Main) { 
+                    routeProgress.visibility = View.GONE
+                    drawDirectPath(origin, destination) 
+                }
             }
         }
     }
@@ -245,6 +326,140 @@ class AiMapFragment : Fragment(), OnMapReadyCallback {
                 .color(Color.GRAY)
                 .pattern(listOf(Dash(20f), Gap(10f)))
         )
+        // Static distance calculation if API fails
+        val results = FloatArray(1)
+        android.location.Location.distanceBetween(origin.latitude, origin.longitude, destination.latitude, destination.longitude, results)
+        tvDetailDistance.text = String.format("%.1f km", results[0] / 1000)
+        tvDetailDuration.text = "~${(results[0]/400).toInt()} mins"
+    }
+
+    private fun updateBottomCard(marker: Marker) {
+        tvDetailName.text = marker.title ?: "Selected Location"
+        cardLocationDetails.visibility = View.VISIBLE
+    }
+
+    // --- Marker UI Generation ---
+
+    private fun createBrandedMarker(title: String, isProperty: Boolean): BitmapDescriptor {
+        val width = 120
+        val height = 120
+        val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(bitmap)
+        val paint = Paint(Paint.ANTI_ALIAS_FLAG)
+
+        // Outer Glow
+        paint.color = Color.parseColor("#33007AFF")
+        canvas.drawCircle(60f, 60f, 60f, paint)
+
+        // Main Circle
+        paint.color = Color.parseColor("#007AFF")
+        canvas.drawCircle(60f, 60f, 40f, paint)
+
+        // White Border
+        paint.style = Paint.Style.STROKE
+        paint.strokeWidth = 4f
+        paint.color = Color.WHITE
+        canvas.drawCircle(60f, 60f, 40f, paint)
+
+        // Center Icon (Hut for property)
+        val icon = ResourcesCompat.getDrawable(resources, if (isProperty) R.drawable.ic_hut else R.drawable.ic_location_pin, null)
+        icon?.setTint(Color.WHITE)
+        icon?.setBounds(40, 40, 80, 80)
+        icon?.draw(canvas)
+
+        return BitmapDescriptorFactory.fromBitmap(bitmap)
+    }
+
+    private fun createCategoryMarker(category: String, distance: String): BitmapDescriptor {
+        val categoryColor = when(category) {
+            "Education" -> "#4CAF50" // Green
+            "Medical" -> "#F44336"   // Red
+            "Transport" -> "#2196F3" // Blue
+            else -> "#757575"        // Gray
+        }
+        
+        val paint = Paint(Paint.ANTI_ALIAS_FLAG)
+        val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = Color.WHITE
+            textSize = 22f
+            typeface = Typeface.DEFAULT_BOLD
+            textAlign = Paint.Align.CENTER
+        }
+
+        val textWidth = textPaint.measureText(distance)
+        val bubbleWidth = (textWidth + 24f).coerceAtLeast(70f)
+        val bubbleHeight = 45f
+        
+        val width = bubbleWidth.toInt()
+        val height = (bubbleHeight + 35).toInt()
+        
+        val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(bitmap)
+
+        // 1. Draw Bubble
+        val rect = RectF(0f, 0f, bubbleWidth, bubbleHeight)
+        paint.color = Color.parseColor(categoryColor)
+        canvas.drawRoundRect(rect, 12f, 12f, paint)
+        
+        // 2. Draw Bubble Triangle/Pointer
+        val path = Path()
+        path.moveTo(bubbleWidth/2 - 10, bubbleHeight)
+        path.lineTo(bubbleWidth/2 + 10, bubbleHeight)
+        path.lineTo(bubbleWidth/2, bubbleHeight + 15)
+        path.close()
+        canvas.drawPath(path, paint)
+        
+        // 3. Draw Distance Text
+        canvas.drawText(distance, bubbleWidth/2, bubbleHeight/2 + 8f, textPaint)
+
+        // 4. Draw Small Base Dot
+        paint.color = Color.WHITE
+        canvas.drawCircle(bubbleWidth/2, bubbleHeight + 20, 6f, paint)
+        paint.color = Color.parseColor(categoryColor)
+        canvas.drawCircle(bubbleWidth/2, bubbleHeight + 20, 4f, paint)
+
+        return BitmapDescriptorFactory.fromBitmap(bitmap)
+    }
+
+    private fun calculateDistance(p1: LatLng, p2: LatLng): Float {
+        val results = FloatArray(1)
+        android.location.Location.distanceBetween(p1.latitude, p1.longitude, p2.latitude, p2.longitude, results)
+        return results[0]
+    }
+
+    private fun createCustomMarker(title: String): BitmapDescriptor {
+        val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            textSize = 28f
+            color = Color.WHITE
+            typeface = Typeface.DEFAULT_BOLD
+        }
+        val textWidth = textPaint.measureText(title)
+        val padding = 20f
+        
+        val width = (textWidth + padding * 2).toInt().coerceAtLeast(100)
+        val height = 110
+        
+        val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(bitmap)
+        val paint = Paint(Paint.ANTI_ALIAS_FLAG)
+
+        // Floating Badge
+        val rect = RectF(0f, 0f, width.toFloat(), 50f)
+        paint.color = Color.parseColor("#FF9800") // Bright Orange
+        canvas.drawRoundRect(rect, 25f, 25f, paint)
+        canvas.drawText(title, padding, 36f, textPaint)
+
+        // Connector Line
+        paint.strokeWidth = 4f
+        canvas.drawLine(width/2f, 50f, width/2f, 80f, paint)
+
+        // Pin Dot with Halo
+        paint.color = Color.parseColor("#44FF9800")
+        canvas.drawCircle(width/2f, 95f, 15f, paint)
+        paint.color = Color.parseColor("#FF9800")
+        canvas.drawCircle(width/2f, 95f, 8f, paint)
+
+        return BitmapDescriptorFactory.fromBitmap(bitmap)
     }
 
     private fun decodePolyline(encoded: String): List<LatLng> {
@@ -273,73 +488,8 @@ class AiMapFragment : Fragment(), OnMapReadyCallback {
             } while (b >= 0x20)
             val dlng = if (result and 1 != 0) (result shr 1).inv() else result shr 1
             lng += dlng
-            val p = LatLng(lat.toDouble() / 1E5, lng.toDouble() / 1E5)
-            poly.add(p)
+            poly.add(LatLng(lat.toDouble() / 1E5, lng.toDouble() / 1E5))
         }
         return poly
-    }
-
-    private fun showAddPlaceDialog() {
-        val context = requireContext()
-        val builder = androidx.appcompat.app.AlertDialog.Builder(context)
-        builder.setTitle("Add Important Location")
-        
-        val input = android.widget.EditText(context)
-        input.hint = "e.g. Office, Kids School"
-        builder.setView(input)
-
-        builder.setPositiveButton("Add Current Center") { _, _ ->
-            val name = input.text.toString()
-            if (name.isNotEmpty()) {
-                val center = googleMap.cameraPosition.target
-                addUserPlace(name, center)
-            }
-        }
-        builder.setNegativeButton("Cancel", null)
-        builder.show()
-    }
-
-    private fun addUserPlace(name: String, pos: LatLng) {
-        val propertyPos = property?.let { LatLng(it.latitude ?: 0.0, it.longitude ?: 0.0) } ?: LatLng(25.3412, 74.6341)
-        val distance = calculateDistance(propertyPos, pos)
-        val distanceStr = String.format("%.2f km", distance / 1000)
-
-        val marker = googleMap.addMarker(
-            MarkerOptions()
-                .position(pos)
-                .title("$name ($distanceStr)")
-                .snippet("Click for Real Path")
-                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW))
-        )
-        if (marker != null) {
-            facilityMarkers.add(marker)
-            selectedMarker = marker
-            showDistanceInfo(propertyPos, marker)
-        }
-    }
-
-    private fun showDistanceInfo(propertyPos: LatLng, facilityMarker: Marker) {
-        val facilityPos = facilityMarker.position
-        val distance = calculateDistance(propertyPos, facilityPos)
-        
-        tvFacilityName.text = facilityMarker.title
-        tvDistanceText.text = String.format("%.2f km away from property", distance / 1000)
-        cardDistanceDetail.visibility = View.VISIBLE
-
-        currentPolyline?.remove()
-        currentPolyline = googleMap.addPolyline(
-            PolylineOptions()
-                .add(propertyPos, facilityPos)
-                .width(8f)
-                .color(Color.BLUE)
-                .pattern(listOf(Dash(20f), Gap(10f)))
-                .geodesic(true)
-        )
-    }
-
-    private fun calculateDistance(p1: LatLng, p2: LatLng): Float {
-        val results = FloatArray(1)
-        android.location.Location.distanceBetween(p1.latitude, p1.longitude, p2.latitude, p2.longitude, results)
-        return results[0]
     }
 }

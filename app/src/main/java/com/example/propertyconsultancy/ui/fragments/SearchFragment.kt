@@ -82,15 +82,7 @@ class SearchFragment : Fragment(), OnMapReadyCallback {
     private lateinit var layoutMapContainer: View
     
     private lateinit var cardMapProperty: View
-    private lateinit var ivMapProperty: ImageView
-    private lateinit var tvMapPropertyTitle: TextView
     private lateinit var tvMapPropertyPrice: TextView
-    private lateinit var tvMapPropertyType: TextView
-    private lateinit var tvMapPropertyBath: TextView
-    private lateinit var tvMapPropertyArea: TextView
-    private lateinit var tvMapPropertyLocation: TextView
-    private lateinit var tvMapPropertyBhk: TextView
-    private lateinit var tvMapPropertyFacing: TextView
     private lateinit var btnMapExplore: com.google.android.material.button.MaterialButton
     private lateinit var btnMapCloseCard: View
     
@@ -117,6 +109,12 @@ class SearchFragment : Fragment(), OnMapReadyCallback {
     private lateinit var ivHintStickyViewMode: ImageView
     private lateinit var ivHintStickySwipeLeft: ImageView
     private lateinit var ivHintStickySwipeRight: ImageView
+    
+    private lateinit var layoutRadiusFilter: View
+    private lateinit var tvRadiusLabel: TextView
+    private lateinit var tvRadiusCount: TextView
+    private lateinit var sliderRadius: com.google.android.material.slider.Slider
+    private var searchCircle: com.google.android.gms.maps.model.Circle? = null
     
     private enum class HintPointer { UP, DOWN, LEFT, RIGHT, NONE }
 
@@ -246,16 +244,21 @@ class SearchFragment : Fragment(), OnMapReadyCallback {
         layoutPageNumbers = view.findViewById(R.id.layoutPageNumbers)
         layoutMapContainer = view.findViewById(R.id.layoutMapContainer)
         
+        layoutRadiusFilter = view.findViewById(R.id.layoutRadiusFilter)
+        tvRadiusLabel = view.findViewById(R.id.tvRadiusLabel)
+        tvRadiusCount = view.findViewById(R.id.tvRadiusCount)
+        sliderRadius = view.findViewById(R.id.sliderRadius)
+        
+        sliderRadius.addOnChangeListener { _, value, fromUser ->
+            if (fromUser) {
+                val km = value / 1000
+                tvRadiusLabel.text = String.format(Locale.US, "Search Radius: %.1f km", km)
+                updateMapMarkersWithRadius(value.toDouble())
+            }
+        }
+        
         cardMapProperty = view.findViewById(R.id.cardMapProperty)
-        ivMapProperty = view.findViewById(R.id.ivMapProperty)
-        tvMapPropertyTitle = view.findViewById(R.id.tvMapPropertyTitle)
         tvMapPropertyPrice = view.findViewById(R.id.tvMapPropertyPrice)
-        tvMapPropertyType = view.findViewById(R.id.tvMapPropertyType)
-        tvMapPropertyBath = view.findViewById(R.id.tvMapPropertyBath)
-        tvMapPropertyArea = view.findViewById(R.id.tvMapPropertyArea)
-        tvMapPropertyLocation = view.findViewById(R.id.tvMapPropertyLocation)
-        tvMapPropertyBhk = view.findViewById(R.id.tvMapPropertyBhk)
-        tvMapPropertyFacing = view.findViewById(R.id.tvMapPropertyFacing)
         btnMapExplore = view.findViewById(R.id.btnMapExplore)
         btnMapCloseCard = view.findViewById(R.id.btnMapCloseCard)
         
@@ -384,11 +387,13 @@ class SearchFragment : Fragment(), OnMapReadyCallback {
         if (isMapView) {
             rvSearchResults.visibility = View.GONE
             layoutMapContainer.visibility = View.VISIBLE
+            layoutRadiusFilter.visibility = View.VISIBLE
             layoutPagination.visibility = View.GONE
             (btnToggleViewMode as? ImageButton)?.setImageResource(R.drawable.ic_search_modern)
         } else {
             rvSearchResults.visibility = View.VISIBLE
             layoutMapContainer.visibility = View.GONE
+            layoutRadiusFilter.visibility = View.GONE
             cardMapProperty.visibility = View.GONE // Hide map card in list view
             // Pagination visibility will be updated by updatePaginationUI after search results load
             (btnToggleViewMode as? ImageButton)?.setImageResource(R.drawable.ic_location_pin)
@@ -402,10 +407,53 @@ class SearchFragment : Fragment(), OnMapReadyCallback {
         super.onDestroyView()
     }
 
+    private fun updateMapMarkersWithRadius(radiusMeters: Double) {
+        val map = googleMap ?: return
+        val center = map.cameraPosition.target
+        
+        // Update or create Circle
+        if (searchCircle == null) {
+            searchCircle = map.addCircle(
+                com.google.android.gms.maps.model.CircleOptions()
+                    .center(center)
+                    .radius(radiusMeters)
+                    .strokeWidth(3f)
+                    .strokeColor(android.graphics.Color.parseColor("#44007AFF"))
+                    .fillColor(android.graphics.Color.parseColor("#11007AFF"))
+            )
+        } else {
+            searchCircle?.center = center
+            searchCircle?.radius = radiusMeters
+        }
+        
+        var visibleCount = 0
+        mapMarkers.forEach { marker ->
+            val distance = calculateDistance(center, marker.position)
+            val isVisible = distance <= radiusMeters
+            marker.isVisible = isVisible
+            if (isVisible) visibleCount++
+        }
+        
+        tvRadiusCount.text = "$visibleCount Properties"
+    }
+
+    private fun calculateDistance(p1: com.google.android.gms.maps.model.LatLng, p2: com.google.android.gms.maps.model.LatLng): Float {
+        val results = FloatArray(1)
+        android.location.Location.distanceBetween(p1.latitude, p1.longitude, p2.latitude, p2.longitude, results)
+        return results[0]
+    }
+
+    private fun refreshMarkersWithRadius() {
+        val radius = sliderRadius.value.toDouble()
+        updateMapMarkersWithRadius(radius)
+    }
+
     private fun updateMapMarkers() {
         val map = googleMap ?: return
         mapMarkers.forEach { it.remove() }
         mapMarkers.clear()
+        searchCircle?.remove()
+        searchCircle = null
         
         val properties = viewModel.searchResults
         if (properties.isEmpty()) return
@@ -431,7 +479,7 @@ class SearchFragment : Fragment(), OnMapReadyCallback {
         }
 
         firstPos?.let {
-            map.animateCamera(CameraUpdateFactory.newLatLngZoom(it, 12f))
+            map.animateCamera(CameraUpdateFactory.newLatLngZoom(it, 13f))
         }
 
         map.setOnInfoWindowClickListener { marker ->
@@ -446,58 +494,26 @@ class SearchFragment : Fragment(), OnMapReadyCallback {
             if (property != null) {
                 viewModel.selectedPropertyOnMap = property
                 showPropertyOnMapCard(property)
-                // Returning false allows standard center-on-marker behavior
             }
             false
         }
         
+        map.setOnCameraMoveListener {
+            searchCircle?.center = map.cameraPosition.target
+            refreshMarkersWithRadius()
+        }
+        
         // Force immediate update with current cycle info
         refreshMarkersWithCaption()
+        refreshMarkersWithRadius()
     }
 
     private fun showPropertyOnMapCard(property: com.example.propertyconsultancy.data.dto.PropertyDTO) {
-        val ctx = context ?: return
-        tvMapPropertyTitle.text = property.title?.uppercase()
         val formatter = java.text.DecimalFormat("#,###")
         tvMapPropertyPrice.text = "₹ ${formatter.format(property.pricePerMonth ?: 0.0)}"
         
-        tvMapPropertyBath.text = "${property.bathrooms?.toInt() ?: 0} Bath"
-        tvMapPropertyArea.text = "${property.areaSqft} Sqft"
-        tvMapPropertyBhk.text = "${property.bedrooms} BHK"
-        
-        val locationText = buildString {
-            if (!property.addressLine2.isNullOrEmpty()) append("${property.addressLine2}, ")
-            append(property.city ?: "")
-        }
-        tvMapPropertyLocation.text = locationText
-
-        val categories = CategoryCache.getCategories(ctx)
-        fun getOptionName(ids: List<Int>?, group: String): String {
-            if (ids.isNullOrEmpty()) return "N/A"
-            val options = categories?.find { it.name.contains(group, true) }?.options
-            return options?.find { it.categoryId == ids.first() }?.option ?: "ID: ${ids.first()}"
-        }
-        
-        tvMapPropertyType.text = getOptionName(property.proTypeId?.let { listOf(it) }, "Type").uppercase()
-        tvMapPropertyFacing.text = getOptionName(property.facingId?.let { listOf(it) }, "Facing")
-        
-        val imageUrl = property.media?.firstOrNull()?.fileUrl ?: property.mediaUrls?.firstOrNull()
-        
-        ivMapProperty.load(UrlUtils.getPropertyImageUrl(imageUrl) ?: R.drawable.ic_app_logo)
-        
-        // Prepare Shared Elements
-        val sharedElements = mutableMapOf<String, View>()
-        val prefixes = listOf("IMAGE", "TITLE", "PRICE", "LOCATION", "BHK", "AREA", "FACING", "BATH", "TYPE")
-        val views = listOf(ivMapProperty, tvMapPropertyTitle, tvMapPropertyPrice, tvMapPropertyLocation, tvMapPropertyBhk, tvMapPropertyArea, tvMapPropertyFacing, tvMapPropertyBath, tvMapPropertyType)
-        
-        views.forEachIndexed { index, view ->
-            val name = "property_${prefixes[index].lowercase()}_map"
-            view.transitionName = name
-            sharedElements[name] = view
-        }
-
         btnMapExplore.setOnClickListener {
-            (activity as? MainActivity)?.openPropertyExplore(property, sharedElements)
+            (activity as? MainActivity)?.openPropertyExplore(property)
         }
         
         cardMapProperty.visibility = View.VISIBLE
@@ -521,25 +537,12 @@ class SearchFragment : Fragment(), OnMapReadyCallback {
                 val shuffled = mapMarkers.shuffled().take(count)
                 
                 shuffled.forEach { marker ->
-                    val ctx = context ?: return@forEach
                     val property = marker.tag as? com.example.propertyconsultancy.data.dto.PropertyDTO ?: return@forEach
-                    val typeIndex = (1..3).random() // 1: Rent, 2: Title, 3: Type
-                    val categories = CategoryCache.getCategories(ctx)
                     
-                    val caption = when (typeIndex) {
-                        1 -> {
-                            val formatter = java.text.DecimalFormat("#,###")
-                            "₹ ${formatter.format(property.pricePerMonth ?: 0.0)}"
-                        }
-                        2 -> property.title?.take(15)?.uppercase() ?: ""
-                        3 -> {
-                            val group = categories?.find { it.name.contains("Type", true) }
-                            group?.options?.find { it.categoryId == property.proTypeId }?.option ?: "Property"
-                        }
-                        else -> null
-                    }
+                    val formatter = java.text.DecimalFormat("#,###")
+                    val caption = "₹ ${formatter.format(property.pricePerMonth ?: 0.0)}"
 
-                    // Show stylish HUD caption
+                    // Show stylish HUD caption (Rent Only)
                     marker.setIcon(getMarkerIcon(R.drawable.ic_hut, caption))
                     
                     // Hide it after a short random duration (2.5 - 4.5 seconds)

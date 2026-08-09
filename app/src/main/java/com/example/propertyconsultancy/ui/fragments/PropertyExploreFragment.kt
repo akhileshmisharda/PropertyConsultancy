@@ -442,7 +442,7 @@ class PropertyExploreFragment : Fragment(), OnMapReadyCallback {
             cardExecutive.visibility = View.GONE
         }
 
-        val mediaUrls = (property.media?.map { it.fileUrl } ?: emptyList()) + (property.mediaUrls ?: emptyList()).distinct()
+        val mediaUrls = ((property.media?.map { it.fileUrl } ?: emptyList()) + (property.mediaUrls ?: emptyList())).distinct()
         vpMedia.adapter = com.example.propertyconsultancy.ui.adapters.MediaSliderAdapter(mediaUrls) { position ->
             val fullScreen = FullScreenMediaFragment()
             val args = Bundle()
