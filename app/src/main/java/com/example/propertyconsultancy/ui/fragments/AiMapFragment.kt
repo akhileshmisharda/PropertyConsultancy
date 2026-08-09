@@ -174,11 +174,14 @@ class AiMapFragment : Fragment(), OnMapReadyCallback {
     }
 
     private fun loadNearbyFacilities(type: String, category: String) {
-        val prop = property ?: return
+        val prop = property ?: run {
+            Log.e("debug_location", "Property is NULL in loadNearbyFacilities")
+            return
+        }
         val propertyPos = LatLng(prop.latitude ?: 25.3412, prop.longitude ?: 74.6341)
         val cityName = prop.city ?: ""
         
-        // Comprehensive queries for detailed results
+        Log.d("debug_location", "loadNearbyFacilities: Category=$category, City=$cityName, Pos=$propertyPos")
         val queries = when(category) {
             "Education" -> listOf("School near $cityName", "College near $cityName", "University near $cityName", "Coaching Center near $cityName")
             "Medical" -> listOf("Hospital near $cityName", "Clinic near $cityName", "Pharmacy near $cityName", "Diagnostic Center near $cityName")
@@ -187,13 +190,44 @@ class AiMapFragment : Fragment(), OnMapReadyCallback {
         }
 
         lifecycleScope.launch(Dispatchers.IO) {
+            if (!Geocoder.isPresent()) {
+                Log.e("debug_location", "Geocoder is NOT present on this device!")
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(requireContext(), "Location search not supported on this device", Toast.LENGTH_SHORT).show()
+                }
+                return@launch
+            }
+            
             val geocoder = Geocoder(requireContext(), Locale.getDefault())
+            Log.d("debug_location", "Starting search for $category in city: $cityName")
             val foundLocations = mutableSetOf<String>() // To avoid duplicates
 
             queries.forEach { query ->
                 try {
-                    // Search in a wider range
-                    val results = geocoder.getFromLocationName(query, 15)
+                    Log.d("debug_location", "Running Geocoder query: $query")
+                    
+                    // Create a bounding box (~20km) around the property to improve local search accuracy
+                    val latDelta = 0.15 // roughly 15-20km
+                    val lngDelta = 0.15
+                    
+                    var results = geocoder.getFromLocationName(
+                        query, 15,
+                        propertyPos.latitude - latDelta, propertyPos.longitude - lngDelta,
+                        propertyPos.latitude + latDelta, propertyPos.longitude + lngDelta
+                    )
+                    
+                    // Fallback: If no results with "near City", try just the type (School, etc) within bounds
+                    if (results.isNullOrEmpty()) {
+                        val simpleQuery = query.substringBefore(" near")
+                        Log.d("debug_location", "Retrying with simple query: $simpleQuery")
+                        results = geocoder.getFromLocationName(
+                            simpleQuery, 15,
+                            propertyPos.latitude - latDelta, propertyPos.longitude - lngDelta,
+                            propertyPos.latitude + latDelta, propertyPos.longitude + lngDelta
+                        )
+                    }
+                    
+                    Log.d("debug_location", "Query: $query -> Found ${results?.size ?: 0} results")
                     
                     withContext(Dispatchers.Main) {
                         results?.forEach { addr ->
@@ -201,14 +235,22 @@ class AiMapFragment : Fragment(), OnMapReadyCallback {
                             val name = addr.featureName ?: addr.thoroughfare ?: type
                             val distance = calculateDistance(propertyPos, pos)
                             
+                            Log.d("debug_location", "Candidate: $name at $pos. Distance: ${distance/1000}km")
+                            
                             // Only show within 15km for "Nearby" relevance
                             if (distance < 15000 && !foundLocations.contains(name)) {
                                 foundLocations.add(name)
                                 addMarkerToCategory(name, pos, category, distance)
+                                Log.d("debug_location", "Added Pin: $name ($category)")
+                            } else {
+                                if (distance >= 15000) Log.d("debug_location", "Skipped (Too far): $name")
+                                if (foundLocations.contains(name)) Log.d("debug_location", "Skipped (Duplicate): $name")
                             }
                         }
                     }
-                } catch (e: Exception) { Log.e("AiMap", "Query failed: $query", e) }
+                } catch (e: Exception) { 
+                    Log.e("debug_location", "Query failed: $query", e) 
+                }
             }
         }
     }
