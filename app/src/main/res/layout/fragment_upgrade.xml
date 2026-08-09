@@ -69,7 +69,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Upcoming Mega Projects"
+                    android:text="Premium Property Listings"
                     android:textColor="?attr/colorOnSurface"
                     android:textSize="18sp"
                     android:textStyle="bold" />
@@ -85,14 +85,15 @@
                     android:textStyle="bold" />
             </LinearLayout>
 
-            <!-- Horizontal Scrollable Ad Section -->
+            <!-- Premium Masonry Grid -->
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/rvUpcomingProjects"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
                 android:clipToPadding="false"
-                android:paddingHorizontal="16dp" />
+                android:paddingHorizontal="8dp"
+                android:nestedScrollingEnabled="false" />
 
             <!-- Subscription Plans (Advertisement Base) -->
             <TextView

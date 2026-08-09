@@ -1,19 +1,26 @@
 package com.example.propertyconsultancy.ui.fragments
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
-import android.widget.TextView
+import android.widget.Toast
 import androidx.fragment.app.Fragment
-import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.RecyclerView
-import coil3.load
+import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import com.example.propertyconsultancy.R
-import com.example.propertyconsultancy.data.dto.ProjectDTO
+import com.example.propertyconsultancy.data.dto.PropertyDTO
+import com.example.propertyconsultancy.data.remote.RetrofitInstance
+import com.example.propertyconsultancy.ui.activities.MainActivity
+import com.example.propertyconsultancy.ui.adapters.MasonryPropertyAdapter
+import kotlinx.coroutines.launch
 
 class UpgradeFragment : Fragment() {
+
+    private lateinit var masonryAdapter: MasonryPropertyAdapter
+    private lateinit var rvProjects: RecyclerView
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.fragment_upgrade, container, false)
@@ -21,42 +28,39 @@ class UpgradeFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        (activity as? MainActivity)?.updateTitle("Premium Projects")
         
-        val rvProjects = view.findViewById<RecyclerView>(R.id.rvUpcomingProjects)
-        rvProjects.layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
+        rvProjects = view.findViewById(R.id.rvUpcomingProjects)
         
-        val projects = listOf(
-            ProjectDTO(1, "Emerald Heights", "Skyline Builders", "Civil Lines, Nagpur", "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?q=80&w=1000", "Luxury living redefined", "Dec 2026", "₹ 45 L"),
-            ProjectDTO(2, "Ocean Breeze", "Coastal Developers", "Worli, Mumbai", "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?q=80&w=1000", "Sea facing apartments", "Jan 2027", "₹ 2.5 Cr"),
-            ProjectDTO(3, "Forest Edge", "Green Habitats", "Hinjewadi, Pune", "https://images.unsplash.com/photo-1448630360428-6e23437f71ad?q=80&w=1000", "Live with nature", "Oct 2026", "₹ 65 L")
-        )
+        // 1. Setup Staggered Grid (2 Columns, Vertical)
+        rvProjects.layoutManager = StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL)
         
-        rvProjects.adapter = ProjectAdapter(projects)
+        masonryAdapter = MasonryPropertyAdapter(emptyList()) { property ->
+            (activity as? MainActivity)?.openPropertyExplore(property)
+        }
+        rvProjects.adapter = masonryAdapter
+
+        // 2. Fetch Data from server (search_properties.php)
+        fetchPremiumProperties()
     }
 
-    private class ProjectAdapter(private val items: List<ProjectDTO>) : RecyclerView.Adapter<ProjectAdapter.VH>() {
-        class VH(view: View) : RecyclerView.ViewHolder(view) {
-            val ivImage: ImageView = view.findViewById(R.id.ivProjectImage)
-            val tvTitle: TextView = view.findViewById(R.id.tvProjectTitle)
-            val tvDeveloper: TextView = view.findViewById(R.id.tvDeveloperName)
-            val tvLocation: TextView = view.findViewById(R.id.tvProjectLocation)
-            val tvPrice: TextView = view.findViewById(R.id.tvStartingPrice)
+    private fun fetchPremiumProperties() {
+        lifecycleScope.launch {
+            try {
+                // Fetching properties from search_properties.php with a high limit
+                val response = RetrofitInstance.api.getProperties(limit = 20)
+                if (response.status == "success") {
+                    val properties = response.data ?: emptyList()
+                    masonryAdapter.updateData(properties)
+                    
+                    if (properties.isEmpty()) {
+                        rvProjects.visibility = View.GONE
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e("[Masonry]", "Error: ${e.message}")
+                Toast.makeText(context, "Error loading projects", Toast.LENGTH_SHORT).show()
+            }
         }
-
-        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VH {
-            val view = LayoutInflater.from(parent.context).inflate(R.layout.item_project_ad, parent, false)
-            return VH(view)
-        }
-
-        override fun onBindViewHolder(holder: VH, position: Int) {
-            val item = items[position]
-            holder.ivImage.load(item.imageUrl)
-            holder.tvTitle.text = item.title
-            holder.tvDeveloper.text = "by ${item.developer}"
-            holder.tvLocation.text = item.location
-            holder.tvPrice.text = item.priceStarting
-        }
-
-        override fun getItemCount() = items.size
     }
 }
