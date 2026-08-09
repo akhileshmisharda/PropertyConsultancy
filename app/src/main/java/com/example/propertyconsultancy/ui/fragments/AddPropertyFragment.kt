@@ -119,6 +119,7 @@ class AddPropertyFragment : Fragment() {
         
         viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
             override fun onPageSelected(position: Int) {
+                viewPager.isUserInputEnabled = true
                 btnSubmit.visibility = if (position == 4) View.GONE else View.VISIBLE
                 if (position == 4 && propertyToEdit?.propertyId == null) {
                     // Try to save property first to get an ID for direct media upload

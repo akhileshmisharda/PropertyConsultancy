@@ -8,4 +8,5 @@
     <string name="app_logo_description">App Logo</string>
     <string name="voice_input_description">Voice Input</string>
     <string name="apt_suite_hint">Apt, Suite, etc. (Optional)</string>
+    <string name="google_maps_key">AIzaSyB9-x0y8WH5I6hl1Ls4INqY0SHWnnwMRjM</string>
 </resources>

@@ -154,7 +154,7 @@ class SettingsFragment : Fragment() {
         canvas.drawText(message, 25f, 60f, paint)
 
         // Draw HUD tail
-        paint.color = Color.parseColor("#E53935")
+        paint.color = Color.parseColor("#007AFF")
         canvas.drawCircle(width / 2f, 130f, 6f, paint)
         paint.strokeWidth = 2f
         paint.style = android.graphics.Paint.Style.STROKE

@@ -141,7 +141,7 @@
                     android:id="@+id/mapOverlay"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:background="#22000000" />
+                    android:background="#11000000" />
 
                 <TextView
                     android:id="@+id/tvMapInstruction"
@@ -152,10 +152,41 @@
                     android:background="#88000000"
                     android:paddingHorizontal="12dp"
                     android:paddingVertical="6dp"
-                    android:text="Double tap to enable map"
+                    android:text="Double tap to enable pin dropping"
                     android:textColor="#FFFFFF"
                     android:textSize="12sp"
                     android:elevation="2dp" />
+
+                <!-- Custom Zoom Controls in Top Corner -->
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="top|end"
+                    android:layout_margin="12dp"
+                    android:orientation="vertical"
+                    android:elevation="4dp">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnZoomIn"
+                        style="@style/Widget.Material3.Button.TonalButton"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:padding="0dp"
+                        android:text="+"
+                        android:textSize="20sp"
+                        app:cornerRadius="8dp" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnZoomOut"
+                        style="@style/Widget.Material3.Button.TonalButton"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:layout_marginTop="4dp"
+                        android:padding="0dp"
+                        android:text="-"
+                        android:textSize="20sp"
+                        app:cornerRadius="8dp" />
+                </LinearLayout>
 
                 <ImageView
                     android:layout_width="32dp"

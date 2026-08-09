@@ -98,8 +98,13 @@ class MainActivity : BaseActivity() {
                 loadFragment(ProfileFragment(), "profile")
                 Toast.makeText(this, "Welcome! Please complete your profile details.", Toast.LENGTH_LONG).show()
             } else {
-                updateTitle("Dashboard")
-                loadFragment(DashboardFragment(), "dashboard")
+                val user = sessionManager.getUser()
+                if (user?.city != null) {
+                    sessionManager.saveSearchFilters(mapOf("city" to user.city))
+                }
+                updateTitle("Listings")
+                loadFragment(SearchFragment(), "listing")
+                bottomNav.selectedItemId = R.id.nav_listing
             }
         }
     }
@@ -171,7 +176,7 @@ class MainActivity : BaseActivity() {
         val bitmap = android.graphics.Bitmap.createBitmap(width, height, android.graphics.Bitmap.Config.ARGB_8888)
         val canvas = android.graphics.Canvas(bitmap)
         
-        val accentColor = android.graphics.Color.parseColor("#E53935")
+        val accentColor = android.graphics.Color.parseColor("#007AFF")
         val hudLineColor = android.graphics.Color.parseColor("#757575")
         val textColor = android.graphics.Color.parseColor("#424242")
         

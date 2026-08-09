@@ -20,20 +20,20 @@
         android:usesCleartextTraffic="true">
         <activity
             android:name=".ui.activities.MainActivity"
+            android:exported="false"
+            android:label="@string/app_name"
+            android:theme="@style/Theme.PropertyConsultancy" />
+        <activity
+            android:name=".ui.activities.LoginActivity"
             android:exported="true"
             android:label="@string/app_name"
-            android:theme="@style/Theme.PropertyConsultancy">
+            android:theme="@style/Theme.PropertyConsultancy"
+            android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity
-            android:name=".ui.activities.LoginActivity"
-            android:exported="false"
-            android:label="@string/app_name"
-            android:theme="@style/Theme.PropertyConsultancy"
-            android:windowSoftInputMode="adjustResize" />
         <activity
             android:name=".ui.activities.RegisterActivity"
             android:exported="false"

@@ -9,6 +9,7 @@ import android.view.GestureDetector
 import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.viewpager2.widget.ViewPager2
 import com.example.propertyconsultancy.R
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
@@ -59,7 +60,7 @@ class PropertyAddressFragment : Fragment(), OnMapReadyCallback {
         tvMapInstruction = view.findViewById(R.id.tvMapInstruction)
         mapOverlay = view.findViewById(R.id.mapOverlay)
 
-        setupTouchInterception()
+        setupTouchInterception(view)
         setupZipCodeListener()
 
         val mapFragment = childFragmentManager.findFragmentById(R.id.mapAddress) as? SupportMapFragment
@@ -71,13 +72,19 @@ class PropertyAddressFragment : Fragment(), OnMapReadyCallback {
         }
     }
 
-    private fun setupTouchInterception() {
+    private fun setupTouchInterception(view: View) {
         val gestureDetector = GestureDetector(requireContext(), object : GestureDetector.SimpleOnGestureListener() {
             override fun onDoubleTap(e: MotionEvent): Boolean {
                 googleMap?.uiSettings?.setAllGesturesEnabled(true)
                 mapOverlay.visibility = View.GONE
                 tvMapInstruction.visibility = View.GONE
-                Toast.makeText(requireContext(), "Map editing enabled", Toast.LENGTH_SHORT).show()
+                
+                // Disable ViewPager2 swiping when map is active
+                (parentFragment as? AddPropertyFragment)?.let { fragment ->
+                    fragment.view?.findViewById<ViewPager2>(R.id.viewPager)?.isUserInputEnabled = false
+                }
+                
+                Toast.makeText(requireContext(), "Map editing enabled (Swiping disabled)", Toast.LENGTH_SHORT).show()
                 return true
             }
         })
@@ -85,15 +92,33 @@ class PropertyAddressFragment : Fragment(), OnMapReadyCallback {
         mapOverlay.setOnTouchListener { v, event ->
             gestureDetector.onTouchEvent(event)
             when (event.action) {
-                MotionEvent.ACTION_DOWN -> {
-                    v.parent.requestDisallowInterceptTouchEvent(true)
-                }
+                MotionEvent.ACTION_DOWN -> v.parent.requestDisallowInterceptTouchEvent(true)
                 MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
                     v.parent.requestDisallowInterceptTouchEvent(false)
                     v.performClick()
                 }
             }
             true
+        }
+
+        view.findViewById<View>(R.id.mapCard).setOnTouchListener { v, event ->
+            if (mapOverlay.visibility == View.GONE) {
+                when (event.action) {
+                    MotionEvent.ACTION_DOWN -> v.parent.requestDisallowInterceptTouchEvent(true)
+                    MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                        v.parent.requestDisallowInterceptTouchEvent(false)
+                        v.performClick()
+                    }
+                }
+            }
+            false
+        }
+
+        view.findViewById<View>(R.id.btnZoomIn).setOnClickListener {
+            googleMap?.animateCamera(CameraUpdateFactory.zoomIn())
+        }
+        view.findViewById<View>(R.id.btnZoomOut).setOnClickListener {
+            googleMap?.animateCamera(CameraUpdateFactory.zoomOut())
         }
     }
 
@@ -137,7 +162,7 @@ class PropertyAddressFragment : Fragment(), OnMapReadyCallback {
 
     override fun onMapReady(map: GoogleMap) {
         googleMap = map
-        googleMap?.uiSettings?.isZoomControlsEnabled = true
+        googleMap?.uiSettings?.isZoomControlsEnabled = false
         googleMap?.uiSettings?.setAllGesturesEnabled(false)
         
         val initialPos = LatLng(currentLat, currentLng)

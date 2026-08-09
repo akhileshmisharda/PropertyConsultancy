@@ -351,6 +351,17 @@ class SearchFragment : Fragment(), OnMapReadyCallback {
         googleMap = map
         googleMap?.uiSettings?.isZoomControlsEnabled = true
         
+        try {
+            val success = googleMap?.setMapStyle(
+                MapStyleOptions.loadRawResourceStyle(requireContext(), R.raw.map_style_dull)
+            )
+            if (success == false) {
+                Log.e("MapStyle", "Style parsing failed.")
+            }
+        } catch (e: Exception) {
+            Log.e("MapStyle", "Can't find style. Error: ", e)
+        }
+        
         updateMapMarkers()
         startCaptionCycle()
     }
@@ -557,7 +568,7 @@ class SearchFragment : Fragment(), OnMapReadyCallback {
         val drawable = ResourcesCompat.getDrawable(ctx.resources, resourceId, null) ?: return null
         
         // Futuristic HUD Styling - Bigger & Muted
-        val accentColor = android.graphics.Color.parseColor("#E53935") // Vivid Red
+        val accentColor = android.graphics.Color.parseColor("#007AFF") // iOS Style Blue
         val hudLineColor = android.graphics.Color.parseColor("#757575") // Muted Gray
         val textColor = android.graphics.Color.parseColor("#424242") // Darker Gray Text
         
@@ -572,19 +583,19 @@ class SearchFragment : Fragment(), OnMapReadyCallback {
         val padding = 18f
         
         // Canvas size: large enough for larger callout layout
-        val width = 500
-        val height = 300
+        val width = 600
+        val height = 400
         
         val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
         
         val centerX = width / 2f
-        val bottomY = height - 40f
+        val bottomY = height - 50f
         
         // 1. Draw Anchor Hut
-        drawable.setColorFilter(accentColor, PorterDuff.Mode.SRC_IN)
-        drawable.alpha = 220
-        val iconSize = 48 // Bigger Icon
+        // drawable.setColorFilter(accentColor, PorterDuff.Mode.SRC_IN) // Print as it is
+        drawable.alpha = 255
+        val iconSize = 44 // Balanced Size
         drawable.setBounds((centerX - iconSize/2).toInt(), (bottomY - iconSize).toInt(), (centerX + iconSize/2).toInt(), bottomY.toInt())
         drawable.draw(canvas)
 
@@ -1055,7 +1066,7 @@ class SearchFragment : Fragment(), OnMapReadyCallback {
         val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
         
-        val accentColor = android.graphics.Color.parseColor("#E53935")
+        val accentColor = android.graphics.Color.parseColor("#007AFF") // Blue
         val hudLineColor = android.graphics.Color.parseColor("#757575")
         val textColor = android.graphics.Color.parseColor("#424242")
         

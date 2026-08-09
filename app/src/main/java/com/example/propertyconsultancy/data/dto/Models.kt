@@ -21,6 +21,10 @@ data class UserDTO(
     @SerializedName("zip_code") val zipCode: String? = null,
     @SerializedName("latitude") val latitude: Double? = null,
     @SerializedName("longitude") val longitude: Double? = null,
+    @SerializedName("executive_id") val executiveId: Long? = null,
+    @SerializedName("executive_name") val executiveName: String? = null,
+    @SerializedName("executive_mobile") val executiveMobile: String? = null,
+    @SerializedName("executive_image") val executiveImage: String? = null,
     @SerializedName("created_at") val createdAt: String? = null,
     @SerializedName("updated_at") val updatedAt: String? = null
 ) : Serializable

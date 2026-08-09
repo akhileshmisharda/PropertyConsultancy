@@ -54,6 +54,7 @@ class ProfileFragment : Fragment(), OnMapReadyCallback {
     private lateinit var sessionManager: SessionManager
     private var user: UserDTO? = null
     private var selectedImageUri: Uri? = null
+    private lateinit var nsvProfile: androidx.core.widget.NestedScrollView
     
     private var originalPhone: String = ""
     private var originalEmail: String = ""
@@ -83,9 +84,17 @@ class ProfileFragment : Fragment(), OnMapReadyCallback {
     
     private lateinit var tvCompletionLabel: TextView
     private lateinit var pbCompletion: LinearProgressIndicator
+    private lateinit var tvCoordsDisplay: TextView
 
     private lateinit var mapOverlay: View
     private lateinit var tvMapInstruction: TextView
+
+    private lateinit var cardExecutive: View
+    private lateinit var tvExecutiveName: TextView
+    private lateinit var tvExecutiveMobile: TextView
+    private lateinit var ivExecutiveImage: ImageView
+    private lateinit var btnCallExecutive: View
+
     private var googleMap: GoogleMap? = null
     private var currentLat: Double = 21.1458
     private var currentLng: Double = 79.0882
@@ -137,10 +146,11 @@ class ProfileFragment : Fragment(), OnMapReadyCallback {
         (activity as? MainActivity)?.updateTitle("Profile")
 
         initViews(view)
+        nsvProfile = view.findViewById(R.id.nsvProfile)
         setupUI()
         setupListeners()
         setupSpeech()
-        setupMap()
+        setupMap(view)
 
         ivProfile.setOnClickListener {
             pickProfileImage.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
@@ -218,10 +228,11 @@ class ProfileFragment : Fragment(), OnMapReadyCallback {
         
         tvCompletionLabel = view.findViewById(R.id.tvCompletionLabel)
         pbCompletion = view.findViewById(R.id.pbCompletion)
+        tvCoordsDisplay = view.findViewById(R.id.tvCoordsDisplay)
 
         mapOverlay = view.findViewById(R.id.mapOverlay)
         tvMapInstruction = view.findViewById(R.id.tvMapInstruction)
-        
+
         etAddressLine1 = view.findViewById(R.id.etAddressLine1)
         etAddressLine2 = view.findViewById(R.id.etAddressLine2)
         etCity = view.findViewById(R.id.etCity)
@@ -236,6 +247,12 @@ class ProfileFragment : Fragment(), OnMapReadyCallback {
 
         layoutPasswordChange = view.findViewById(R.id.layoutPasswordChange)
         btnChangePasswordToggle = view.findViewById(R.id.btnChangePasswordToggle)
+        
+        cardExecutive = view.findViewById(R.id.cardExecutive)
+        tvExecutiveName = view.findViewById(R.id.tvExecutiveName)
+        tvExecutiveMobile = view.findViewById(R.id.tvExecutiveMobile)
+        ivExecutiveImage = view.findViewById(R.id.ivExecutiveImage)
+        btnCallExecutive = view.findViewById(R.id.btnCallExecutive)
         
         setupMicButton(view.findViewById(R.id.btnMicFirstName), etFirstName)
         setupMicButton(view.findViewById(R.id.btnMicLastName), etLastName)
@@ -346,7 +363,7 @@ class ProfileFragment : Fragment(), OnMapReadyCallback {
         }
     }
 
-    private fun setupMap() {
+    private fun setupMap(view: View) {
         val mapFragment = childFragmentManager.findFragmentById(R.id.mapProfile) as? SupportMapFragment
         mapFragment?.getMapAsync(this)
 
@@ -371,11 +388,31 @@ class ProfileFragment : Fragment(), OnMapReadyCallback {
             }
             true
         }
+
+        view.findViewById<View>(R.id.mapCard).setOnTouchListener { v, event ->
+            if (mapOverlay.visibility == View.GONE) {
+                when (event.action) {
+                    MotionEvent.ACTION_DOWN -> nsvProfile.requestDisallowInterceptTouchEvent(true)
+                    MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                        nsvProfile.requestDisallowInterceptTouchEvent(false)
+                        v.performClick()
+                    }
+                }
+            }
+            false
+        }
+
+        view.findViewById<View>(R.id.btnZoomInProfile).setOnClickListener {
+            googleMap?.animateCamera(CameraUpdateFactory.zoomIn())
+        }
+        view.findViewById<View>(R.id.btnZoomOutProfile).setOnClickListener {
+            googleMap?.animateCamera(CameraUpdateFactory.zoomOut())
+        }
     }
 
     override fun onMapReady(map: GoogleMap) {
         googleMap = map
-        googleMap?.uiSettings?.isZoomControlsEnabled = true
+        googleMap?.uiSettings?.isZoomControlsEnabled = false
         googleMap?.uiSettings?.setAllGesturesEnabled(false)
         
         val pos = LatLng(currentLat, currentLng)
@@ -391,6 +428,7 @@ class ProfileFragment : Fragment(), OnMapReadyCallback {
             val target = googleMap?.cameraPosition?.target ?: return@setOnCameraIdleListener
             currentLat = target.latitude
             currentLng = target.longitude
+            tvCoordsDisplay.text = String.format(java.util.Locale.US, "%.6f, %.6f", currentLat, currentLng)
             
             if (isUserDraggingMap) {
                 isUserDraggingMap = false
@@ -445,6 +483,8 @@ class ProfileFragment : Fragment(), OnMapReadyCallback {
             }
             ivProfile.load(finalUrl ?: "https://via.placeholder.com/150")
             
+            tvCoordsDisplay.text = String.format(java.util.Locale.US, "%.6f, %.6f", userInfo.latitude ?: 0.0, userInfo.longitude ?: 0.0)
+
             if (userInfo.status == "active") {
                 ivStatus.setImageResource(R.drawable.ic_tick); ivStatus.setColorFilter(colorDarkGreen)
                 tvActiveStatus.text = "Active"; tvActiveStatus.setTextColor(colorDarkGreen)
@@ -460,6 +500,32 @@ class ProfileFragment : Fragment(), OnMapReadyCallback {
             val fullAddress = listOfNotNull(userInfo.addressLine1, userInfo.city, userInfo.state, userInfo.zipCode).joinToString(", ")
             if (fullAddress.isNotEmpty()) {
                 geocodeAddress(fullAddress)
+            }
+
+            // Executive Details for Landlords
+            if ((userInfo.role == "landlord" || userInfo.role == "both") && !userInfo.executiveName.isNullOrEmpty()) {
+                cardExecutive.visibility = View.VISIBLE
+                tvExecutiveName.text = userInfo.executiveName
+                tvExecutiveMobile.text = userInfo.executiveMobile ?: "N/A"
+                val imageUrl = com.example.propertyconsultancy.utils.UrlUtils.getPropertyImageUrl(userInfo.executiveImage)
+                if (imageUrl != null) {
+                    ivExecutiveImage.load(imageUrl)
+                } else {
+                    ivExecutiveImage.setImageResource(R.drawable.ic_profile_modern)
+                }
+                btnCallExecutive.setOnClickListener {
+                    userInfo.executiveMobile?.let { mobile ->
+                        try {
+                            val intent = Intent(Intent.ACTION_DIAL)
+                            intent.data = Uri.parse("tel:$mobile")
+                            startActivity(intent)
+                        } catch (e: Exception) {
+                            Toast.makeText(requireContext(), "Unable to make call", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                }
+            } else {
+                cardExecutive.visibility = View.GONE
             }
 
             updateProfileCompletion(userInfo)
