@@ -33,18 +33,19 @@ import android.location.Geocoder
 import java.util.Locale
 import android.net.Uri
 import androidx.activity.result.contract.ActivityResultContracts
-import android.util.Base64
-import java.io.InputStream
 import androidx.activity.result.PickVisualMediaRequest
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
-import com.google.android.material.chip.ChipGroup
 import com.google.firebase.FirebaseException
-import com.google.firebase.auth.*
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.PhoneAuthProvider
+import com.google.firebase.auth.PhoneAuthOptions
+import com.google.firebase.auth.PhoneAuthCredential
+import com.google.firebase.auth.AuthResult
+import com.google.android.gms.tasks.Task
 import android.view.GestureDetector
 
 class ProfileFragment : Fragment(), OnMapReadyCallback {
@@ -159,7 +160,7 @@ class ProfileFragment : Fragment(), OnMapReadyCallback {
             user?.let { initiatePhoneVerification(it.phone, isResend = true) }
         }
 
-        view.findViewById<View>(R.id.btnBack)?.visibility = View.GONE // Hide back button if in tab
+        view.findViewById<View>(R.id.btnBack)?.visibility = View.GONE
 
         btnChangePasswordToggle.setOnClickListener {
             if (layoutPasswordChange.visibility == View.GONE) {
@@ -237,7 +238,7 @@ class ProfileFragment : Fragment(), OnMapReadyCallback {
 
     @SuppressLint("ClickableViewAccessibility")
     private fun setupMicButton(btn: View, target: EditText) {
-        btn.setOnTouchListener { _, event ->
+        btn.setOnTouchListener { v, event ->
             when (event.action) {
                 MotionEvent.ACTION_DOWN -> {
                     checkPermissionAndStart(target)
@@ -246,6 +247,7 @@ class ProfileFragment : Fragment(), OnMapReadyCallback {
                 MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
                     stopSpeech()
                     btn.animate().scaleX(1f).scaleY(1f).setDuration(100).start()
+                    v.performClick()
                 }
             }
             true
@@ -308,7 +310,6 @@ class ProfileFragment : Fragment(), OnMapReadyCallback {
         val currentPhone = etPhone.text.toString().trim()
         val currentEmail = etEmail.text.toString().trim()
 
-        // Phone Verification UI
         if (currentPhone == originalPhone && isMobileVerifiedOriginal == 1) {
             ivVerified.setImageResource(R.drawable.ic_tick)
             ivVerified.setColorFilter(colorDarkGreen)
@@ -323,7 +324,6 @@ class ProfileFragment : Fragment(), OnMapReadyCallback {
             tvVerifiedStatus.setOnClickListener { initiatePhoneVerification(currentPhone) }
         }
 
-        // Email Verification UI
         if (currentEmail == originalEmail && isEmailVerifiedOriginal == 1) {
             ivVerifiedEmail.setImageResource(R.drawable.ic_tick)
             ivVerifiedEmail.setColorFilter(colorDarkGreen)
@@ -357,7 +357,10 @@ class ProfileFragment : Fragment(), OnMapReadyCallback {
             gestureDetector.onTouchEvent(event)
             when (event.action) {
                 MotionEvent.ACTION_DOWN -> v.parent.requestDisallowInterceptTouchEvent(true)
-                MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> v.parent.requestDisallowInterceptTouchEvent(false)
+                MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                    v.parent.requestDisallowInterceptTouchEvent(false)
+                    v.performClick()
+                }
             }
             true
         }
@@ -447,7 +450,6 @@ class ProfileFragment : Fragment(), OnMapReadyCallback {
             
             tvAccountSince.text = userInfo.createdAt ?: "N/A"
 
-            // Move map to existing address if available
             val fullAddress = listOfNotNull(userInfo.addressLine1, userInfo.city, userInfo.state, userInfo.zipCode).joinToString(", ")
             if (fullAddress.isNotEmpty()) {
                 geocodeAddress(fullAddress)
@@ -509,14 +511,14 @@ class ProfileFragment : Fragment(), OnMapReadyCallback {
                     verificationId = id
                     resendToken = token
                     
-                    // Show inline OTP layout
                     layoutOtp.visibility = View.VISIBLE
                     startCountdown()
                 }
             })
             
-        if (isResend && resendToken != null) {
-            builder.setForceResendingToken(resendToken!!)
+        val token = resendToken
+        if (isResend && token != null) {
+            builder.setForceResendingToken(token)
         }
         
         PhoneAuthProvider.verifyPhoneNumber(builder.build())
@@ -546,7 +548,7 @@ class ProfileFragment : Fragment(), OnMapReadyCallback {
 
     private fun verifyAndSignIn(credential: PhoneAuthCredential) {
         auth.signInWithCredential(credential)
-            .addOnCompleteListener(requireActivity()) { task ->
+            .addOnCompleteListener(requireActivity()) { task: Task<AuthResult> ->
                 if (task.isSuccessful) {
                     layoutOtp.visibility = View.GONE
                     countDownTimer?.cancel()
@@ -589,7 +591,6 @@ class ProfileFragment : Fragment(), OnMapReadyCallback {
             try {
                 val response = RetrofitInstance.api.updateProfile(updatedUser)
                 if (response.status == "success") {
-                    // Update local session since server doesn't return full user
                     sessionManager.saveUser(updatedUser)
                     user = updatedUser
                     setupUI()
@@ -625,16 +626,8 @@ class ProfileFragment : Fragment(), OnMapReadyCallback {
             try {
                 val response = RetrofitInstance.api.updateProfile(updatedUser)
                 if (response.status == "success") {
-                    // Update image URL if returned
                     val finalUser = if (response.user != null) response.user else {
-                        // If PHP didn't return user, use the one we sent but update image if provided
-                        val newImg = if (response.status == "success" && !response.message.contains("error")) {
-                            // The PHP returns "image_url" in the JSON root
-                            // Since our AuthResponseDTO.user is mapped to 'user', we might need to handle raw response
-                            // But for now, let's assume if it's success, we update local.
-                            updatedUser
-                        } else updatedUser
-                        newImg
+                        updatedUser
                     }
                     sessionManager.saveUser(finalUser)
                     user = finalUser

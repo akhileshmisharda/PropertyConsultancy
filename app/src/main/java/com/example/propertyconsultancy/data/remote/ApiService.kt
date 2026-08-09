@@ -51,7 +51,7 @@ interface ApiService {
     @POST("login.php")
     suspend fun login(@Body request: LoginRequest): AuthResponseDTO
 
-    @POST("submit_user.php")
+    @POST("register_user_minimal.php")
     suspend fun register(@Body request: RegisterRequest): AuthResponseDTO
 
     @POST("submit_user.php")
