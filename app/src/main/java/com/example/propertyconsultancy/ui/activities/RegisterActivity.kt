@@ -10,17 +10,13 @@ import android.widget.*
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import com.google.firebase.FirebaseException
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.PhoneAuthProvider
-import com.google.firebase.auth.PhoneAuthOptions
-import com.google.firebase.auth.PhoneAuthCredential
-import com.google.firebase.auth.AuthResult
-import com.google.android.gms.tasks.Task
+import com.google.firebase.auth.*
 import com.example.propertyconsultancy.R
 import com.example.propertyconsultancy.data.dto.RegisterRequest
 import com.example.propertyconsultancy.data.local.SessionManager
 import com.example.propertyconsultancy.data.remote.RetrofitInstance
 import com.google.android.material.progressindicator.LinearProgressIndicator
+import com.google.android.material.textfield.TextInputLayout
 import kotlinx.coroutines.launch
 import java.util.concurrent.TimeUnit
 
@@ -29,7 +25,6 @@ class RegisterActivity : BaseActivity() {
     private lateinit var sessionManager: SessionManager
     private lateinit var registerProgress: LinearProgressIndicator
     
-    // Firebase Phone Auth
     private lateinit var auth: FirebaseAuth
     private var verificationId: String? = null
     private var resendToken: PhoneAuthProvider.ForceResendingToken? = null
@@ -38,10 +33,11 @@ class RegisterActivity : BaseActivity() {
     private lateinit var etPhone: EditText
     private lateinit var etPassword: EditText
     private lateinit var etConfirmPassword: EditText
+    private lateinit var tilConfirmPassword: TextInputLayout
     private lateinit var rgRole: RadioGroup
-    private lateinit var tvVerifyStatus: TextView
     private lateinit var ivVerified: ImageView
     private lateinit var tvProgressCaption: TextView
+    private lateinit var llPhoneIndicator: LinearLayout
     
     private lateinit var layoutOtp: View
     private lateinit var otpBoxes: List<EditText>
@@ -59,6 +55,8 @@ class RegisterActivity : BaseActivity() {
         
         initUI()
         setupOtpLogic()
+        setupPhoneAutoVerify()
+        setupPasswordCheck()
     }
 
     private fun initUI() {
@@ -66,10 +64,11 @@ class RegisterActivity : BaseActivity() {
         etPhone = findViewById(R.id.etPhone)
         etPassword = findViewById(R.id.etPassword)
         etConfirmPassword = findViewById(R.id.etConfirmPassword)
+        tilConfirmPassword = findViewById(R.id.tilConfirmPassword)
         rgRole = findViewById(R.id.rgRole)
-        tvVerifyStatus = findViewById(R.id.tvVerifyStatus)
         ivVerified = findViewById(R.id.ivVerified)
         tvProgressCaption = findViewById(R.id.tvProgressCaption)
+        llPhoneIndicator = findViewById(R.id.llPhoneIndicator)
         
         layoutOtp = findViewById(R.id.layoutOtp)
         otpBoxes = listOf(
@@ -84,18 +83,6 @@ class RegisterActivity : BaseActivity() {
 
         findViewById<View>(R.id.btnBack).setOnClickListener { finish() }
 
-        tvVerifyStatus.setOnClickListener {
-            val phone = etPhone.text.toString().trim()
-            if (phone.length < 10) {
-                Toast.makeText(this, "Enter valid phone number", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
-            hideKeyboard()
-            tvProgressCaption.text = "Checking for robot..."
-            tvProgressCaption.visibility = View.VISIBLE
-            initiatePhoneVerification(phone)
-        }
-
         btnVerifyOtp.setOnClickListener {
             val code = getOtpFromBoxes()
             if (code.length == 6) {
@@ -108,36 +95,95 @@ class RegisterActivity : BaseActivity() {
 
         btnResendOtp.setOnClickListener {
             val phone = etPhone.text.toString().trim()
-            initiatePhoneVerification(phone, isResend = true)
+            if (phone.length == 10) initiatePhoneVerification(phone, isResend = true)
         }
 
         btnRegister.setOnClickListener {
+            if (!validateForm(showErrors = true)) return@setOnClickListener
+
             val phone = etPhone.text.toString().trim()
             val password = etPassword.text.toString().trim()
-            val confirm = etConfirmPassword.text.toString().trim()
-            
             val role = when (rgRole.checkedRadioButtonId) {
                 R.id.rbLandlord -> "landlord"
                 R.id.rbExecutive -> "executive"
                 else -> "tenant"
             }
 
-            if (phone.isEmpty() || password.isEmpty()) {
-                Toast.makeText(this, "Please fill all fields", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
-
-            if (password != confirm) {
-                Toast.makeText(this, "Passwords do not match", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
-            
-            if (!isPhoneVerified) {
-                Toast.makeText(this, "First make mobile verification", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
-
             performRegister(phone, password, role)
+        }
+    }
+
+    private fun setupPhoneAutoVerify() {
+        etPhone.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+            override fun afterTextChanged(s: Editable?) {
+                val input = s.toString()
+                updatePhoneIndicator(input.length)
+                
+                if (input.length == 10 && !isPhoneVerified) {
+                    hideKeyboard()
+                    initiatePhoneVerification(input)
+                }
+                updateRegisterButtonState()
+            }
+        })
+    }
+
+    private fun setupPasswordCheck() {
+        val passwordWatcher = object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+            override fun afterTextChanged(s: Editable?) {
+                validateForm(showErrors = false)
+                updateRegisterButtonState()
+            }
+        }
+        etPassword.addTextChangedListener(passwordWatcher)
+        etConfirmPassword.addTextChangedListener(passwordWatcher)
+    }
+
+    private fun validateForm(showErrors: Boolean = false): Boolean {
+        val pass = etPassword.text.toString()
+        val confirm = etConfirmPassword.text.toString()
+        var isValid = true
+
+        if (pass != confirm && confirm.isNotEmpty()) {
+            if (showErrors) tilConfirmPassword.error = "Passwords do not match"
+            isValid = false
+        } else {
+            tilConfirmPassword.error = null
+        }
+
+        if (pass.length < 6 && pass.isNotEmpty()) {
+            isValid = false
+        }
+
+        if (!isPhoneVerified) {
+            isValid = false
+        }
+
+        return isValid
+    }
+
+    private fun updateRegisterButtonState() {
+        btnRegister.isEnabled = isPhoneVerified && 
+                etPassword.text.isNotEmpty() && 
+                etPassword.text.toString() == etConfirmPassword.text.toString() &&
+                etPassword.text.length >= 6
+    }
+
+    private fun updatePhoneIndicator(length: Int) {
+        val activeColor = ContextCompat.getColor(this, R.color.modern_primary)
+        val inactiveColor = android.graphics.Color.parseColor("#E0E0E0")
+        
+        var dotIndex = 0
+        for (i in 0 until llPhoneIndicator.childCount) {
+            val view = llPhoneIndicator.getChildAt(i)
+            if (view.layoutParams.width > 5) {
+                view.setBackgroundColor(if (dotIndex < length) activeColor else inactiveColor)
+                dotIndex++
+            }
         }
     }
 
@@ -163,6 +209,12 @@ class RegisterActivity : BaseActivity() {
                 }
                 false
             }
+            
+            editText.setOnClickListener {
+                if (!isPhoneVerified) {
+                    showKeyboard(editText)
+                }
+            }
         }
     }
 
@@ -179,13 +231,12 @@ class RegisterActivity : BaseActivity() {
     }
 
     private fun initiatePhoneVerification(phone: String, isResend: Boolean = false) {
-        var cleanedPhone = phone.replace(" ", "").replace("-", "")
-        if (cleanedPhone.startsWith("00")) {
-            cleanedPhone = "+" + cleanedPhone.substring(2)
-        }
-        val formattedPhone = if (cleanedPhone.startsWith("+")) cleanedPhone else "+91$cleanedPhone" 
+        val formattedPhone = if (phone.startsWith("+")) phone else "+91$phone" 
         
         registerProgress.visibility = View.VISIBLE
+        tvProgressCaption.text = "Verifying mobile number..."
+        tvProgressCaption.visibility = View.VISIBLE
+        layoutOtp.visibility = View.VISIBLE
         
         val builder = PhoneAuthOptions.newBuilder(auth)
             .setPhoneNumber(formattedPhone)
@@ -202,19 +253,16 @@ class RegisterActivity : BaseActivity() {
                 override fun onVerificationFailed(e: FirebaseException) {
                     registerProgress.visibility = View.GONE
                     tvProgressCaption.visibility = View.GONE
-                    Toast.makeText(this@RegisterActivity, "Failed: ${e.message}", Toast.LENGTH_LONG).show()
+                    layoutOtp.visibility = View.GONE
+                    Toast.makeText(this@RegisterActivity, "Verification Failed: ${e.message}", Toast.LENGTH_LONG).show()
                 }
 
                 override fun onCodeSent(id: String, token: PhoneAuthProvider.ForceResendingToken) {
                     registerProgress.visibility = View.GONE
-                    tvProgressCaption.text = "SMS Sent! Enter OTP"
+                    tvProgressCaption.text = "SMS Sent! Enter OTP below"
                     verificationId = id
                     resendToken = token
-                    layoutOtp.visibility = View.VISIBLE
-                    
-                    otpBoxes[0].requestFocus()
-                    showKeyboard(otpBoxes[0])
-                    
+                    hideKeyboard()
                     startCountdown()
                 }
             })
@@ -225,12 +273,6 @@ class RegisterActivity : BaseActivity() {
         }
         
         PhoneAuthProvider.verifyPhoneNumber(builder.build())
-        
-        android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
-            if (tvProgressCaption.visibility == View.VISIBLE && tvProgressCaption.text.contains("robot")) {
-                tvProgressCaption.text = "Sending SMS..."
-            }
-        }, 2000)
     }
 
     private fun startCountdown() {
@@ -258,6 +300,7 @@ class RegisterActivity : BaseActivity() {
 
     private fun showKeyboard(view: View) {
         val imm = getSystemService(android.content.Context.INPUT_METHOD_SERVICE) as android.view.inputmethod.InputMethodManager
+        view.requestFocus()
         imm.showSoftInput(view, android.view.inputmethod.InputMethodManager.SHOW_IMPLICIT)
     }
 
@@ -270,18 +313,17 @@ class RegisterActivity : BaseActivity() {
     private fun signInWithPhoneAuthCredential(credential: PhoneAuthCredential) {
         registerProgress.visibility = View.VISIBLE
         auth.signInWithCredential(credential)
-            .addOnCompleteListener(this) { task: Task<AuthResult> ->
+            .addOnCompleteListener(this) { task: com.google.android.gms.tasks.Task<AuthResult> ->
                 if (task.isSuccessful) {
                     isPhoneVerified = true
                     layoutOtp.visibility = View.GONE
                     tvProgressCaption.visibility = View.GONE
+                    llPhoneIndicator.visibility = View.GONE
                     countDownTimer?.cancel()
                     
-                    tvVerifyStatus.text = "Verified"
-                    tvVerifyStatus.setTextColor(ContextCompat.getColor(this, R.color.modern_primary))
                     ivVerified.visibility = View.VISIBLE
-                    tvVerifyStatus.setOnClickListener(null)
-                    btnRegister.isEnabled = true
+                    etPhone.isEnabled = false 
+                    updateRegisterButtonState()
                     
                     Toast.makeText(this, "Phone Number Verified", Toast.LENGTH_SHORT).show()
                     registerProgress.visibility = View.GONE

@@ -43,6 +43,7 @@ import com.google.firebase.FirebaseException
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.PhoneAuthProvider
 import com.google.firebase.auth.PhoneAuthOptions
+import com.google.android.material.progressindicator.LinearProgressIndicator
 import com.google.firebase.auth.PhoneAuthCredential
 import com.google.firebase.auth.AuthResult
 import com.google.android.gms.tasks.Task
@@ -80,6 +81,9 @@ class ProfileFragment : Fragment(), OnMapReadyCallback {
     private lateinit var tvAccountSince: TextView
     private lateinit var btnUpdate: Button
     
+    private lateinit var tvCompletionLabel: TextView
+    private lateinit var pbCompletion: LinearProgressIndicator
+
     private lateinit var mapOverlay: View
     private lateinit var tvMapInstruction: TextView
     private var googleMap: GoogleMap? = null
@@ -212,6 +216,9 @@ class ProfileFragment : Fragment(), OnMapReadyCallback {
         tvAccountSince = view.findViewById(R.id.tvAccountSince)
         btnUpdate = view.findViewById(R.id.btnUpdate)
         
+        tvCompletionLabel = view.findViewById(R.id.tvCompletionLabel)
+        pbCompletion = view.findViewById(R.id.pbCompletion)
+
         mapOverlay = view.findViewById(R.id.mapOverlay)
         tvMapInstruction = view.findViewById(R.id.tvMapInstruction)
         
@@ -454,7 +461,36 @@ class ProfileFragment : Fragment(), OnMapReadyCallback {
             if (fullAddress.isNotEmpty()) {
                 geocodeAddress(fullAddress)
             }
+
+            updateProfileCompletion(userInfo)
         }
+    }
+
+    private fun updateProfileCompletion(u: UserDTO) {
+        val fields = listOf(
+            u.firstName, u.lastName, u.email, u.phone, 
+            u.profileImageUrl, u.addressLine1, u.city, 
+            u.state, u.zipCode, u.latitude, u.longitude
+        )
+        
+        val filledCount = fields.count { 
+            when (it) {
+                is String -> it.isNotBlank()
+                is Double -> it != 0.0
+                else -> it != null
+            }
+        }
+        
+        // Add verification weight
+        val verificationBonus = (if (u.mobileVerified == 1) 1 else 0) + (if (u.emailVerified == 1) 1 else 0)
+        
+        val totalPoints = fields.size + 2 // 11 fields + 2 verifications = 13 total
+        val currentPoints = filledCount + verificationBonus
+        
+        val percentage = (currentPoints * 100) / totalPoints
+        
+        tvCompletionLabel.text = "Profile Completion: $percentage%"
+        pbCompletion.setProgress(percentage, true)
     }
 
     private fun geocodeAddress(address: String) {
@@ -633,6 +669,7 @@ class ProfileFragment : Fragment(), OnMapReadyCallback {
                     user = finalUser
                     Toast.makeText(requireContext(), "Profile Updated", Toast.LENGTH_SHORT).show()
                     setupUI()
+                    updateProfileCompletion(finalUser)
                 } else {
                     Toast.makeText(requireContext(), response.message, Toast.LENGTH_SHORT).show()
                 }

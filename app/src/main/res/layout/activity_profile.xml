@@ -119,6 +119,32 @@
                             app:tint="?attr/colorPrimary"
                             android:contentDescription="@string/voice_input_description" />
                     </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/llProfileCompletion"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:layout_marginTop="8dp">
+                        <TextView
+                            android:id="@+id/tvCompletionLabel"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Profile Completion: 0%"
+                            android:textSize="10sp"
+                            android:textStyle="bold"
+                            android:textColor="?attr/colorPrimary" />
+                        <com.google.android.material.progressindicator.LinearProgressIndicator
+                            android:id="@+id/pbCompletion"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            app:indicatorColor="?attr/colorPrimary"
+                            app:trackColor="#E0E0E0"
+                            app:trackThickness="4dp"
+                            app:trackCornerRadius="2dp"
+                            android:progress="0" />
+                    </LinearLayout>
                 </LinearLayout>
 
                 <LinearLayout

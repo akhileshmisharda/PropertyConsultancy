@@ -26,7 +26,7 @@ data class UserDTO(
 ) : Serializable
 
 data class LoginRequest(
-    @SerializedName("email") val email: String,
+    @SerializedName("email") val phone: String,
     @SerializedName("password") val password: String
 )
 
