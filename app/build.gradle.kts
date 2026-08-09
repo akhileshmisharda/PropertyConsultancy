@@ -41,6 +41,7 @@ dependencies {
     implementation(libs.androidx.cardview)
     implementation(libs.material)
     implementation(libs.play.services.maps)
+    implementation(libs.play.services.auth)
     
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.activity.compose)

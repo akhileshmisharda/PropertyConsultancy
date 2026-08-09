@@ -7,12 +7,16 @@ import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
+import android.util.Log
 import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
 import android.widget.*
+import androidx.activity.result.IntentSenderRequest
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.DialogFragment
 import androidx.lifecycle.lifecycleScope
 import com.example.propertyconsultancy.R
@@ -20,6 +24,8 @@ import com.example.propertyconsultancy.data.dto.RegisterRequest
 import com.example.propertyconsultancy.data.local.SessionManager
 import com.example.propertyconsultancy.data.remote.RetrofitInstance
 import com.example.propertyconsultancy.ui.activities.MainActivity
+import com.google.android.gms.auth.api.identity.GetPhoneNumberHintIntentRequest
+import com.google.android.gms.auth.api.identity.Identity
 import com.google.android.material.progressindicator.LinearProgressIndicator
 import com.google.android.material.textfield.TextInputLayout
 import com.google.firebase.FirebaseException
@@ -49,6 +55,15 @@ class RegisterDialogFragment : DialogFragment() {
     private lateinit var otpBoxes: List<EditText>
     private lateinit var btnRegister: Button
 
+    private val phoneNumberHintLauncher = registerForActivityResult(ActivityResultContracts.StartIntentSenderForResult()) { result ->
+        try {
+            val phoneNumber = Identity.getSignInClient(requireActivity()).getPhoneNumberFromIntent(result.data)
+            askToUsePhone(phoneNumber)
+        } catch (e: Exception) {
+            Log.e("RegisterDialog", "Phone Hint Result error", e)
+        }
+    }
+
     override fun onStart() {
         super.onStart()
         dialog?.window?.apply {
@@ -71,6 +86,9 @@ class RegisterDialogFragment : DialogFragment() {
         setupPhoneLogic()
         setupOtpLogic()
         setupPasswordCheck()
+        
+        // Try to fetch device phone number
+        requestPhoneHint()
     }
 
     private fun initUI(view: View) {
@@ -100,11 +118,16 @@ class RegisterDialogFragment : DialogFragment() {
         btnRegister = view.findViewById(R.id.btnRegister)
 
         btnRegister.setOnClickListener {
+            Log.d("RegisterDialog", "Get Started clicked. Verified=$isPhoneVerified")
             if (!isPhoneVerified) {
                 Toast.makeText(requireContext(), "Please verify your mobile number first", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
-            if (!validateForm(showErrors = true)) return@setOnClickListener
+            if (!validateForm(showErrors = true)) {
+                Log.d("RegisterDialog", "Form validation failed")
+                return@setOnClickListener
+            }
+            
             val phone = getPhoneFromBoxes()
             val password = etPassword.text.toString().trim()
             val role = when (rgRole.checkedRadioButtonId) {
@@ -114,6 +137,34 @@ class RegisterDialogFragment : DialogFragment() {
             }
             performRegister(phone, password, role)
         }
+    }
+
+    private fun requestPhoneHint() {
+        val request = GetPhoneNumberHintIntentRequest.builder().build()
+        Identity.getSignInClient(requireActivity())
+            .getPhoneNumberHintIntent(request)
+            .addOnSuccessListener { result ->
+                try {
+                    phoneNumberHintLauncher.launch(IntentSenderRequest.Builder(result.intentSender).build())
+                } catch (e: Exception) {
+                    Log.e("RegisterDialog", "Launching Phone Hint Intent failed", e)
+                }
+            }
+            .addOnFailureListener { e ->
+                Log.e("RegisterDialog", "Phone Hint failed: ${e.message}")
+            }
+    }
+
+    private fun askToUsePhone(fullPhone: String) {
+        val cleanPhone = fullPhone.takeLast(10)
+        android.app.AlertDialog.Builder(requireContext())
+            .setTitle("Found Phone Number")
+            .setMessage("Would you like to use $fullPhone for your account?")
+            .setPositiveButton("Yes") { _, _ ->
+                setPhoneToBoxes(cleanPhone)
+            }
+            .setNegativeButton("No", null)
+            .show()
     }
 
     private fun setupPhoneLogic() {
@@ -151,6 +202,13 @@ class RegisterDialogFragment : DialogFragment() {
 
     private fun getPhoneFromBoxes(): String = phoneBoxes.joinToString("") { it.text.toString() }
 
+    private fun setPhoneToBoxes(phone: String) {
+        val digits = phone.filter { it.isDigit() }.takeLast(10)
+        digits.forEachIndexed { index, char ->
+            if (index < phoneBoxes.size) phoneBoxes[index].setText(char.toString())
+        }
+    }
+
     private fun setupPasswordCheck() {
         val watcher = object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
@@ -179,13 +237,21 @@ class RegisterDialogFragment : DialogFragment() {
             tvPasswordError.visibility = View.GONE
         }
         
-        if (pass.length < 6) isValid = false
+        if (pass.length < 6) {
+            if (showErrors && pass.isNotEmpty()) {
+                tvPasswordError.visibility = View.VISIBLE
+                tvPasswordError.text = "Password must be at least 6 characters"
+            }
+            isValid = false
+        }
+        
         return isValid
     }
 
     private fun updateRegisterButtonState() {
         val pass = etPassword.text.toString()
         val confirm = etConfirmPassword.text.toString()
+        // Enable button if passwords are valid, so we can show "verify first" toast if clicked
         btnRegister.isEnabled = pass.length >= 6 && pass == confirm
     }
 
@@ -298,21 +364,26 @@ class RegisterDialogFragment : DialogFragment() {
 
     private fun performRegister(phone: String, password: String, role: String) {
         registerProgress.visibility = View.VISIBLE
+        Log.d("RegisterDialog", "performRegister: $phone, $role")
         lifecycleScope.launch {
             try {
                 val resp = RetrofitInstance.api.register(RegisterRequest(phone = phone, password = password, role = role, mobileVerified = 1))
+                Log.d("RegisterDialog", "Response: ${resp.status}")
                 if (resp.status == "success" && resp.user != null) {
                     sessionManager.saveUser(resp.user)
                     startActivity(Intent(requireContext(), MainActivity::class.java).apply { putExtra("OPEN_PROFILE", true) })
                     activity?.finish()
                     dismiss()
                 } else {
-                    Toast.makeText(requireContext(), resp.message, Toast.LENGTH_SHORT).show()
+                    val msg = resp.message ?: "Registration failed"
+                    Toast.makeText(context ?: return@launch, msg, Toast.LENGTH_SHORT).show()
                 }
             } catch (e: Exception) {
-                Toast.makeText(requireContext(), "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+                Log.e("RegisterDialog", "Error", e)
+                Toast.makeText(context ?: return@launch, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+            } finally {
+                if (isAdded) registerProgress.visibility = View.GONE
             }
-            registerProgress.visibility = View.GONE
         }
     }
 
