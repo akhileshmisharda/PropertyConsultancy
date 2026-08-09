@@ -82,6 +82,7 @@ data class CategoryResponseDTO(
 
 data class PropertyDTO(
     @SerializedName("property_id") val propertyId: Long? = null,
+    @SerializedName("objective") val objective: String? = null, // Rent, Sale, Project, Advertisement
     @SerializedName("landlord_id") val landlordId: Long? = null,
     @SerializedName("category_id") val categoryId: Int? = null,
     @SerializedName("title") val title: String? = null,
