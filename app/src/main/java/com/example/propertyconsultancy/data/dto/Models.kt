@@ -11,7 +11,6 @@ data class UserDTO(
     @SerializedName("phone") val phone: String,
     @SerializedName("role") val role: String, // 'tenant', 'landlord', 'both', 'admin'
     @SerializedName("profile_image_url") val profileImageUrl: String?,
-    @SerializedName("is_verified") val isVerified: Int,
     @SerializedName("mobile_verified") val mobileVerified: Int = 0,
     @SerializedName("email_verified") val emailVerified: Int = 0,
     @SerializedName("status") val status: String,
@@ -20,7 +19,10 @@ data class UserDTO(
     @SerializedName("city") val city: String? = null,
     @SerializedName("state") val state: String? = null,
     @SerializedName("zip_code") val zipCode: String? = null,
-    @SerializedName("created_at") val createdAt: String? = null
+    @SerializedName("latitude") val latitude: Double? = null,
+    @SerializedName("longitude") val longitude: Double? = null,
+    @SerializedName("created_at") val createdAt: String? = null,
+    @SerializedName("updated_at") val updatedAt: String? = null
 ) : Serializable
 
 data class LoginRequest(
@@ -29,9 +31,9 @@ data class LoginRequest(
 )
 
 data class RegisterRequest(
-    @SerializedName("first_name") val firstName: String,
-    @SerializedName("last_name") val lastName: String,
-    @SerializedName("email") val email: String,
+    @SerializedName("first_name") val firstName: String? = null,
+    @SerializedName("last_name") val lastName: String? = null,
+    @SerializedName("email") val email: String? = null,
     @SerializedName("phone") val phone: String,
     @SerializedName("password") val password: String,
     @SerializedName("role") val role: String = "tenant",
@@ -41,6 +43,8 @@ data class RegisterRequest(
     @SerializedName("city") val city: String? = null,
     @SerializedName("state") val state: String? = null,
     @SerializedName("zip_code") val zipCode: String? = null,
+    @SerializedName("latitude") val latitude: Double? = null,
+    @SerializedName("longitude") val longitude: Double? = null,
     @SerializedName("mobile_verified") val mobileVerified: Int = 0,
     @SerializedName("email_verified") val emailVerified: Int = 0
 )

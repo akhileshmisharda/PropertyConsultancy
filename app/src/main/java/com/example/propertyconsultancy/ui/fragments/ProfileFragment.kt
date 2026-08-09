@@ -27,21 +27,36 @@ import com.example.propertyconsultancy.ui.activities.LoginActivity
 import com.example.propertyconsultancy.ui.activities.MainActivity
 import com.example.propertyconsultancy.utils.FileUtils
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import android.location.Geocoder
 import java.util.Locale
 import android.net.Uri
 import androidx.activity.result.contract.ActivityResultContracts
 import android.util.Base64
 import java.io.InputStream
 import androidx.activity.result.PickVisualMediaRequest
+import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.android.gms.maps.GoogleMap
+import com.google.android.gms.maps.OnMapReadyCallback
+import com.google.android.gms.maps.SupportMapFragment
+import com.google.android.gms.maps.model.LatLng
+import com.google.android.material.chip.ChipGroup
 import com.google.firebase.FirebaseException
 import com.google.firebase.auth.*
 import com.google.firebase.auth.PhoneAuthProvider
+import android.view.GestureDetector
 
-class ProfileFragment : Fragment() {
+class ProfileFragment : Fragment(), OnMapReadyCallback {
 
     private lateinit var sessionManager: SessionManager
     private var user: UserDTO? = null
     private var selectedImageUri: Uri? = null
+    
+    private var originalPhone: String = ""
+    private var originalEmail: String = ""
+    private var isMobileVerifiedOriginal: Int = 0
+    private var isEmailVerifiedOriginal: Int = 0
 
     private lateinit var etFirstName: EditText
     private lateinit var etLastName: EditText
@@ -63,6 +78,14 @@ class ProfileFragment : Fragment() {
     private lateinit var tvVerifiedStatusEmail: TextView
     private lateinit var tvAccountSince: TextView
     private lateinit var btnUpdate: Button
+    
+    private lateinit var mapOverlay: View
+    private lateinit var tvMapInstruction: TextView
+    private var googleMap: GoogleMap? = null
+    private var currentLat: Double = 21.1458
+    private var currentLng: Double = 79.0882
+    private var isUserDraggingMap = false
+    private var isProgrammaticChange = false
     
     private lateinit var layoutPasswordChange: View
     private lateinit var btnChangePasswordToggle: TextView
@@ -110,7 +133,9 @@ class ProfileFragment : Fragment() {
 
         initViews(view)
         setupUI()
+        setupListeners()
         setupSpeech()
+        setupMap()
 
         ivProfile.setOnClickListener {
             pickProfileImage.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
@@ -185,6 +210,9 @@ class ProfileFragment : Fragment() {
         tvVerifiedStatusEmail = view.findViewById(R.id.tvVerifiedStatusEmail)
         tvAccountSince = view.findViewById(R.id.tvAccountSince)
         btnUpdate = view.findViewById(R.id.btnUpdate)
+        
+        mapOverlay = view.findViewById(R.id.mapOverlay)
+        tvMapInstruction = view.findViewById(R.id.tvMapInstruction)
         
         etAddressLine1 = view.findViewById(R.id.etAddressLine1)
         etAddressLine2 = view.findViewById(R.id.etAddressLine2)
@@ -264,8 +292,131 @@ class ProfileFragment : Fragment() {
 
     private fun stopSpeech() { speechRecognizer?.stopListening() }
 
+    private fun setupListeners() {
+        val textWatcher = object : android.text.TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+            override fun afterTextChanged(s: android.text.Editable?) {
+                updateVerificationUI()
+            }
+        }
+        etPhone.addTextChangedListener(textWatcher)
+        etEmail.addTextChangedListener(textWatcher)
+    }
+
+    private fun updateVerificationUI() {
+        val currentPhone = etPhone.text.toString().trim()
+        val currentEmail = etEmail.text.toString().trim()
+
+        // Phone Verification UI
+        if (currentPhone == originalPhone && isMobileVerifiedOriginal == 1) {
+            ivVerified.setImageResource(R.drawable.ic_tick)
+            ivVerified.setColorFilter(colorDarkGreen)
+            tvVerifiedStatus.text = "Verified"
+            tvVerifiedStatus.setTextColor(colorDarkGreen)
+            tvVerifiedStatus.setOnClickListener(null)
+        } else {
+            ivVerified.setImageResource(R.drawable.ic_pending)
+            ivVerified.setColorFilter(colorGray)
+            tvVerifiedStatus.text = "Verify Now"
+            tvVerifiedStatus.setTextColor(colorRed)
+            tvVerifiedStatus.setOnClickListener { initiatePhoneVerification(currentPhone) }
+        }
+
+        // Email Verification UI
+        if (currentEmail == originalEmail && isEmailVerifiedOriginal == 1) {
+            ivVerifiedEmail.setImageResource(R.drawable.ic_tick)
+            ivVerifiedEmail.setColorFilter(colorDarkGreen)
+            tvVerifiedStatusEmail.text = "Verified"
+            tvVerifiedStatusEmail.setTextColor(colorDarkGreen)
+            tvVerifiedStatusEmail.setOnClickListener(null)
+        } else {
+            ivVerifiedEmail.setImageResource(R.drawable.ic_pending)
+            ivVerifiedEmail.setColorFilter(colorGray)
+            tvVerifiedStatusEmail.text = "Verify Now"
+            tvVerifiedStatusEmail.setTextColor(colorRed)
+            tvVerifiedStatusEmail.setOnClickListener { showEmailVerificationDialog() }
+        }
+    }
+
+    private fun setupMap() {
+        val mapFragment = childFragmentManager.findFragmentById(R.id.mapProfile) as? SupportMapFragment
+        mapFragment?.getMapAsync(this)
+
+        val gestureDetector = GestureDetector(requireContext(), object : GestureDetector.SimpleOnGestureListener() {
+            override fun onDoubleTap(e: MotionEvent): Boolean {
+                googleMap?.uiSettings?.setAllGesturesEnabled(true)
+                mapOverlay.visibility = View.GONE
+                tvMapInstruction.visibility = View.GONE
+                Toast.makeText(requireContext(), "Map editing enabled", Toast.LENGTH_SHORT).show()
+                return true
+            }
+        })
+
+        mapOverlay.setOnTouchListener { v, event ->
+            gestureDetector.onTouchEvent(event)
+            when (event.action) {
+                MotionEvent.ACTION_DOWN -> v.parent.requestDisallowInterceptTouchEvent(true)
+                MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> v.parent.requestDisallowInterceptTouchEvent(false)
+            }
+            true
+        }
+    }
+
+    override fun onMapReady(map: GoogleMap) {
+        googleMap = map
+        googleMap?.uiSettings?.isZoomControlsEnabled = true
+        googleMap?.uiSettings?.setAllGesturesEnabled(false)
+        
+        val pos = LatLng(currentLat, currentLng)
+        googleMap?.moveCamera(CameraUpdateFactory.newLatLngZoom(pos, 15f))
+
+        googleMap?.setOnCameraMoveStartedListener { reason ->
+            if (reason == GoogleMap.OnCameraMoveStartedListener.REASON_GESTURE) {
+                isUserDraggingMap = true
+            }
+        }
+
+        googleMap?.setOnCameraIdleListener {
+            val target = googleMap?.cameraPosition?.target ?: return@setOnCameraIdleListener
+            currentLat = target.latitude
+            currentLng = target.longitude
+            
+            if (isUserDraggingMap) {
+                isUserDraggingMap = false
+                reverseGeocode(currentLat, currentLng)
+            }
+        }
+    }
+
+    private fun reverseGeocode(lat: Double, lng: Double) {
+        lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                val geocoder = Geocoder(requireContext(), Locale.getDefault())
+                val addresses = geocoder.getFromLocation(lat, lng, 1)
+                if (!addresses.isNullOrEmpty()) {
+                    val addr = addresses[0]
+                    withContext(Dispatchers.Main) {
+                        isProgrammaticChange = true
+                        etAddressLine1.setText(addr.featureName ?: addr.thoroughfare ?: "")
+                        etAddressLine2.setText(addr.subLocality ?: "")
+                        etCity.setText(addr.locality ?: addr.subAdminArea ?: "")
+                        etState.setText(addr.adminArea ?: "")
+                        etZipCode.setText(addr.postalCode ?: "")
+                        isProgrammaticChange = false
+                    }
+                }
+            } catch (e: Exception) {}
+        }
+    }
+
     private fun setupUI() {
         user?.let { userInfo ->
+            originalPhone = userInfo.phone
+            originalEmail = userInfo.email
+            isMobileVerifiedOriginal = userInfo.mobileVerified
+            isEmailVerifiedOriginal = userInfo.emailVerified
+
             etFirstName.setText(userInfo.firstName)
             etLastName.setText(userInfo.lastName)
             etEmail.setText(userInfo.email)
@@ -292,27 +443,32 @@ class ProfileFragment : Fragment() {
                 tvActiveStatus.text = "Inactive"; tvActiveStatus.setTextColor(colorRed)
             }
 
-            if (userInfo.mobileVerified == 1) {
-                ivVerified.setImageResource(R.drawable.ic_tick); ivVerified.setColorFilter(colorDarkGreen)
-                tvVerifiedStatus.text = "Verified"; tvVerifiedStatus.setTextColor(colorDarkGreen)
-                tvVerifiedStatus.setOnClickListener(null)
-            } else {
-                ivVerified.setImageResource(R.drawable.ic_pending); ivVerified.setColorFilter(colorGray)
-                tvVerifiedStatus.text = "Verify Now"; tvVerifiedStatus.setTextColor(colorRed)
-                tvVerifiedStatus.setOnClickListener { initiatePhoneVerification(userInfo.phone) }
-            }
-
-            if (userInfo.emailVerified == 1) {
-                ivVerifiedEmail.setImageResource(R.drawable.ic_tick); ivVerifiedEmail.setColorFilter(colorDarkGreen)
-                tvVerifiedStatusEmail.text = "Verified"; tvVerifiedStatusEmail.setTextColor(colorDarkGreen)
-                tvVerifiedStatusEmail.setOnClickListener(null)
-            } else {
-                ivVerifiedEmail.setImageResource(R.drawable.ic_pending); ivVerifiedEmail.setColorFilter(colorGray)
-                tvVerifiedStatusEmail.text = "Verify Now"; tvVerifiedStatusEmail.setTextColor(colorRed)
-                tvVerifiedStatusEmail.setOnClickListener { showEmailVerificationDialog() }
-            }
+            updateVerificationUI()
             
             tvAccountSince.text = userInfo.createdAt ?: "N/A"
+
+            // Move map to existing address if available
+            val fullAddress = listOfNotNull(userInfo.addressLine1, userInfo.city, userInfo.state, userInfo.zipCode).joinToString(", ")
+            if (fullAddress.isNotEmpty()) {
+                geocodeAddress(fullAddress)
+            }
+        }
+    }
+
+    private fun geocodeAddress(address: String) {
+        lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                val geocoder = Geocoder(requireContext(), Locale.getDefault())
+                val addresses = geocoder.getFromLocationName(address, 1)
+                if (!addresses.isNullOrEmpty()) {
+                    val addr = addresses[0]
+                    withContext(Dispatchers.Main) {
+                        currentLat = addr.latitude
+                        currentLng = addr.longitude
+                        googleMap?.moveCamera(CameraUpdateFactory.newLatLngZoom(LatLng(currentLat, currentLng), 15f))
+                    }
+                }
+            } catch (e: Exception) {}
         }
     }
 
@@ -446,16 +602,23 @@ class ProfileFragment : Fragment() {
     }
 
     private fun updateProfile() {
+        val currentPhone = etPhone.text.toString().trim()
+        val currentEmail = etEmail.text.toString().trim()
+
         val updatedUser = user?.copy(
             firstName = etFirstName.text.toString(),
             lastName = etLastName.text.toString(),
-            email = etEmail.text.toString(),
-            phone = etPhone.text.toString(),
+            email = currentEmail,
+            phone = currentPhone,
+            mobileVerified = if (currentPhone == originalPhone) isMobileVerifiedOriginal else 0,
+            emailVerified = if (currentEmail == originalEmail) isEmailVerifiedOriginal else 0,
             addressLine1 = etAddressLine1.text.toString(),
             addressLine2 = etAddressLine2.text.toString(),
             city = etCity.text.toString(),
             state = etState.text.toString(),
-            zipCode = etZipCode.text.toString()
+            zipCode = etZipCode.text.toString(),
+            latitude = currentLat,
+            longitude = currentLng
         ) ?: return
 
         lifecycleScope.launch {

@@ -51,6 +51,7 @@
                 </androidx.cardview.widget.CardView>
 
                 <LinearLayout
+                    android:id="@+id/llNameFields"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="24dp"
@@ -59,79 +60,6 @@
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toEndOf="@id/cvProfileContainer"
                     app:layout_constraintTop_toTopOf="@id/cvProfileContainer">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Welcome,"
-                        android:textSize="14sp"
-                        android:textColor="?attr/colorOnSurfaceVariant" />
-
-                    <TextView
-                        android:id="@+id/tvProfileName"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="User Name"
-                        android:textSize="22sp"
-                        android:textStyle="bold"
-                        android:textColor="?attr/colorOnSurface" />
-
-                    <LinearLayout
-                        android:id="@+id/llActive"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical">
-                        <ImageView
-                            android:id="@+id/ivStatus"
-                            android:layout_width="12dp"
-                            android:layout_height="12dp"
-                            android:src="@drawable/ic_tick"
-                            app:tint="?attr/colorPrimary" />
-                        <TextView
-                            android:id="@+id/tvActiveStatus"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="4dp"
-                            android:text="Active Member"
-                            android:textSize="12sp"
-                            android:textStyle="bold"
-                            android:textColor="?attr/colorPrimary" />
-                    </LinearLayout>
-                </LinearLayout>
-
-            </androidx.constraintlayout.widget.ConstraintLayout>
-
-            <!-- Personal Info Section -->
-            <TextView
-                android:id="@+id/tvPersonalInfoLabel"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="24dp"
-                android:layout_marginTop="16dp"
-                android:text="Personal Information"
-                android:textStyle="bold"
-                android:textColor="?attr/colorOnSurfaceVariant"
-                android:textSize="14sp"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/clHeader" />
-
-            <androidx.cardview.widget.CardView
-                android:id="@+id/cvPersonalInfo"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginHorizontal="16dp"
-                android:layout_marginTop="8dp"
-                app:cardBackgroundColor="?attr/colorSurfaceVariant"
-                app:cardCornerRadius="20dp"
-                app:cardElevation="0dp"
-                app:layout_constraintTop_toBottomOf="@id/tvPersonalInfoLabel">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="16dp">
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -146,11 +74,13 @@
                             android:hint="First Name"
                             style="@style/App.EditText.Style"
                             android:background="@null"
-                            android:padding="8dp" />
+                            android:padding="2dp"
+                            android:textSize="18sp"
+                            android:textStyle="bold" />
                         <ImageButton
                             android:id="@+id/btnMicFirstName"
-                            android:layout_width="40dp"
-                            android:layout_height="40dp"
+                            android:layout_width="32dp"
+                            android:layout_height="32dp"
                             android:background="?attr/selectableItemBackgroundBorderless"
                             android:src="@drawable/ic_mic"
                             app:tint="?attr/colorPrimary"
@@ -160,7 +90,7 @@
                     <View
                         android:layout_width="match_parent"
                         android:layout_height="1dp"
-                        android:layout_marginVertical="8dp"
+                        android:layout_marginVertical="4dp"
                         android:background="?attr/colorOutline"
                         android:alpha="0.2" />
 
@@ -177,20 +107,47 @@
                             android:hint="Last Name"
                             style="@style/App.EditText.Style"
                             android:background="@null"
-                            android:padding="8dp" />
+                            android:padding="2dp"
+                            android:textSize="18sp"
+                            android:textStyle="bold" />
                         <ImageButton
                             android:id="@+id/btnMicLastName"
-                            android:layout_width="40dp"
-                            android:layout_height="40dp"
+                            android:layout_width="32dp"
+                            android:layout_height="32dp"
                             android:background="?attr/selectableItemBackgroundBorderless"
                             android:src="@drawable/ic_mic"
                             app:tint="?attr/colorPrimary"
                             android:contentDescription="@string/voice_input_description" />
                     </LinearLayout>
                 </LinearLayout>
-            </androidx.cardview.widget.CardView>
 
-            <!-- Contact Section -->
+                <LinearLayout
+                    android:id="@+id/llActive"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent">
+                    <ImageView
+                        android:id="@+id/ivStatus"
+                        android:layout_width="12dp"
+                        android:layout_height="12dp"
+                        android:src="@drawable/ic_tick"
+                        app:tint="?attr/colorPrimary" />
+                    <TextView
+                        android:id="@+id/tvActiveStatus"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="4dp"
+                        android:text="Active Member"
+                        android:textSize="12sp"
+                        android:textStyle="bold"
+                        android:textColor="?attr/colorPrimary" />
+                </LinearLayout>
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
             <TextView
                 android:id="@+id/tvContactInfoLabel"
                 android:layout_width="wrap_content"
@@ -202,7 +159,7 @@
                 android:textColor="?attr/colorOnSurfaceVariant"
                 android:textSize="14sp"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/cvPersonalInfo" />
+                app:layout_constraintTop_toBottomOf="@id/clHeader" />
 
             <androidx.cardview.widget.CardView
                 android:id="@+id/cvContactInfo"
@@ -235,7 +192,7 @@
                             android:inputType="phone"
                             style="@style/App.EditText.Style"
                             android:background="@null"
-                            android:padding="8dp" />
+                            android:padding="4dp" />
                         <ImageButton
                             android:id="@+id/btnMicPhone"
                             android:layout_width="40dp"
@@ -369,7 +326,7 @@
                             android:inputType="textEmailAddress"
                             style="@style/App.EditText.Style"
                             android:background="@null"
-                            android:padding="8dp" />
+                            android:padding="4dp" />
                         <ImageButton
                             android:id="@+id/btnMicEmail"
                             android:layout_width="40dp"
@@ -442,7 +399,7 @@
                         android:hint="Street Address"
                         style="@style/App.EditText.Style"
                         android:background="@null"
-                        android:padding="8dp" />
+                        android:padding="4dp" />
 
                     <View
                         android:layout_width="match_parent"
@@ -458,23 +415,7 @@
                         android:hint="@string/apt_suite_hint"
                         style="@style/App.EditText.Style"
                         android:background="@null"
-                        android:padding="8dp" />
-
-                    <View
-                        android:layout_width="match_parent"
-                        android:layout_height="1dp"
-                        android:layout_marginVertical="8dp"
-                        android:background="?attr/colorOutline"
-                        android:alpha="0.2" />
-
-                    <EditText
-                        android:id="@+id/etCity"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:hint="City"
-                        style="@style/App.EditText.Style"
-                        android:background="@null"
-                        android:padding="8dp" />
+                        android:padding="4dp" />
 
                     <View
                         android:layout_width="match_parent"
@@ -488,6 +429,20 @@
                         android:layout_height="wrap_content"
                         android:orientation="horizontal">
                         <EditText
+                            android:id="@+id/etCity"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:hint="City"
+                            style="@style/App.EditText.Style"
+                            android:background="@null"
+                            android:padding="4dp" />
+                        <View
+                            android:layout_width="1dp"
+                            android:layout_height="match_parent"
+                            android:background="?attr/colorOutline"
+                            android:alpha="0.2" />
+                        <EditText
                             android:id="@+id/etState"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
@@ -495,18 +450,76 @@
                             android:hint="State"
                             style="@style/App.EditText.Style"
                             android:background="@null"
-                            android:padding="8dp" />
+                            android:padding="4dp" />
+                        <View
+                            android:layout_width="1dp"
+                            android:layout_height="match_parent"
+                            android:background="?attr/colorOutline"
+                            android:alpha="0.2" />
                         <EditText
                             android:id="@+id/etZipCode"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:hint="Zip Code"
+                            android:hint="Zip"
                             android:inputType="number"
                             style="@style/App.EditText.Style"
                             android:background="@null"
-                            android:padding="8dp" />
+                            android:padding="4dp" />
                     </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/tvPinOnMap"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
+                        android:text="Pin your location"
+                        android:textSize="12sp"
+                        android:textStyle="bold"
+                        android:textColor="?attr/colorPrimary" />
+
+                    <androidx.cardview.widget.CardView
+                        android:id="@+id/mapCard"
+                        android:layout_width="match_parent"
+                        android:layout_height="250dp"
+                        android:layout_marginTop="8dp"
+                        app:cardCornerRadius="12dp"
+                        app:cardElevation="2dp">
+                        <FrameLayout android:layout_width="match_parent" android:layout_height="match_parent">
+                            <androidx.fragment.app.FragmentContainerView
+                                android:id="@+id/mapProfile"
+                                android:name="com.google.android.gms.maps.SupportMapFragment"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent" />
+
+                            <View
+                                android:id="@+id/mapOverlay"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:background="#22000000" />
+
+                            <TextView
+                                android:id="@+id/tvMapInstruction"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="bottom|center_horizontal"
+                                android:layout_marginBottom="12dp"
+                                android:background="#88000000"
+                                android:paddingHorizontal="10dp"
+                                android:paddingVertical="4dp"
+                                android:text="Double tap to enable map"
+                                android:textColor="#FFFFFF"
+                                android:textSize="10sp" />
+
+                            <ImageView
+                                android:layout_width="24dp"
+                                android:layout_height="24dp"
+                                android:layout_gravity="center"
+                                android:layout_marginBottom="12dp"
+                                android:src="@drawable/ic_location_pin"
+                                app:tint="?attr/colorPrimary" />
+                        </FrameLayout>
+                    </androidx.cardview.widget.CardView>
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
@@ -568,6 +581,7 @@
                             android:hint="New Password"
                             android:inputType="textPassword"
                             style="@style/App.EditText.Style"
+                            android:padding="4dp"
                             android:background="@null" />
 
                         <EditText
@@ -577,6 +591,7 @@
                             android:hint="Repeat Password"
                             android:inputType="textPassword"
                             style="@style/App.EditText.Style"
+                            android:padding="4dp"
                             android:background="@null" />
                     </LinearLayout>
                 </LinearLayout>
