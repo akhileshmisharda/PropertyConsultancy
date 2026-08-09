@@ -201,3 +201,22 @@ data class InteractionResponseDTO(
     @SerializedName("data") val data: PropertyInteractionDTO? = null,
     @SerializedName("message") val message: String? = null
 )
+
+data class FeedbackDTO(
+    val name: String,
+    val text: String,
+    val rating: Float,
+    val timestamp: Long
+) : Serializable
+
+data class ProjectDTO(
+    @SerializedName("id") val id: Long,
+    @SerializedName("title") val title: String,
+    @SerializedName("developer") val developer: String,
+    @SerializedName("location") val location: String,
+    @SerializedName("image_url") val imageUrl: String,
+    @SerializedName("description") val description: String,
+    @SerializedName("launch_date") val launchDate: String,
+    @SerializedName("price_starting") val priceStarting: String
+) : Serializable
+

@@ -127,4 +127,50 @@ class SessionManager(context: Context) {
             emptyList()
         }
     }
+
+    fun saveUserPlace(name: String, lat: Double, lng: Double) {
+        val places = getUserPlaces().toMutableList()
+        // Avoid duplicates by name
+        places.removeAll { it["name"] == name }
+        places.add(mapOf("name" to name, "lat" to lat.toString(), "lng" to lng.toString()))
+        prefs.edit().putString("user_saved_places", gson.toJson(places)).apply()
+    }
+
+    fun getUserPlaces(): List<Map<String, String>> {
+        val json = prefs.getString("user_saved_places", null)
+        return if (json != null) {
+            val type = object : com.google.gson.reflect.TypeToken<List<Map<String, String>>>() {}.type
+            gson.fromJson(json, type)
+        } else {
+            emptyList()
+        }
+    }
+
+    fun deleteUserPlace(name: String) {
+        val places = getUserPlaces().toMutableList()
+        places.removeAll { it["name"] == name }
+        prefs.edit().putString("user_saved_places", gson.toJson(places)).apply()
+    }
+
+    fun savePropertyFeedback(propertyId: Long, feedback: com.example.propertyconsultancy.data.dto.FeedbackDTO) {
+        val allFeedbacks = getAllFeedbacks().toMutableMap()
+        val propertyFeedbacks = allFeedbacks.getOrPut(propertyId.toString()) { mutableListOf() }.toMutableList()
+        propertyFeedbacks.add(0, feedback)
+        allFeedbacks[propertyId.toString()] = propertyFeedbacks
+        prefs.edit().putString("property_feedbacks", gson.toJson(allFeedbacks)).apply()
+    }
+
+    fun getPropertyFeedbacks(propertyId: Long): List<com.example.propertyconsultancy.data.dto.FeedbackDTO> {
+        return getAllFeedbacks()[propertyId.toString()] ?: emptyList()
+    }
+
+    private fun getAllFeedbacks(): Map<String, List<com.example.propertyconsultancy.data.dto.FeedbackDTO>> {
+        val json = prefs.getString("property_feedbacks", null)
+        return if (json != null) {
+            val type = object : com.google.gson.reflect.TypeToken<Map<String, List<com.example.propertyconsultancy.data.dto.FeedbackDTO>>>() {}.type
+            gson.fromJson(json, type)
+        } else {
+            emptyMap()
+        }
+    }
 }

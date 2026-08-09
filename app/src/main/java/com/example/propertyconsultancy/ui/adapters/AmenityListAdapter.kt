@@ -20,12 +20,6 @@ class AmenityListAdapter(
     private val isSelectedList: Boolean
 ) : ArrayAdapter<AmenityListItem>(context, R.layout.item_amenity, displayList) {
 
-    private val sharedPrefs = context.getSharedPreferences("ThemePrefs", Context.MODE_PRIVATE)
-    private val themeId = sharedPrefs.getInt("selected_theme_id", 1)
-    
-    private val buttonBgColor = sharedPrefs.getString("custom_button_bg_$themeId", "#2D3E7B")!!
-    private val buttonTextColor = sharedPrefs.getString("custom_button_text_$themeId", "#FFFFFF")!!
-
     override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
         val item = getItem(position)!!
         val view = convertView ?: LayoutInflater.from(context).inflate(R.layout.item_amenity, parent, false)
@@ -37,10 +31,11 @@ class AmenityListAdapter(
         val density = context.resources.displayMetrics.density
         
         if (item.isHeader) {
-            view.setBackgroundColor(Color.parseColor("#F5F5F5"))
-            tvName.setTextColor(Color.parseColor("#444444"))
+            view.setBackgroundColor(Color.parseColor("#F1F3F4"))
+            tvName.setTextColor(Color.parseColor("#5F6368"))
             tvName.setTypeface(null, Typeface.BOLD)
-            tvName.textSize = 11f
+            tvName.textSize = 10f
+            tvName.setPadding((12 * density).toInt(), (4 * density).toInt(), (12 * density).toInt(), (4 * density).toInt())
             
             ivToggle.visibility = View.VISIBLE
             // Use modern chevron icons
@@ -61,13 +56,24 @@ class AmenityListAdapter(
             ivToggle.visibility = View.GONE
 
             if (isSelectedList) {
-                drawable.setColor(Color.parseColor(buttonBgColor))
-                tvName.setTextColor(Color.parseColor(buttonTextColor))
+                // Modern Tonal Selection Style
+                val typedValue = android.util.TypedValue()
+                val theme = context.theme
+                
+                val colorContainer = if (theme.resolveAttribute(com.google.android.material.R.attr.colorPrimaryContainer, typedValue, true)) typedValue.data else Color.parseColor("#E3F2FD")
+                val onContainer = if (theme.resolveAttribute(com.google.android.material.R.attr.colorOnPrimaryContainer, typedValue, true)) typedValue.data else Color.parseColor("#1976D2")
+                val colorOutline = if (theme.resolveAttribute(com.google.android.material.R.attr.colorPrimary, typedValue, true)) typedValue.data else Color.parseColor("#2196F3")
+
+                drawable.setColor(colorContainer)
+                drawable.setStroke((1 * density).toInt(), colorOutline)
+                tvName.setTextColor(onContainer)
                 tvName.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_tick, 0, 0, 0)
-                tvName.compoundDrawableTintList = ColorStateList.valueOf(Color.parseColor(buttonTextColor))
+                tvName.compoundDrawablePadding = (8 * density).toInt()
+                tvName.compoundDrawableTintList = ColorStateList.valueOf(onContainer)
             } else {
-                drawable.setColor(Color.parseColor("#05000000")) // Very light gray for visibility
-                tvName.setTextColor(Color.BLACK)
+                drawable.setColor(Color.parseColor("#F8F9FA")) 
+                drawable.setStroke((1 * density).toInt(), Color.parseColor("#E0E0E0"))
+                tvName.setTextColor(Color.parseColor("#333333"))
                 tvName.setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0)
             }
             tvName.background = drawable

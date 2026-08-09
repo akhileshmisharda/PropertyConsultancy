@@ -102,6 +102,9 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Education"
+                        app:chipBackgroundColor="#E8F5E9"
+                        app:chipIconTint="#4CAF50"
+                        app:chipStrokeColor="#4CAF50"
                         app:chipIcon="@android:drawable/ic_menu_my_calendar" />
 
                     <com.google.android.material.chip.Chip
@@ -110,6 +113,9 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Hospitals"
+                        app:chipBackgroundColor="#FFEBEE"
+                        app:chipIconTint="#F44336"
+                        app:chipStrokeColor="#F44336"
                         app:chipIcon="@android:drawable/ic_menu_info_details" />
 
                     <com.google.android.material.chip.Chip
@@ -118,6 +124,9 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Transit"
+                        app:chipBackgroundColor="#E3F2FD"
+                        app:chipIconTint="#2196F3"
+                        app:chipStrokeColor="#2196F3"
                         app:chipIcon="@android:drawable/ic_dialog_map" />
 
                     <com.google.android.material.chip.Chip
@@ -126,8 +135,28 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="My Saved"
+                        app:chipBackgroundColor="#FFF3E0"
+                        app:chipIconTint="#FF9800"
+                        app:chipStrokeColor="#FF9800"
                         app:chipIcon="@android:drawable/btn_star_big_on" />
                 </com.google.android.material.chip.ChipGroup>
+            </HorizontalScrollView>
+
+            <!-- Saved Places Row (Dynamic) -->
+            <HorizontalScrollView
+                android:id="@+id/scrollSavedPlaces"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:scrollbars="none"
+                android:visibility="gone"
+                tools:visibility="visible">
+                <com.google.android.material.chip.ChipGroup
+                    android:id="@+id/chipGroupSavedPlaces"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingHorizontal="4dp"
+                    app:singleLine="true" />
             </HorizontalScrollView>
         </LinearLayout>
     </androidx.cardview.widget.CardView>

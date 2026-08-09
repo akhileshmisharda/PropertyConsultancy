@@ -541,53 +541,74 @@
             android:layout_height="match_parent"
             android:visibility="gone">
             <!-- Radius Filter (Only in Map Mode) -->
-            <LinearLayout
+            <androidx.cardview.widget.CardView
                 android:id="@+id/layoutRadiusFilter"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_gravity="top"
                 android:layout_marginHorizontal="16dp"
-                android:layout_marginTop="8dp"
-                android:background="@drawable/bg_hint_popup"
-                android:elevation="6dp"
-                android:orientation="vertical"
-                android:padding="8dp"
+                android:layout_marginTop="12dp"
                 android:visibility="gone"
+                app:cardCornerRadius="24dp"
+                app:cardElevation="8dp"
+                app:cardBackgroundColor="?android:attr/windowBackground"
                 tools:visibility="visible">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal">
-                    <TextView
-                        android:id="@+id/tvRadiusLabel"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="Search Radius: 3.5 km"
-                        android:textColor="@color/theme1_text"
-                        android:textSize="12sp"
-                        android:textStyle="bold" />
-                    <TextView
-                        android:id="@+id/tvRadiusCount"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="0 Properties"
-                        android:textColor="@color/theme1_primary"
-                        android:textSize="11sp" />
-                </LinearLayout>
+                    android:orientation="vertical"
+                    android:paddingHorizontal="16dp"
+                    android:paddingVertical="12dp">
 
-                <com.google.android.material.slider.Slider
-                    android:id="@+id/sliderRadius"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:valueFrom="0"
-                    android:valueTo="7000"
-                    android:value="3500"
-                    app:labelBehavior="gone"
-                    app:thumbColor="@color/theme1_primary"
-                    app:trackColorActive="@color/theme1_primary" />
-            </LinearLayout>
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+                        <ImageView
+                            android:layout_width="16dp"
+                            android:layout_height="16dp"
+                            android:src="@drawable/ic_location_pin"
+                            app:tint="#007AFF" />
+                        <TextView
+                            android:id="@+id/tvRadiusLabel"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:layout_marginStart="8dp"
+                            android:text="Search Radius: 3.5 km"
+                            android:textColor="?attr/colorOnSurface"
+                            android:textSize="13sp"
+                            android:textStyle="bold" />
+                        <TextView
+                            android:id="@+id/tvRadiusCount"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="0 Properties"
+                            android:textColor="#007AFF"
+                            android:textSize="12sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+
+                    <com.google.android.material.slider.Slider
+                        android:id="@+id/sliderRadius"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:valueFrom="0"
+                        android:valueTo="7000"
+                        android:value="3500"
+                        app:labelBehavior="gone"
+                        app:thumbColor="#007AFF"
+                        app:thumbRadius="10dp"
+                        app:thumbElevation="4dp"
+                        app:trackHeight="6dp"
+                        app:trackColorActive="#007AFF"
+                        app:trackColorInactive="#E0E0E0"
+                        app:haloColor="#33007AFF" />
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
 
             <fragment
                 android:id="@+id/mapResults"
@@ -595,62 +616,211 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent" />
 
-            <!-- Map Marker Detail Card (Simplified) -->
+            <!-- Map Marker Detail Card (Zigzag Style) -->
             <androidx.cardview.widget.CardView
                 android:id="@+id/cardMapProperty"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_gravity="bottom|center_horizontal"
-                android:layout_margin="24dp"
+                android:layout_gravity="bottom"
+                android:layout_margin="12dp"
                 android:visibility="gone"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="15dp">
+                app:cardCornerRadius="20dp"
+                app:cardElevation="15dp"
+                tools:visibility="visible">
 
-                <LinearLayout
-                    android:layout_width="wrap_content"
+                <RelativeLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:background="@color/theme1_bg"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal"
-                    android:paddingHorizontal="16dp"
-                    android:paddingVertical="12dp">
+                    android:padding="0dp">
 
-                    <TextView
-                        android:id="@+id/tvMapPropertyPrice"
-                        android:layout_width="wrap_content"
+                    <!-- Zigzag Preview Content -->
+                    <androidx.constraintlayout.widget.ConstraintLayout
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:textColor="?attr/colorPrimary"
-                        android:textSize="20sp"
-                        android:textStyle="bold"
-                        tools:text="₹ 28,000" />
+                        android:paddingTop="8dp"
+                        android:paddingBottom="16dp"
+                        android:minHeight="190dp"
+                        android:clipChildren="false">
 
-                    <View
-                        android:layout_width="1dp"
-                        android:layout_height="24dp"
-                        android:layout_marginHorizontal="12dp"
-                        android:background="#D0D0D0" />
+                        <View
+                            android:id="@+id/bgCardPopup"
+                            android:layout_width="0dp"
+                            android:layout_height="0dp"
+                            android:layout_marginStart="80dp"
+                            android:background="@drawable/bg_zigzag_card"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintEnd_toEndOf="parent"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toTopOf="parent" />
 
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnMapExplore"
-                        style="@style/Widget.Material3.Button.TonalButton"
-                        android:layout_width="wrap_content"
-                        android:layout_height="36dp"
-                        android:insetTop="0dp"
-                        android:insetBottom="0dp"
-                        android:paddingHorizontal="12dp"
-                        android:text="Explore"
-                        android:textSize="12sp"
-                        app:cornerRadius="8dp" />
+                        <LinearLayout
+                            android:id="@+id/llBadgeMap"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical"
+                            android:background="@drawable/bg_badge_left"
+                            android:paddingStart="12dp"
+                            android:paddingEnd="16dp"
+                            android:paddingVertical="8dp"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toTopOf="@id/llContentMap">
+                            <TextView
+                                android:id="@+id/tvMapPropertyType"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textSize="12sp"
+                                android:textStyle="bold"
+                                android:textColor="#E53935"
+                                tools:text="APARTMENT" />
+                        </LinearLayout>
+
+                        <com.google.android.material.card.MaterialCardView
+                            android:id="@+id/cardMapImage"
+                            android:layout_width="120dp"
+                            android:layout_height="120dp"
+                            android:layout_marginStart="8dp"
+                            android:layout_marginTop="28dp"
+                            app:cardCornerRadius="60dp"
+                            app:cardElevation="10dp"
+                            app:strokeWidth="1dp"
+                            app:strokeColor="?attr/colorPrimary"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toTopOf="@id/bgCardPopup">
+                            <ImageView
+                                android:id="@+id/ivMapProperty"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:scaleType="centerCrop"
+                                tools:src="@drawable/ic_app_logo" />
+                        </com.google.android.material.card.MaterialCardView>
+
+                        <LinearLayout
+                            android:id="@+id/llContentMap"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="135dp"
+                            android:layout_marginEnd="12dp"
+                            android:orientation="vertical"
+                            android:paddingVertical="8dp"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintEnd_toEndOf="parent"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toTopOf="parent">
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="horizontal"
+                                android:gravity="center_vertical">
+                                <TextView
+                                    android:id="@+id/tvMapPropertyPrice"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:textColor="?attr/colorPrimary"
+                                    android:textSize="16sp"
+                                    android:textStyle="bold"
+                                    tools:text="₹ 28,000" />
+                                <TextView
+                                    android:id="@+id/tvMapPropertyTitle"
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_weight="1"
+                                    android:gravity="end"
+                                    android:textColor="#37474F"
+                                    android:textSize="13sp"
+                                    android:textStyle="bold"
+                                    android:maxLines="1"
+                                    android:ellipsize="end"
+                                    tools:text="SKYLINE APARTMENT" />
+                            </LinearLayout>
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="4dp"
+                                android:orientation="horizontal">
+                                <TextView
+                                    android:id="@+id/tvMapPropertyBath"
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_weight="1"
+                                    android:textColor="#616161"
+                                    android:textSize="12sp"
+                                    android:textStyle="bold"
+                                    tools:text="2 Bath" />
+                                <TextView
+                                    android:id="@+id/tvMapPropertyArea"
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_weight="1"
+                                    android:gravity="end"
+                                    android:textColor="#616161"
+                                    android:textSize="12sp"
+                                    android:textStyle="bold"
+                                    tools:text="1300 Sqft" />
+                            </LinearLayout>
+
+                            <TextView
+                                android:id="@+id/tvMapPropertyLocation"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="4dp"
+                                android:gravity="center"
+                                android:textColor="#757575"
+                                android:textSize="11sp"
+                                tools:text="Model Town, Mumbai" />
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="4dp"
+                                android:orientation="horizontal">
+                                <TextView
+                                    android:id="@+id/tvMapPropertyBhk"
+                                    style="@style/App.BhkTag"
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_weight="1"
+                                    android:gravity="center"
+                                    tools:text="2 BHK" />
+                                <Space android:layout_width="4dp" android:layout_height="wrap_content" />
+                                <TextView
+                                    android:id="@+id/tvMapPropertyFacing"
+                                    style="@style/App.BhkTag"
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_weight="1"
+                                    android:gravity="center"
+                                    tools:text="East" />
+                            </LinearLayout>
+
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnMapExplore"
+                                style="@style/Widget.Material3.Button.TonalButton"
+                                android:layout_width="match_parent"
+                                android:layout_height="32dp"
+                                android:layout_marginTop="8dp"
+                                android:text="Explore Property"
+                                android:textSize="10sp"
+                                android:insetTop="0dp"
+                                android:insetBottom="0dp"
+                                app:cornerRadius="8dp" />
+                        </LinearLayout>
+                    </androidx.constraintlayout.widget.ConstraintLayout>
 
                     <ImageButton
                         android:id="@+id/btnMapCloseCard"
                         android:layout_width="32dp"
                         android:layout_height="32dp"
-                        android:layout_marginStart="8dp"
+                        android:layout_alignParentEnd="true"
+                        android:layout_alignParentTop="true"
+                        android:layout_margin="4dp"
                         android:background="?attr/selectableItemBackgroundBorderless"
                         android:src="@android:drawable/ic_menu_close_clear_cancel"
                         app:tint="@color/pending_gray" />
-                </LinearLayout>
+                </RelativeLayout>
             </androidx.cardview.widget.CardView>
         </FrameLayout>
 

@@ -17,10 +17,12 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="Address Line 1"
+            app:boxBackgroundMode="outline"
+            app:boxBackgroundColor="?android:attr/windowBackground"
             app:layout_constraintTop_toTopOf="parent">
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/etAddress1"
-                style="@style/App.EditText.Style.Compact"
+                style="@style/App.TextInputEditText.Style"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:inputType="textPostalAddress" />
@@ -33,10 +35,12 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:hint="Address Line 2 (Optional)"
+            app:boxBackgroundMode="outline"
+            app:boxBackgroundColor="?android:attr/windowBackground"
             app:layout_constraintTop_toBottomOf="@id/tilAddress1">
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/etAddress2"
-                style="@style/App.EditText.Style.Compact"
+                style="@style/App.TextInputEditText.Style"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:inputType="textPostalAddress" />
@@ -58,10 +62,12 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:layout_marginEnd="4dp"
+                app:boxBackgroundMode="outline"
+                app:boxBackgroundColor="?android:attr/windowBackground"
                 android:hint="Zip Code">
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etZipCode"
-                    style="@style/App.EditText.Style.Compact"
+                    style="@style/App.TextInputEditText.Style"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:inputType="number" />
@@ -74,10 +80,12 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:layout_marginHorizontal="4dp"
+                app:boxBackgroundMode="outline"
+                app:boxBackgroundColor="?android:attr/windowBackground"
                 android:hint="City">
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etCity"
-                    style="@style/App.EditText.Style.Compact"
+                    style="@style/App.TextInputEditText.Style"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:inputType="text" />
@@ -90,10 +98,12 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:layout_marginStart="4dp"
+                app:boxBackgroundMode="outline"
+                app:boxBackgroundColor="?android:attr/windowBackground"
                 android:hint="State">
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etState"
-                    style="@style/App.EditText.Style.Compact"
+                    style="@style/App.TextInputEditText.Style"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:inputType="text" />

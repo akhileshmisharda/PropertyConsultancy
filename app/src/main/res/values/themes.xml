@@ -130,6 +130,14 @@
         <item name="android:textSize">14sp</item>
     </style>
 
+    <style name="App.TextInputEditText.Style" parent="Widget.Material3.TextInputEditText.OutlinedBox">
+        <item name="android:background">@null</item>
+        <item name="android:paddingTop">12dp</item>
+        <item name="android:paddingBottom">12dp</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:fontFamily">@font/figtree</item>
+    </style>
+
     <!-- Modern Sans Typography for Navigation -->
     <style name="App.BottomNav.TextAppearance" parent="TextAppearance.Material3.LabelSmall">
         <item name="android:textStyle">normal</item>

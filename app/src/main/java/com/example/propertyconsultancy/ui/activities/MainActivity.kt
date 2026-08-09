@@ -19,8 +19,14 @@ import com.example.propertyconsultancy.ui.fragments.PropertyExploreFragment
 import com.example.propertyconsultancy.ui.fragments.ChatFragment
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import android.widget.ImageButton
+import android.widget.ImageView
 import android.widget.Toast
 import android.view.View
+import android.net.ConnectivityManager
+import android.net.Network
+import android.net.NetworkCapabilities
+import android.net.NetworkRequest
+import android.net.TrafficStats
 import androidx.lifecycle.lifecycleScope
 import com.example.propertyconsultancy.data.cache.CategoryCache
 import com.example.propertyconsultancy.data.remote.RetrofitInstance
@@ -33,7 +39,17 @@ class MainActivity : BaseActivity() {
     private lateinit var tvHeaderTitle: android.widget.TextView
     private lateinit var btnHeaderBack: android.widget.ImageButton
     private lateinit var btnHeaderToggleHints: android.widget.ImageButton
+    private lateinit var ivNetworkStatus: android.widget.ImageView
+    private lateinit var layoutNetworkSpeed: View
+    private lateinit var tvDownloadSpeed: android.widget.TextView
+    private lateinit var tvUploadSpeed: android.widget.TextView
     private lateinit var ivHudHintHeader: android.widget.ImageView
+
+    private var networkCallback: ConnectivityManager.NetworkCallback? = null
+    private val speedHandler = android.os.Handler(android.os.Looper.getMainLooper())
+    private var lastRxBytes: Long = 0
+    private var lastTxBytes: Long = 0
+    private var isSpeedTimerRunning = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -51,8 +67,13 @@ class MainActivity : BaseActivity() {
         tvHeaderTitle = findViewById(R.id.tvHeaderTitle)
         btnHeaderBack = findViewById(R.id.btnHeaderBack)
         btnHeaderToggleHints = findViewById(R.id.btnHeaderToggleHints)
+        ivNetworkStatus = findViewById(R.id.ivNetworkStatus)
+        layoutNetworkSpeed = findViewById(R.id.layoutNetworkSpeed)
+        tvDownloadSpeed = findViewById(R.id.tvDownloadSpeed)
+        tvUploadSpeed = findViewById(R.id.tvUploadSpeed)
         ivHudHintHeader = findViewById(R.id.ivHudHintHeader)
         
+        setupNetworkListener()
         updateHintToggleIcon()
         fetchCategories()
         
@@ -120,7 +141,7 @@ class MainActivity : BaseActivity() {
                 R.id.nav_listing -> { updateTitle("Listings"); loadFragment(SearchFragment(), "listing"); true }
                 R.id.nav_upgrade -> { 
                     updateTitle("Premium")
-                    Toast.makeText(this, "Premium features coming soon!", Toast.LENGTH_SHORT).show()
+                    loadFragment(com.example.propertyconsultancy.ui.fragments.UpgradeFragment(), "upgrade")
                     true 
                 }
                 else -> false
@@ -152,6 +173,95 @@ class MainActivity : BaseActivity() {
 
     fun updateTitle(title: String) {
         tvHeaderTitle.text = title
+    }
+
+    private fun setupNetworkListener() {
+        val cm = getSystemService(ConnectivityManager::class.java)
+        networkCallback = object : ConnectivityManager.NetworkCallback() {
+            override fun onAvailable(network: Network) {
+                runOnUiThread {
+                    ivNetworkStatus.setImageResource(R.drawable.ic_network_on)
+                    layoutNetworkSpeed.visibility = View.VISIBLE
+                    startSpeedMonitor()
+                    ivNetworkStatus.animate().alpha(1f).scaleX(1.1f).scaleY(1.1f).setDuration(200).withEndAction {
+                        ivNetworkStatus.animate().scaleX(1f).scaleY(1f).setDuration(200).start()
+                    }.start()
+                }
+            }
+
+            override fun onLost(network: Network) {
+                runOnUiThread {
+                    ivNetworkStatus.setImageResource(R.drawable.ic_network_off)
+                    layoutNetworkSpeed.visibility = View.GONE
+                    stopSpeedMonitor()
+                    ivNetworkStatus.animate().alpha(0.5f).setDuration(500).start()
+                    Toast.makeText(this@MainActivity, "Connection Lost", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+        
+        val request = NetworkRequest.Builder()
+            .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+            .build()
+        cm.registerNetworkCallback(request, networkCallback!!)
+        
+        // Initial check
+        val active = cm.activeNetwork
+        val caps = cm.getNetworkCapabilities(active)
+        val isConnected = caps?.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) == true
+        ivNetworkStatus.setImageResource(if (isConnected) R.drawable.ic_network_on else R.drawable.ic_network_off)
+        ivNetworkStatus.alpha = if (isConnected) 1f else 0.5f
+        layoutNetworkSpeed.visibility = if (isConnected) View.VISIBLE else View.GONE
+        if (isConnected) startSpeedMonitor()
+    }
+
+    private fun startSpeedMonitor() {
+        if (isSpeedTimerRunning) return
+        isSpeedTimerRunning = true
+        lastRxBytes = TrafficStats.getTotalRxBytes()
+        lastTxBytes = TrafficStats.getTotalTxBytes()
+        speedHandler.post(speedRunnable)
+    }
+
+    private fun stopSpeedMonitor() {
+        isSpeedTimerRunning = false
+        speedHandler.removeCallbacks(speedRunnable)
+    }
+
+    private val speedRunnable = object : Runnable {
+        override fun run() {
+            val currentRxBytes = TrafficStats.getTotalRxBytes()
+            val currentTxBytes = TrafficStats.getTotalTxBytes()
+            
+            val rxSpeed = currentRxBytes - lastRxBytes
+            val txSpeed = currentTxBytes - lastTxBytes
+            
+            tvDownloadSpeed.text = "${formatSpeed(rxSpeed)} ↓"
+            tvUploadSpeed.text = "${formatSpeed(txSpeed)} ↑"
+            
+            lastRxBytes = currentRxBytes
+            lastTxBytes = currentTxBytes
+            
+            if (isSpeedTimerRunning) {
+                speedHandler.postDelayed(this, 1000)
+            }
+        }
+    }
+
+    private fun formatSpeed(bytes: Long): String {
+        val kb = bytes / 1024
+        return when {
+            kb >= 1024 -> String.format(java.util.Locale.US, "%.1f MB/s", kb / 1024f)
+            else -> "$kb KB/s"
+        }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        stopSpeedMonitor()
+        networkCallback?.let { 
+            getSystemService(ConnectivityManager::class.java).unregisterNetworkCallback(it) 
+        }
     }
 
     private fun fetchCategories() {

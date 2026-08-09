@@ -23,12 +23,14 @@ class PropertyAmenitiesFragment : Fragment() {
     private lateinit var lvAvailableAmenities: ListView
     private lateinit var lvSelectedAmenities: ListView
     private lateinit var tvSelectedCount: TextView
+    private lateinit var etSearchAmenities: EditText
     
     private val fullAmenitiesList = mutableListOf<AmenityDTO>()
     private val selectedAmenityIds = mutableListOf<Int>()
     private val collapsedCategories = mutableSetOf<String>()
     private val collapsedCategoriesSelected = mutableSetOf<String>()
     
+    private var searchQuery: String = ""
     private var pendingAmenityIds: List<Int>? = null
     private lateinit var availableAdapter: AmenityListAdapter
     private lateinit var selectedAdapter: AmenityListAdapter
@@ -42,9 +44,22 @@ class PropertyAmenitiesFragment : Fragment() {
         lvAvailableAmenities = view.findViewById(R.id.lvAvailableAmenities)
         lvSelectedAmenities = view.findViewById(R.id.lvSelectedAmenities)
         tvSelectedCount = view.findViewById(R.id.tvSelectedCount)
+        etSearchAmenities = view.findViewById(R.id.etSearchAmenities)
 
         setupAmenitiesSelector()
+        setupSearchListener()
         fetchAmenities()
+    }
+
+    private fun setupSearchListener() {
+        etSearchAmenities.addTextChangedListener(object : android.text.TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+            override fun afterTextChanged(s: android.text.Editable?) {
+                searchQuery = s.toString().lowercase().trim()
+                refreshUI()
+            }
+        })
     }
 
     private fun setupAmenitiesSelector() {
@@ -92,14 +107,17 @@ class PropertyAmenitiesFragment : Fragment() {
     private fun refreshUI() {
         // 1. Prepare Available List (Categorized)
         val availableItems = mutableListOf<AmenityListItem>()
-        val availableAmenities = fullAmenitiesList.filter { !selectedAmenityIds.contains(it.amenityId) }
+        val availableAmenities = fullAmenitiesList.filter { 
+            !selectedAmenityIds.contains(it.amenityId) && 
+            (searchQuery.isEmpty() || it.name.lowercase().contains(searchQuery) || (it.category?.lowercase()?.contains(searchQuery) == true))
+        }
 
         val groupedAvailable = availableAmenities.groupBy { it.category ?: "Others" }
         groupedAvailable.toSortedMap().forEach { (category, amenities) ->
             val isCollapsed = collapsedCategories.contains(category)
             availableItems.add(AmenityListItem(name = category.uppercase(), category = category, isHeader = true, isCollapsed = isCollapsed))
             
-            if (!isCollapsed) {
+            if (!isCollapsed || searchQuery.isNotEmpty()) {
                 amenities.sortedBy { it.name }.forEach { amenity ->
                     availableItems.add(AmenityListItem(id = amenity.amenityId, name = amenity.name, category = category))
                 }

@@ -82,7 +82,15 @@ class SearchFragment : Fragment(), OnMapReadyCallback {
     private lateinit var layoutMapContainer: View
     
     private lateinit var cardMapProperty: View
+    private lateinit var ivMapProperty: ImageView
+    private lateinit var tvMapPropertyTitle: TextView
     private lateinit var tvMapPropertyPrice: TextView
+    private lateinit var tvMapPropertyType: TextView
+    private lateinit var tvMapPropertyBath: TextView
+    private lateinit var tvMapPropertyArea: TextView
+    private lateinit var tvMapPropertyLocation: TextView
+    private lateinit var tvMapPropertyBhk: TextView
+    private lateinit var tvMapPropertyFacing: TextView
     private lateinit var btnMapExplore: com.google.android.material.button.MaterialButton
     private lateinit var btnMapCloseCard: View
     
@@ -258,7 +266,15 @@ class SearchFragment : Fragment(), OnMapReadyCallback {
         }
         
         cardMapProperty = view.findViewById(R.id.cardMapProperty)
+        ivMapProperty = view.findViewById(R.id.ivMapProperty)
+        tvMapPropertyTitle = view.findViewById(R.id.tvMapPropertyTitle)
         tvMapPropertyPrice = view.findViewById(R.id.tvMapPropertyPrice)
+        tvMapPropertyType = view.findViewById(R.id.tvMapPropertyType)
+        tvMapPropertyBath = view.findViewById(R.id.tvMapPropertyBath)
+        tvMapPropertyArea = view.findViewById(R.id.tvMapPropertyArea)
+        tvMapPropertyLocation = view.findViewById(R.id.tvMapPropertyLocation)
+        tvMapPropertyBhk = view.findViewById(R.id.tvMapPropertyBhk)
+        tvMapPropertyFacing = view.findViewById(R.id.tvMapPropertyFacing)
         btnMapExplore = view.findViewById(R.id.btnMapExplore)
         btnMapCloseCard = view.findViewById(R.id.btnMapCloseCard)
         
@@ -377,10 +393,36 @@ class SearchFragment : Fragment(), OnMapReadyCallback {
         showHintAtView(btnToggleViewMode, "Switched to $mode View", HintPointer.DOWN)
         sessionManager.addActivityLog("View Mode", "Switched to $mode view", "map")
         
-        // Re-fetch to handle different page sizes between Map (all) and List (paged)
-        if (viewModel.lastSearchCity.isNotEmpty()) {
-            performSearch(viewModel.lastSearchCity)
+        if (isMapView) {
+            // Re-fetch to get all properties (higher limit) for map visualization
+            if (viewModel.lastSearchCity.isNotEmpty()) {
+                performSearch(viewModel.lastSearchCity)
+            }
+        } else {
+            // When switching to List, apply the radius filter from the map to the adapter
+            applyRadiusFilterToList()
         }
+    }
+
+    private fun applyRadiusFilterToList() {
+        val map = googleMap ?: return
+        val center = map.cameraPosition.target
+        val radiusMeters = if (::sliderRadius.isInitialized) sliderRadius.value.toDouble() else 7000.0
+        
+        val filtered = viewModel.searchResults.filter { property ->
+            val lat = property.latitude
+            val lng = property.longitude
+            if (lat != null && lng != null) {
+                calculateDistance(center, LatLng(lat, lng)) <= radiusMeters
+            } else false
+        }
+        
+        propertyAdapter.updateData(filtered)
+        updateSearchSummary(filtered.size)
+    }
+
+    private fun updateSearchSummary(count: Int) {
+        tvSearchSummary.text = "Search in ${viewModel.lastSearchCity} ($count)"
     }
 
     private fun updateViewModeVisibility() {
@@ -435,6 +477,7 @@ class SearchFragment : Fragment(), OnMapReadyCallback {
         }
         
         tvRadiusCount.text = "$visibleCount Properties"
+        updateSearchSummary(visibleCount)
     }
 
     private fun calculateDistance(p1: com.google.android.gms.maps.model.LatLng, p2: com.google.android.gms.maps.model.LatLng): Float {
@@ -509,8 +552,34 @@ class SearchFragment : Fragment(), OnMapReadyCallback {
     }
 
     private fun showPropertyOnMapCard(property: com.example.propertyconsultancy.data.dto.PropertyDTO) {
+        val ctx = context ?: return
+        tvMapPropertyTitle.text = property.title?.uppercase()
         val formatter = java.text.DecimalFormat("#,###")
         tvMapPropertyPrice.text = "₹ ${formatter.format(property.pricePerMonth ?: 0.0)}"
+        
+        tvMapPropertyBath.text = "${property.bathrooms?.toInt() ?: 0} Bath"
+        tvMapPropertyArea.text = "${property.areaSqft} Sqft"
+        tvMapPropertyBhk.text = "${property.bedrooms} BHK"
+        
+        val locationText = buildString {
+            if (!property.addressLine2.isNullOrEmpty()) append("${property.addressLine2}, ")
+            append(property.city ?: "")
+        }
+        tvMapPropertyLocation.text = locationText
+
+        val categories = CategoryCache.getCategories(ctx)
+        fun getOptionName(ids: List<Int>?, group: String): String {
+            if (ids.isNullOrEmpty()) return "N/A"
+            val options = categories?.find { it.name.contains(group, true) }?.options
+            return options?.find { it.categoryId == ids.first() }?.option ?: "ID: ${ids.first()}"
+        }
+        
+        tvMapPropertyType.text = getOptionName(property.proTypeId?.let { listOf(it) }, "Type").uppercase()
+        tvMapPropertyFacing.text = getOptionName(property.facingId?.let { listOf(it) }, "Facing")
+        
+        val imageUrl = property.media?.firstOrNull()?.fileUrl ?: property.mediaUrls?.firstOrNull()
+        
+        ivMapProperty.load(UrlUtils.getPropertyImageUrl(imageUrl) ?: R.drawable.ic_app_logo)
         
         btnMapExplore.setOnClickListener {
             (activity as? MainActivity)?.openPropertyExplore(property)
@@ -810,7 +879,7 @@ class SearchFragment : Fragment(), OnMapReadyCallback {
         tvToggleFilters.text = if (viewModel.isFold1Visible) "Hide Filters ▲" else "Show Filters ▼"
         tvToggleFold2.text = if (viewModel.isFold2Visible) "Basic Only ▲" else "Advanced Selection ▼"
         
-        tvSearchSummary.text = "Search in ${viewModel.lastSearchCity} (${viewModel.totalCount})"
+        updateSearchSummary(viewModel.totalCount)
     }
 
     private fun updateFilterHints() {

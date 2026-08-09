@@ -15,7 +15,17 @@
             android:layout_height="?attr/actionBarSize"
             android:background="@color/theme1_bg"
             app:title="AI Area Intelligence"
-            app:titleTextColor="@color/theme1_text" />
+            app:navigationIcon="@drawable/ic_back"
+            app:titleTextColor="@color/theme1_text">
+            <ImageButton
+                android:id="@+id/btnBack"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@drawable/ic_back"
+                app:tint="@color/theme1_text"
+                android:visibility="gone" />
+        </com.google.android.material.appbar.MaterialToolbar>
     </com.google.android.material.appbar.AppBarLayout>
 
     <androidx.core.widget.NestedScrollView
@@ -48,10 +58,11 @@
                         android:textStyle="bold"
                         android:textColor="#3F51B5" />
                     <TextView
+                        android:id="@+id/tvSocialInsight"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
-                        android:text="Vibrant community with active social clubs. Weekend markets and cultural events are common in nearby parks."
+                        android:text="AI Analysis: Neighborhood vibe and social connectivity based on property location."
                         android:textColor="@color/theme1_text" />
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
@@ -76,10 +87,11 @@
                         android:textStyle="bold"
                         android:textColor="#4CAF50" />
                     <TextView
+                        android:id="@+id/tvSecurityInsight"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
-                        android:text="Highly secured area with 24/7 patrol. Crime rate is 40% lower than the city average."
+                        android:text="AI Analysis: Security index and area safety assessment."
                         android:textColor="@color/theme1_text" />
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
@@ -104,10 +116,11 @@
                         android:textStyle="bold"
                         android:textColor="#E91E63" />
                     <TextView
+                        android:id="@+id/tvPriceInsight"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
-                        android:text="Prices in this area have grown by 12% in the last 2 years. High demand for rentals due to proximity to the tech hub."
+                        android:text="AI Analysis: Market trends and investment potential for this specific property."
                         android:textColor="@color/theme1_text" />
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
